@@ -1,4 +1,4 @@
-# YAVE (Yet Another Vulkan Engine) #
+# YAVE (**Y**et **A**nother **V**ulkan **E**ngine) #
 
 Yes, another Vulkan enigne. 
 
@@ -12,7 +12,7 @@ Yes, YAVE works across multi-platforms - currently tested on Linux, MacOS, Windo
 
 ## Building ##
 
-YAVE utilises the package manager (Conan)[https://docs.conan.io/2/] to try and make the configuration and build process as pain-free as possible.  
+YAVE utilises the package manager [Conan](https://docs.conan.io/2/) to try and make the configuration and build process as pain-free as possible.  
 
 To begin with, you will need to download Conan using pip if not already present on your system:
 
@@ -20,7 +20,7 @@ To begin with, you will need to download Conan using pip if not already present 
 $ pip install conan --user
 ```
 
-**Note:** Python3.x is required to use Conan. If pip isn't installed on your system, information on installing can be found (here)[https://pip.pypa.io/en/stable/installation/] 
+**Note:** Python3.x is required to use Conan. If pip isn't installed on your system, information on installing can be found [here](https://pip.pypa.io/en/stable/installation/) 
 **Note:** A minimum version of Conan 1.53.0 is required due to recipe requirements in the Conan Center.
 
 To setup your system for use with the YAVE library run:
@@ -53,7 +53,7 @@ $ cmake --build . --config Release
 Xcode and Visual Studio users can open up the .xcodeconfig and .sln files using the respective IDE.
 
 
-## Features to add / Issue to address ##
+## Features to add / Issues to address ##
 
 In some order of priority... maybe.
 
@@ -83,4 +83,4 @@ Many thanks to the authors of the following third-party libraries which are used
 
 ## Assets ##
 
-At present, the assets are cloned from the Khronos asset repository which can be found (here)[https://github.com/KhronosGroup/Vulkan-Samples-Assets]. This includes all licenses and are only used for testing the engine. In the future, I will add just a select few assets though would prefer to host them somewhere ouside of this repo to keep git clone times reasonable.
+At present, the assets are cloned from the Khronos asset repository which can be found [here](https://github.com/KhronosGroup/Vulkan-Samples-Assets). This includes all licenses and are only used for testing the engine. In the future, I will add just a select few assets though would prefer to host them somewhere ouside of this repo to keep git clone times reasonable.
