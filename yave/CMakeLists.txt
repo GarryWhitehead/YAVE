@@ -114,10 +114,9 @@ target_link_libraries(
 
     vectorial::vectorial
     mathfu::mathfu
-    TBB::TBB
+    TBB::tbb
     spdlog::spdlog
     ${glfw3_LIBRARIES}
-    # this should be removed once the dependency on engine is sorted
     YaveApp
 )
 
