@@ -20,8 +20,8 @@ To begin with, you will need to download Conan using pip if not already present 
 $ pip install conan --user
 ```
 
-**Note:** Python3.x is required to use Conan. If pip isn't installed on your system, information on installing can be found [here](https://pip.pypa.io/en/stable/installation/) 
-**Note:** A minimum version of Conan 1.53.0 is required due to recipe requirements in the Conan Center.
+**Note:** Python3.x is required to use Conan. If pip isn't installed on your system, information on installing can be found [here](https://pip.pypa.io/en/stable/installation/)    
+**Note:** A minimum version of Conan 1.53.0 is required due to recipe requirements in the Conan Center.    
 
 To setup your system for use with the YAVE library run:
 
@@ -42,7 +42,7 @@ Now run cmake to create the configuration files:
 $ cmake .. -DCMAKE_TOOLCHAIN_FILE="Conan/conan_toolchain.cmake" -G "Unix Makefiles"
 ```
 
-**Note:** You can replace `Unix Makefiles` with whichever generator you wish to use.
+**Note:** You can replace `Unix Makefiles` with whichever generator you wish to use.    
 
 Then assuming you generated makefiles, you can build all libraries/exectuables using:
 
