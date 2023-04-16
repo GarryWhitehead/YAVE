@@ -114,56 +114,62 @@ vk::BlendOp blendOpToVk(backend::BlendOp op)
 
 vk::SamplerAddressMode samplerAddrModeToVk(SamplerAddressMode mode) 
 {
+    vk::SamplerAddressMode output;
     switch (mode)
     {
         case backend::SamplerAddressMode::Repeat:
-            return vk::SamplerAddressMode::eRepeat;
+            output = vk::SamplerAddressMode::eRepeat;
             break;
         case backend::SamplerAddressMode::MirroredRepeat:
-            return vk::SamplerAddressMode::eMirroredRepeat;
+            output = vk::SamplerAddressMode::eMirroredRepeat;
             break;
         case backend::SamplerAddressMode::ClampToEdge:
-            return vk::SamplerAddressMode::eClampToEdge;
+            output = vk::SamplerAddressMode::eClampToEdge;
             break;
         case backend::SamplerAddressMode::ClampToBorder:
-            return vk::SamplerAddressMode::eClampToBorder;
+            output = vk::SamplerAddressMode::eClampToBorder;
             break;
         case backend::SamplerAddressMode::MirrorClampToEdge:
-            return vk::SamplerAddressMode::eMirrorClampToEdge;
+            output = vk::SamplerAddressMode::eMirrorClampToEdge;
             break;
     }
+    return output;
 }
 
 vk::Filter samplerFilterToVk(SamplerFilter filter)
 {
+    vk::Filter output;
     switch (filter)
     {
         case backend::SamplerFilter::Nearest:
-            return vk::Filter::eNearest;
+            output = vk::Filter::eNearest;
             break;
         case backend::SamplerFilter::Linear:
-            return vk::Filter::eLinear;
+            output = vk::Filter::eLinear;
             break;
         case backend::SamplerFilter::Cubic:
-            return vk::Filter::eCubicIMG;
+            output = vk::Filter::eCubicIMG;
             break;
     }
+    return output;
 }
 
 vk::CullModeFlagBits cullModeToVk(CullMode mode)
 {
+    vk::CullModeFlagBits output;
     switch (mode)
     {
         case backend::CullMode::Back:
-            return vk::CullModeFlagBits::eBack;
+            output = vk::CullModeFlagBits::eBack;
             break;
         case backend::CullMode::Front:
-            return vk::CullModeFlagBits::eFront;
+            output = vk::CullModeFlagBits::eFront;
             break;
         case backend::CullMode::None:
-            return vk::CullModeFlagBits::eNone;
+            output = vk::CullModeFlagBits::eNone;
             break;
     }
+    return output;
 }
 
 vk::CompareOp compareOpToVk(CompareOp op)

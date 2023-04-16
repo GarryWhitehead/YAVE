@@ -108,11 +108,11 @@ private:
 namespace std
 {
 template <>
-struct std::hash<util::CString>
+struct hash<util::CString>
 {
     size_t operator()(util::CString const& str) const noexcept
     {
-        return (std::hash<const char*>()(str.c_str()));
+        return (hash<const char*>()(str.c_str()));
     }
 };
 } // namespace std

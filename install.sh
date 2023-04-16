@@ -26,14 +26,13 @@ else
     echo -e "\nYou need to pip install conan before running this script and ensure the PATH is set."
 fi
 
-# Build the packages that are not found on the Conan center and are instead
-# hosted in this repo.
+# Build the packages that are not found on the Conan center or have issues with our buildystem (dependency clashes, etc.)
 conan_recipe_path="conan/recipes"
 if [ ! -d $conan_recipe_path ]; then
     echo -e "\nNo Conan recipe folder found at $conan_recipe_path. Skipping building additional conan packages."
 else
-    echo -e "\nBuilding package: jsmn/1.1.0...."
-    conan create $conan_recipe_path/jsmn 1.1.0@ -pr:b=default -pr:h=default 
+    echo -e "\nBuilding package: libshaderc...."
+    conan create $conan_recipe_path/shaderc/all 2021.1@ -pr:b=default -pr:h=default --build=missing
 fi
 
 # Download the vulkan assets package
