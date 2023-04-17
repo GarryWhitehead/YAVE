@@ -61,15 +61,15 @@ ISkybox::ISkybox(IEngine& engine)
 void ISkybox::buildI(ICamera& cam)
 {
     // cube vertices
-    const std::array<mathfu::vec3, 8> vertices {
-        mathfu::vec3 {-1.0f, -1.0f, 1.0f},
-        mathfu::vec3 {1.0f, -1.0f, 1.0f},
-        mathfu::vec3 {1.0f, 1.0f, 1.0f},
-        mathfu::vec3 {-1.0f, 1.0f, 1.0f},
-        mathfu::vec3 {-1.0f, -1.0f, -1.0f},
-        mathfu::vec3 {1.0f, -1.0f, -1.0f},
-        mathfu::vec3 {1.0f, 1.0f, -1.0f},
-        mathfu::vec3 {-1.0f, 1.0f, -1.0f}};
+    const std::array<float, 24> vertices {
+        -1.0f, -1.0f, 1.0f,
+        1.0f, -1.0f, 1.0f,
+        1.0f, 1.0f, 1.0f,
+        -1.0f, 1.0f, 1.0f,
+        -1.0f, -1.0f, -1.0f,
+        1.0f, -1.0f, -1.0f,
+        1.0f, 1.0f, -1.0f,
+        -1.0f, 1.0f, -1.0f};
 
     // cube indices
     // clang-format off
@@ -109,7 +109,7 @@ void ISkybox::buildI(ICamera& cam)
     vBuffer->addAttribute(
         VertexBuffer::BindingType::Position,
         backend::BufferElementType::Float3);
-    vBuffer->buildI(driver, vertices.size() * sizeof(mathfu::vec3), (void*)vertices.data());
+    vBuffer->buildI(driver, vertices.size() * sizeof(float), (void*)vertices.data());
     iBuffer->buildI(
         driver, indices.size(), (void*)indices.data(), backend::IndexBufferType::Uint32);
     prim->addMeshDrawDataI(indices.size(), 0);
