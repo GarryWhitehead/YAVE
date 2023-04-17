@@ -31,28 +31,25 @@
 #include "texture.h"
 #include "utility.h"
 
-#include <utility/assertion.h>
-
 #include <spdlog/spdlog.h>
+#include <utility/assertion.h>
 
 namespace vkapi
 {
 
 PipelineCache::PipelineCache(VkContext& context, VkDriver& driver)
-    : context_(context),
-      driver_(driver),
-      currentDescPoolSize_(InitialDescriptorPoolSize)
+    : context_(context), driver_(driver), currentDescPoolSize_(InitialDescriptorPoolSize)
 {
     setPipelineKeyToDefault();
 }
 
 PipelineCache::~PipelineCache() {}
 
-bool PipelineCache::PipelineKey::operator==(const PipelineKey& rhs) const noexcept 
+bool PipelineCache::PipelineKey::operator==(const PipelineKey& rhs) const noexcept
 {
     // this compare could be one big memcpy but for debugging purposes its
     // easier to split the comparisons into their component parts.
-    if(memcmp(&rasterState, &rhs.rasterState, sizeof(RasterStateBlock)) != 0)
+    if (memcmp(&rasterState, &rhs.rasterState, sizeof(RasterStateBlock)) != 0)
     {
         return false;
     }
@@ -86,8 +83,7 @@ bool PipelineCache::DescriptorKey::operator==(const DescriptorKey& rhs) const no
 {
     for (int idx = 0; idx < MaxUboBindCount; ++idx)
     {
-        if (ubos[idx] != rhs.ubos[idx] ||
-            bufferSizes[idx] != rhs.bufferSizes[idx])
+        if (ubos[idx] != rhs.ubos[idx] || bufferSizes[idx] != rhs.bufferSizes[idx])
         {
             return false;
         }
@@ -102,8 +98,7 @@ bool PipelineCache::DescriptorKey::operator==(const DescriptorKey& rhs) const no
     }
     for (int idx = 0; idx < MaxSsboBindCount; ++idx)
     {
-        if (ssbos[idx] != rhs.ssbos[idx] ||
-            ssboBufferSizes[idx] != rhs.ssboBufferSizes[idx])
+        if (ssbos[idx] != rhs.ssbos[idx] || ssboBufferSizes[idx] != rhs.ssboBufferSizes[idx])
         {
             return false;
         }
@@ -158,9 +153,8 @@ void PipelineCache::setPipelineKeyToDefault() noexcept
     rsBlock.primRestart = VK_FALSE;
     rsBlock.depthTestEnable = VK_FALSE;
     rsBlock.depthWriteEnable = VK_FALSE;
-    rsBlock.colorWriteMask = vk::ColorComponentFlagBits::eR |
-        vk::ColorComponentFlagBits::eG | vk::ColorComponentFlagBits::eB |
-        vk::ColorComponentFlagBits::eA;
+    rsBlock.colorWriteMask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
+        vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
 
     BlendFactorBlock bfBlock = pipelineRequires_.blendState;
     bfBlock.srcColorBlendFactor = vk::BlendFactor::eZero;
@@ -191,8 +185,7 @@ void PipelineCache::setPipelineKeyToDefault() noexcept
     }
 }
 
-void PipelineCache::bindPipeline(
-    vk::CommandBuffer cmdBuffer, PipelineLayout& pipelineLayout)
+void PipelineCache::bindPipeline(vk::CommandBuffer cmdBuffer, PipelineLayout& pipelineLayout)
 {
     // check if the required pipeline is already bound. If so, nothing to do
     // here.
@@ -204,13 +197,11 @@ void PipelineCache::bindPipeline(
     }
 
     Pipeline* pline = findOrCreatePipeline(pipelineLayout);
-    ASSERT_FATAL(
-        pline, "When trying to find or create pipeline, returned nullptr.");
+    ASSERT_FATAL(pline, "When trying to find or create pipeline, returned nullptr.");
 
     pline->lastUsedFrameStamp_ = driver_.getCurrentFrame();
 
-    vk::PipelineBindPoint bindPoint =
-        Pipeline::createBindPoint(pline->getType());
+    vk::PipelineBindPoint bindPoint = Pipeline::createBindPoint(pline->getType());
     cmdBuffer.bindPipeline(bindPoint, pline->get());
 
     boundPipeline_ = pipelineRequires_;
@@ -232,8 +223,7 @@ Pipeline* PipelineCache::findOrCreatePipeline(PipelineLayout& pipelineLayout)
     std::unique_ptr<Pipeline> pline =
         std::make_unique<Pipeline>(context_, Pipeline::Type::Graphics);
     Pipeline* output = pline.get();
-    pline->create(
-        pipelineRequires_, const_cast<PipelineLayout&>(pipelineLayout));
+    pline->create(pipelineRequires_, const_cast<PipelineLayout&>(pipelineLayout));
     pipelines_.emplace(pipelineRequires_, std::move(pline));
 
     return output;
@@ -244,8 +234,7 @@ void PipelineCache::bindShaderModules(ShaderProgramBundle& prog)
     memcpy(
         pipelineRequires_.shaders,
         prog.getShaderStagesCreateInfo().data(),
-        sizeof(vk::PipelineShaderStageCreateInfo) *
-            util::ecast(backend::ShaderStage::Count));
+        sizeof(vk::PipelineShaderStageCreateInfo) * util::ecast(backend::ShaderStage::Count));
 }
 
 void PipelineCache::bindRenderPass(const vk::RenderPass& rpass)
@@ -313,13 +302,11 @@ void PipelineCache::bindVertexInput(
     memcpy(
         pipelineRequires_.vertAttrDesc,
         vertAttrDesc,
-        sizeof(vk::VertexInputAttributeDescription) *
-            PipelineCache::MaxVertexAttributeCount);
+        sizeof(vk::VertexInputAttributeDescription) * PipelineCache::MaxVertexAttributeCount);
     memcpy(
         pipelineRequires_.vertBindDesc,
         vertBindDesc,
-        sizeof(vk::VertexInputBindingDescription) *
-            PipelineCache::MaxVertexAttributeCount);
+        sizeof(vk::VertexInputBindingDescription) * PipelineCache::MaxVertexAttributeCount);
 }
 
 void PipelineCache::bindUbo(uint8_t bindValue, vk::Buffer buffer, uint32_t size)
@@ -333,8 +320,7 @@ void PipelineCache::bindUbo(uint8_t bindValue, vk::Buffer buffer, uint32_t size)
     descRequires_.bufferSizes[bindValue] = size;
 }
 
-void PipelineCache::bindUboDynamic(
-    uint8_t bindValue, vk::Buffer buffer, uint32_t size)
+void PipelineCache::bindUboDynamic(uint8_t bindValue, vk::Buffer buffer, uint32_t size)
 {
     ASSERT_FATAL(
         bindValue < MaxUboDynamicBindCount,
@@ -358,24 +344,19 @@ void PipelineCache::bindSsbo(uint8_t bindValue, vk::Buffer buffer, uint32_t size
     descRequires_.ssboBufferSizes[bindValue] = size;
 }
 
-void PipelineCache::bindScissor(
-    vk::CommandBuffer cmdBuffer, const vk::Rect2D& newScissor)
+void PipelineCache::bindScissor(vk::CommandBuffer cmdBuffer, const vk::Rect2D& newScissor)
 {
     cmdBuffer.setScissor(0, 1, &newScissor);
 }
 
-void PipelineCache::bindViewport(
-    vk::CommandBuffer cmdBuffer, const vk::Viewport& newViewPort)
+void PipelineCache::bindViewport(vk::CommandBuffer cmdBuffer, const vk::Viewport& newViewPort)
 {
     cmdBuffer.setViewport(0, 1, &newViewPort);
 }
 
 void PipelineCache::bindSampler(DescriptorImage descImages[MaxSamplerBindCount])
 {
-    memcpy(
-        &descRequires_.samplers,
-        descImages,
-        sizeof(DescriptorImage) * MaxSamplerBindCount);
+    memcpy(&descRequires_.samplers, descImages, sizeof(DescriptorImage) * MaxSamplerBindCount);
 }
 
 void PipelineCache::bindDescriptors(
@@ -387,8 +368,7 @@ void PipelineCache::bindDescriptors(
     // do here.
     if (boundDescriptor_ == descRequires_)
     {
-        descriptorSets_[boundDescriptor_].frameLastUsed =
-            driver_.getCurrentFrame();
+        descriptorSets_[boundDescriptor_].frameLastUsed = driver_.getCurrentFrame();
         resetKeys();
         return;
     }
@@ -410,8 +390,7 @@ void PipelineCache::bindDescriptors(
         descriptorSets_.emplace(descRequires_, descSetInfo);
     }
 
-    vk::PipelineBindPoint bindPoint =
-        Pipeline::createBindPoint(Pipeline::Type::Graphics);
+    vk::PipelineBindPoint bindPoint = Pipeline::createBindPoint(Pipeline::Type::Graphics);
     cmdBuffer.bindDescriptorSets(
         bindPoint,
         pipelineLayout.get(),
@@ -451,16 +430,15 @@ void PipelineCache::createDescriptorSets(
     std::array<vk::DescriptorBufferInfo, MaxUboBindCount> dynamicBufferInfos;
     std::array<vk::DescriptorBufferInfo, MaxSsboBindCount> ssboInfos;
     std::array<vk::DescriptorImageInfo, MaxSamplerBindCount> samplerInfos;
-    
+
     // unoform buffers
     for (uint8_t i = 0; i < MaxUboBindCount; ++i)
     {
         if (descRequires_.ubos[i])
         {
-            ASSERT_FATAL(
-                descSetInfo.descrSets[UboSetValue], "UBO Descriptor set is NULL.");
+            ASSERT_FATAL(descSetInfo.descrSets[UboSetValue], "UBO Descriptor set is NULL.");
 
-            vk::DescriptorBufferInfo& bufferInfo = bufferInfos[i]; 
+            vk::DescriptorBufferInfo& bufferInfo = bufferInfos[i];
             bufferInfo.buffer = descRequires_.ubos[i];
             bufferInfo.offset = 0;
             bufferInfo.range = descRequires_.bufferSizes[i];
@@ -482,8 +460,7 @@ void PipelineCache::createDescriptorSets(
         if (descRequires_.dynamicUbos[i])
         {
             ASSERT_FATAL(
-                descSetInfo.descrSets[UboDynamicSetValue],
-                "Dynamic UBO Descriptor set is NULL.");
+                descSetInfo.descrSets[UboDynamicSetValue], "Dynamic UBO Descriptor set is NULL.");
 
             vk::DescriptorBufferInfo& bufferInfo = dynamicBufferInfos[i];
             bufferInfo.buffer = descRequires_.dynamicUbos[i];
@@ -506,8 +483,7 @@ void PipelineCache::createDescriptorSets(
     {
         if (descRequires_.ssbos[i])
         {
-            ASSERT_FATAL(
-                descSetInfo.descrSets[SsboSetValue], "SSBO Descriptor set is NULL.");
+            ASSERT_FATAL(descSetInfo.descrSets[SsboSetValue], "SSBO Descriptor set is NULL.");
 
             vk::DescriptorBufferInfo& bufferInfo = ssboInfos[i];
             bufferInfo.buffer = descRequires_.ssbos[i];
@@ -538,15 +514,13 @@ void PipelineCache::createDescriptorSets(
                 descRequires_.samplers[i].imageView,
                 "Image view not set for descriptor binding %d",
                 i);
-            ASSERT_FATAL(
-                descSetInfo.descrSets[SamplerSetValue],
-                "Descriptor set is NULL.");
+            ASSERT_FATAL(descSetInfo.descrSets[SamplerSetValue], "Descriptor set is NULL.");
 
             vk::DescriptorImageInfo& imageInfo = samplerInfos[i];
             imageInfo.imageLayout = descRequires_.samplers[i].imageLayout;
             imageInfo.imageView = descRequires_.samplers[i].imageView;
             imageInfo.sampler = descRequires_.samplers[i].imageSampler;
-            
+
             writeSets.push_back(
                 {descSetInfo.descrSets[SamplerSetValue],
                  i,
@@ -571,38 +545,32 @@ void PipelineCache::allocDescriptorSets(
         descriptorPool_,
         "The descriptor pool must be initialised before allocating descriptor "
         "sets.");
-    vk::DescriptorSetAllocateInfo allocInfo(
-        descriptorPool_, MaxDescriptorTypeCount, descLayouts);
-    VK_CHECK_RESULT(
-        context_.device().allocateDescriptorSets(&allocInfo, descSets));
+    vk::DescriptorSetAllocateInfo allocInfo(descriptorPool_, MaxDescriptorTypeCount, descLayouts);
+    VK_CHECK_RESULT(context_.device().allocateDescriptorSets(&allocInfo, descSets));
 }
 
 void PipelineCache::createDescriptorPools()
 {
     std::array<vk::DescriptorPoolSize, MaxDescriptorTypeCount> pools;
 
-    pools[0] = vk::DescriptorPoolSize {vk::DescriptorType::eUniformBuffer,
-        currentDescPoolSize_ * MaxUboBindCount};
+    pools[0] = vk::DescriptorPoolSize {
+        vk::DescriptorType::eUniformBuffer, currentDescPoolSize_ * MaxUboBindCount};
     pools[1] = vk::DescriptorPoolSize {
-        vk::DescriptorType::eUniformBufferDynamic,
-        currentDescPoolSize_ * MaxUboDynamicBindCount};
+        vk::DescriptorType::eUniformBufferDynamic, currentDescPoolSize_ * MaxUboDynamicBindCount};
     pools[2] = vk::DescriptorPoolSize {
-        vk::DescriptorType::eCombinedImageSampler,
-        currentDescPoolSize_ * MaxSamplerBindCount};
+        vk::DescriptorType::eCombinedImageSampler, currentDescPoolSize_ * MaxSamplerBindCount};
     pools[3] = vk::DescriptorPoolSize {
-        vk::DescriptorType::eStorageBuffer,
-        currentDescPoolSize_ * MaxSsboBindCount};
+        vk::DescriptorType::eStorageBuffer, currentDescPoolSize_ * MaxSsboBindCount};
 
     vk::DescriptorPoolCreateInfo createInfo(
         vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet,
         currentDescPoolSize_ * MaxDescriptorTypeCount,
         static_cast<uint32_t>(pools.size()),
         pools.data());
-    VK_CHECK_RESULT(context_.device().createDescriptorPool(
-        &createInfo, nullptr, &descriptorPool_));
+    VK_CHECK_RESULT(context_.device().createDescriptorPool(&createInfo, nullptr, &descriptorPool_));
 }
 
-void PipelineCache::increasePoolCapacity() 
+void PipelineCache::increasePoolCapacity()
 {
     descPoolsForDeletion_.push_back(descriptorPool_);
 
@@ -613,19 +581,18 @@ void PipelineCache::increasePoolCapacity()
         descSetsForDeletion_.push_back(info);
     }
     descriptorSets_.clear();
-    
+
     currentDescPoolSize_ *= 2;
     createDescriptorPools();
 }
 
 void PipelineCache::cleanCache(uint64_t currentFrame)
-{ 
+{
     // Destroy any pipelines that have reached there lifetime after their last use.
     for (auto iter = pipelines_.begin(); iter != pipelines_.end();)
     {
         vk::Pipeline pl = iter->second->get();
-        uint64_t collectionFrame =
-            iter->second->lastUsedFrameStamp_ + Pipeline::LifetimeFrameCount;
+        uint64_t collectionFrame = iter->second->lastUsedFrameStamp_ + Pipeline::LifetimeFrameCount;
         if (pl && collectionFrame < currentFrame)
         {
             context_.device().destroy(pl);
@@ -651,10 +618,10 @@ void PipelineCache::cleanCache(uint64_t currentFrame)
             {
                 if (info.layout[i])
                 {
-                    //context_.device().destroy(info.layout[i]);
+                    // context_.device().destroy(info.layout[i]);
                 }
-                //context_.device().freeDescriptorSets(
-                //    descriptorPool_, MaxDescriptorTypeCount, info.descrSets);
+                // context_.device().freeDescriptorSets(
+                //     descriptorPool_, MaxDescriptorTypeCount, info.descrSets);
             }
             iter = descriptorSets_.erase(iter);
         }

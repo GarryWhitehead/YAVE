@@ -35,10 +35,7 @@ ResourceNode::ResourceNode(
     const util::CString& name,
     const RenderGraphHandle& resource,
     const RenderGraphHandle& parent)
-    : Node(name, rGraph.getDependencyGraph()),
-      rGraph_(rGraph),
-      resource_(resource),
-      parent_(parent)
+    : Node(name, rGraph.getDependencyGraph()), rGraph_(rGraph), resource_(resource), parent_(parent)
 {
 }
 
@@ -62,9 +59,7 @@ void ResourceNode::setWriterEdge(std::unique_ptr<ResourceEdge>& edge)
 ResourceEdge* ResourceNode::getReaderEdge(PassNodeBase* node)
 {
     auto iter = std::find_if(
-        readerPasses_.begin(),
-        readerPasses_.end(),
-        [node](std::unique_ptr<ResourceEdge>& edge) {
+        readerPasses_.begin(), readerPasses_.end(), [node](std::unique_ptr<ResourceEdge>& edge) {
             return edge->toId == node->getId();
         });
     if (iter != readerPasses_.end())
@@ -85,9 +80,7 @@ void ResourceNode::setParentReader(ResourceNode* parentNode)
     if (!parentReadEdge_)
     {
         parentReadEdge_ = std::make_unique<Edge>(
-            dGraph,
-            reinterpret_cast<Node*>(this),
-            reinterpret_cast<Node*>(parentNode));
+            dGraph, reinterpret_cast<Node*>(this), reinterpret_cast<Node*>(parentNode));
     }
 }
 
@@ -97,9 +90,7 @@ void ResourceNode::setParentWriter(ResourceNode* parentNode)
     if (!parentWriteEdge_)
     {
         parentWriteEdge_ = std::make_unique<Edge>(
-            dGraph,
-            reinterpret_cast<Node*>(this),
-            reinterpret_cast<Node*>(parentNode));
+            dGraph, reinterpret_cast<Node*>(this), reinterpret_cast<Node*>(parentNode));
     }
 }
 
@@ -109,8 +100,8 @@ bool ResourceNode::hasReaders() const { return !readerPasses_.empty(); }
 
 bool ResourceNode::hasWriters()
 {
-    const auto& writers = rGraph_.getDependencyGraph().getWriterEdges(
-        reinterpret_cast<Node*>(this));
+    const auto& writers =
+        rGraph_.getDependencyGraph().getWriterEdges(reinterpret_cast<Node*>(this));
     return writers.size() > 0;
 }
 
@@ -160,8 +151,7 @@ ResourceNode* ResourceNode::getParentNode() noexcept
 void ResourceNode::setAliasResourceEdge(ResourceNode* alias) noexcept
 {
     ASSERT_LOG(alias);
-    aliasEdge_ =
-        std::make_unique<Edge>(rGraph_.getDependencyGraph(), this, alias);
+    aliasEdge_ = std::make_unique<Edge>(rGraph_.getDependencyGraph(), this, alias);
 }
 
 } // namespace rg

@@ -89,13 +89,9 @@ auto IVertexBuffer::attributeToWidthFormat(backend::BufferElementType attr)
     return std::make_tuple(width, format);
 }
 
-void IVertexBuffer::shutDown(vkapi::VkDriver& driver) 
-{
-    driver.deleteVertexBuffer(vHandle_);
-}
+void IVertexBuffer::shutDown(vkapi::VkDriver& driver) { driver.deleteVertexBuffer(vHandle_); }
 
-void IVertexBuffer::addAttributeI(
-    backend::BufferElementType type, uint32_t binding)
+void IVertexBuffer::addAttributeI(backend::BufferElementType type, uint32_t binding)
 {
     ASSERT_FATAL(
         binding < vkapi::PipelineCache::MaxVertexAttributeCount,
@@ -106,8 +102,7 @@ void IVertexBuffer::addAttributeI(
     attributes_[binding] = {binding, 0, format, width};
 }
 
-util::BitSetEnum<VertexBuffer::BindingType>
-IVertexBuffer::getAtrributeBits() const noexcept
+util::BitSetEnum<VertexBuffer::BindingType> IVertexBuffer::getAtrributeBits() const noexcept
 {
     util::BitSetEnum<VertexBuffer::BindingType> attrBits;
     for (const auto& attr : attributes_)
@@ -120,13 +115,12 @@ IVertexBuffer::getAtrributeBits() const noexcept
     return attrBits;
 }
 
-void IVertexBuffer::buildI(
-    vkapi::VkDriver& driver, uint32_t vertexCount, void* vertexData)
+void IVertexBuffer::buildI(vkapi::VkDriver& driver, uint32_t vertexCount, void* vertexData)
 {
     ASSERT_LOG(vertexData);
 
     // if the buffer has already been created, map the data into the
-    // already existing allocated space. Note: this will reallocate if 
+    // already existing allocated space. Note: this will reallocate if
     // the space already allocated is too small.
     if (vHandle_)
     {
@@ -136,8 +130,7 @@ void IVertexBuffer::buildI(
 
     // sort out the attribute stride and offsets
     uint32_t stride = 0;
-    for (size_t idx = 0; idx < vkapi::PipelineCache::MaxVertexAttributeCount;
-         ++idx)
+    for (size_t idx = 0; idx < vkapi::PipelineCache::MaxVertexAttributeCount; ++idx)
     {
         if (attributes_[idx].format != vk::Format::eUndefined)
         {
@@ -147,8 +140,7 @@ void IVertexBuffer::buildI(
 
     int currOffset = 0;
     int prevOffset = 0;
-    for (size_t idx = 0; idx < vkapi::PipelineCache::MaxVertexAttributeCount;
-         ++idx)
+    for (size_t idx = 0; idx < vkapi::PipelineCache::MaxVertexAttributeCount; ++idx)
     {
         if (attributes_[idx].format != vk::Format::eUndefined)
         {
@@ -163,8 +155,7 @@ void IVertexBuffer::buildI(
     vHandle_ = driver.addVertexBuffer(vertexCount, vertexData);
 }
 
-vkapi::VertexBuffer*
-IVertexBuffer::getGpuBuffer(vkapi::VkDriver& driver) noexcept
+vkapi::VertexBuffer* IVertexBuffer::getGpuBuffer(vkapi::VkDriver& driver) noexcept
 {
     return driver.getVertexBuffer(vHandle_);
 }
@@ -174,17 +165,14 @@ IVertexBuffer::getGpuBuffer(vkapi::VkDriver& driver) noexcept
 VertexBuffer::VertexBuffer() {}
 VertexBuffer::~VertexBuffer() {}
 
-void IVertexBuffer::build(
-    Engine* engine, uint32_t vertexCount, void* vertexData)
+void IVertexBuffer::build(Engine* engine, uint32_t vertexCount, void* vertexData)
 {
-    buildI(
-        reinterpret_cast<IEngine*>(engine)->driver(), vertexCount, vertexData);
+    buildI(reinterpret_cast<IEngine*>(engine)->driver(), vertexCount, vertexData);
 }
 
-void IVertexBuffer::addAttribute(
-    BindingType bindType, backend::BufferElementType attrType)
+void IVertexBuffer::addAttribute(BindingType bindType, backend::BufferElementType attrType)
 {
     addAttributeI(attrType, static_cast<uint32_t>(bindType));
 }
 
-}
+} // namespace yave

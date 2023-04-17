@@ -54,7 +54,7 @@ Texture::Texture(VkContext& context) : context_(context) {}
 Texture::~Texture() {}
 
 uint32_t Texture::getFormatCompSize(vk::Format format)
-{ 
+{
     uint32_t comp = 0;
     switch (format)
     {
@@ -114,8 +114,8 @@ uint32_t Texture::getFormatCompSize(vk::Format format)
     return comp;
 }
 
-uint32_t Texture::getFormatByteSize(vk::Format format) 
-{ 
+uint32_t Texture::getFormatByteSize(vk::Format format)
+{
     uint32_t output = 1;
     switch (format)
     {
@@ -199,8 +199,7 @@ void Texture::createTexture2d(
     uint8_t arrayCount,
     vk::ImageUsageFlags usageFlags)
 {
-    texContext_ = TextureContext {
-        format, width, height, mipLevels, faceCount, arrayCount};
+    texContext_ = TextureContext {format, width, height, mipLevels, faceCount, arrayCount};
 
     // create an empty image
     image_ = std::make_unique<Image>(driver.context(), *this);
@@ -221,11 +220,7 @@ void Texture::createTexture2d(
 }
 
 void Texture::createTexture2d(
-    VkDriver& driver,
-    vk::Format format,
-    uint32_t width,
-    uint32_t height,
-    vk::Image image)
+    VkDriver& driver, vk::Format format, uint32_t width, uint32_t height, vk::Image image)
 {
     image_ = std::make_unique<Image>(driver.context(), image, format, width, height);
     texContext_ = TextureContext {format, width, height, 1, 1, 0};
@@ -234,8 +229,7 @@ void Texture::createTexture2d(
     imageLayout_ = vk::ImageLayout::eShaderReadOnlyOptimal;
 }
 
-void Texture::map(
-    VkDriver& driver, void* data, uint32_t dataSize, size_t* offsets)
+void Texture::map(VkDriver& driver, void* data, uint32_t dataSize, size_t* offsets)
 {
     StagingPool stagePool = driver.stagingPool();
     StagingPool::StageInfo* stage = stagePool.create(dataSize);
@@ -252,10 +246,8 @@ void Texture::map(
             for (uint32_t level = 0; level < texContext_.mipLevels; ++level)
             {
                 offsets[face * texContext_.mipLevels + level] = offset;
-                offset += (texContext_.width >> level) *
-                    (texContext_.height >> level) *
-                    getFormatCompSize(texContext_.format) *
-                    getFormatByteSize(texContext_.format);
+                offset += (texContext_.width >> level) * (texContext_.height >> level) *
+                    getFormatCompSize(texContext_.format) * getFormatByteSize(texContext_.format);
             }
         }
     }
@@ -298,10 +290,7 @@ void Texture::map(
 
     // the final transition here may need improving on....
     Image::transition(
-        *image_,
-        vk::ImageLayout::eTransferDstOptimal,
-        this->imageLayout_,
-        cBuffer.cmdBuffer);
+        *image_, vk::ImageLayout::eTransferDstOptimal, this->imageLayout_, cBuffer.cmdBuffer);
 }
 
 const TextureContext& Texture::context() const { return texContext_; }

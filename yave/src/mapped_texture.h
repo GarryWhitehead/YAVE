@@ -38,7 +38,6 @@ class IEngine;
 class IMappedTexture : public Texture
 {
 public:
-
     IMappedTexture(IEngine& engine);
     ~IMappedTexture();
 

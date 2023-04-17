@@ -22,11 +22,10 @@
 
 #pragma once
 
-#include "window.h"
 #include "imgui_helper.h"
-
 #include "utility/assertion.h"
 #include "utility/cstring.h"
+#include "window.h"
 
 #include <cstdint>
 
@@ -49,7 +48,6 @@ struct AppParams
 class Application
 {
 public:
-
     Application(const AppParams& params, bool showUI);
     virtual ~Application() {}
 
@@ -58,7 +56,7 @@ public:
 
     bool run(Renderer* renderer, Scene* scene);
 
-    // user defined callback functions 
+    // user defined callback functions
     virtual void uiCallback(Engine* engine) { return; }
 
     virtual void preRenderCallback() { return; }
@@ -78,7 +76,6 @@ public:
     friend class Window;
 
 private:
-
     // A engine instance. Only one permitted at the moment.
     Engine* engine_;
     Scene* scene_;

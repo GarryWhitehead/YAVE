@@ -22,13 +22,12 @@
 
 #pragma once
 
+#include "backend/convert_to_vk.h"
+#include "backend/enums.h"
 #include "common.h"
 
-#include "backend/enums.h"
-#include "backend/convert_to_vk.h"
-
-#include <unordered_map>
 #include <memory>
+#include <unordered_map>
 
 namespace vkapi
 {
@@ -51,13 +50,10 @@ public:
 
     void clear();
 
-    using SamplerCacheMap = std::unordered_map<
-        backend::TextureSamplerParams,
-        vk::Sampler,
-        backend::TextureSamplerHasher>;
+    using SamplerCacheMap = std::
+        unordered_map<backend::TextureSamplerParams, vk::Sampler, backend::TextureSamplerHasher>;
 
 private:
-
     VkDriver& driver_;
 
     SamplerCacheMap samplers_;

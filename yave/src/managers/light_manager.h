@@ -47,7 +47,6 @@ class IRenderPrimitive;
 
 struct LightInstance
 {
-
     LightManager::Type type;
 
     // set by visibility checks
@@ -107,11 +106,9 @@ public:
 
     void updateSsbo(std::vector<LightInstance*>& lights);
 
-    void setIntensity(
-        float intensity, LightManager::Type type, LightInstance& light);
+    void setIntensity(float intensity, LightManager::Type type, LightInstance& light);
 
-    void calculateSpotCone(
-        float outerCone, float innerCone, LightInstance& spotLight);
+    void calculateSpotCone(float outerCone, float innerCone, LightInstance& spotLight);
 
     void setRadius(float fallout, LightInstance& light);
 
@@ -122,8 +119,7 @@ public:
     void setColourI(const mathfu::vec3& col, IObject* obj);
     void setFovI(float fov, IObject* obj);
 
-    void
-    createLight(const CreateInfo& ci, IObject* obj, LightManager::Type type);
+    void createLight(const CreateInfo& ci, IObject* obj, LightManager::Type type);
 
     size_t getLightCount() const;
 
@@ -131,11 +127,8 @@ public:
 
     void destroy(const IObject& handle);
 
-    rg::RenderGraphHandle render(
-        rg::RenderGraph& rGraph,
-        uint32_t width,
-        uint32_t height,
-        vk::Format depthFormat);
+    rg::RenderGraphHandle
+    render(rg::RenderGraph& rGraph, uint32_t width, uint32_t height, vk::Format depthFormat);
 
     // =================== client api ========================
 

@@ -49,14 +49,8 @@ class ResourceHandle
 public:
     explicit operator bool() const noexcept { return resource_ != nullptr; }
 
-    bool operator==(const ResourceHandle& rhs) const
-    {
-        return resource_ == rhs.getResource();
-    }
-    bool operator!=(const ResourceHandle& rhs) const
-    {
-        return resource_ != rhs.getResource();
-    }
+    bool operator==(const ResourceHandle& rhs) const { return resource_ == rhs.getResource(); }
+    bool operator!=(const ResourceHandle& rhs) const { return resource_ != rhs.getResource(); }
 
     ResourceHandle() : resource_(nullptr) {}
     ResourceHandle(T* key) : resource_(key) {}
@@ -68,15 +62,9 @@ public:
     ResourceHandle(ResourceHandle&&) = default;
     ResourceHandle& operator=(ResourceHandle&&) = default;
 
-    const T* getResource() const noexcept
-    {
-        return resource_;
-    }
-    
-    T* getResource() noexcept
-    {
-        return resource_;
-    }
+    const T* getResource() const noexcept { return resource_; }
+
+    T* getResource() noexcept { return resource_; }
 
     void invalidate() noexcept { resource_ = nullptr; }
 
@@ -102,10 +90,7 @@ public:
         const uint8_t arrayCount = 1);
 
     TextureHandle createTexture2d(
-        vk::Format format,
-        const uint32_t width,
-        const uint32_t height,
-        vk::Image image);
+        vk::Format format, const uint32_t width, const uint32_t height, vk::Image image);
 
     BufferHandle createUbo(const size_t size, VkBufferUsageFlags usage);
 

@@ -62,11 +62,8 @@ public:
      * @param context An initialised vulkan device object
      * @param surface A vk surface object for the given platform
      */
-    bool create(
-        VkDriver& driver,
-        const vk::SurfaceKHR& surface,
-        uint32_t winWidth,
-        uint32_t winHeight);
+    bool
+    create(VkDriver& driver, const vk::SurfaceKHR& surface, uint32_t winWidth, uint32_t winHeight);
 
     void destroy(VkContext& context);
 
@@ -78,8 +75,7 @@ public:
 
 private:
     /// creates the image views for the swapchain
-    void prepareImageViews(
-        VkDriver& driver, const vk::SurfaceFormatKHR& surfaceFormat);
+    void prepareImageViews(VkDriver& driver, const vk::SurfaceFormatKHR& surfaceFormat);
 
 private:
     // the dimensions of the current swapchain

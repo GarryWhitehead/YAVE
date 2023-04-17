@@ -22,25 +22,25 @@
 
 #pragma once
 
-#include "managers/transform_manager.h"
-#include "renderer.h"
-#include "render_primitive.h"
-#include "vertex_buffer.h"
 #include "index_buffer.h"
+#include "managers/transform_manager.h"
+#include "render_primitive.h"
+#include "renderer.h"
 #include "utility/compiler.h"
 #include "utility/handle.h"
+#include "vertex_buffer.h"
 #include "vulkan-api/driver.h"
 #include "vulkan-api/swapchain.h"
-#include "yave/engine.h"
-#include "yave/renderable_manager.h"
-#include "yave/light_manager.h"
 #include "yave/camera.h"
+#include "yave/engine.h"
+#include "yave/light_manager.h"
+#include "yave/renderable_manager.h"
 
 #include <deque>
 #include <filesystem>
 #include <memory>
-#include <vector>
 #include <unordered_set>
+#include <vector>
 
 namespace yave
 {
@@ -87,10 +87,7 @@ public:
 
     void destroyObject(IObject* obj);
 
-    const std::vector<std::unique_ptr<IObject>>& getObjectList() const noexcept
-    {
-        return objects_;
-    }
+    const std::vector<std::unique_ptr<IObject>>& getObjectList() const noexcept { return objects_; }
 
     void setCurrentSwapchainI(const SwapchainHandle& handle) noexcept;
     vkapi::Swapchain* getCurrentSwapchain() noexcept;
@@ -98,11 +95,10 @@ public:
     void createDefaultQuadBuffers() noexcept;
 
     // ================= resource handling ===================
-    
-    template <typename RESOURCE, typename ...ARGS>
-    RESOURCE*
-    createResource(std::unordered_set<RESOURCE*>& container, ARGS&&... args)
-    {   
+
+    template <typename RESOURCE, typename... ARGS>
+    RESOURCE* createResource(std::unordered_set<RESOURCE*>& container, ARGS&&... args)
+    {
         RESOURCE* resource = new RESOURCE(std::forward<ARGS>(args)...);
         if (resource)
         {
@@ -112,8 +108,7 @@ public:
     }
 
     template <typename RESOURCE>
-    void destroyResource(
-        RESOURCE* resource, std::unordered_set<RESOURCE*>& container);
+    void destroyResource(RESOURCE* resource, std::unordered_set<RESOURCE*>& container);
 
     // ==================== getters =======================
 
@@ -121,25 +116,18 @@ public:
     const vkapi::VkDriver& driver() const noexcept { return *driver_; }
     IScene* getCurrentScene() noexcept { return currentScene_; }
 
-    IRenderableManager* getRenderableManagerI() noexcept
-    {
-        return rendManager_.get();
-    }
+    IRenderableManager* getRenderableManagerI() noexcept { return rendManager_.get(); }
     ITransformManager* getTransformManagerI() noexcept { return transformManager_.get(); }
     ILightManager* getLightManagerI() noexcept { return lightManager_.get(); }
 
-    auto getQuadBuffers() noexcept
-    {
-        return std::make_pair(&quadVertexBuffer_, &quadIndexBuffer_);
-    }
+    auto getQuadBuffers() noexcept { return std::make_pair(&quadVertexBuffer_, &quadIndexBuffer_); }
     IRenderPrimitive* getQuadPrimitive() noexcept { return &quadPrimitive_; }
 
     // ==================== client api ========================
 
     Scene* createScene() override;
     vkapi::SwapchainHandle createSwapchain(Window* win) override;
-    Renderer*
-    createRenderer(const vkapi::SwapchainHandle& handle, Scene* scene) override;
+    Renderer* createRenderer(const vkapi::SwapchainHandle& handle, Scene* scene) override;
     VertexBuffer* createVertexBuffer() override;
     IndexBuffer* createIndexBuffer() override;
     RenderPrimitive* createRenderPrimitive() override;
@@ -153,7 +141,7 @@ public:
     Texture* createTexture() override;
     Skybox* createSkybox() override;
     Camera* createCamera() override;
-    
+
     void destroy(VertexBuffer* buffer) override;
     void destroy(IndexBuffer* buffer) override;
     void destroy(RenderPrimitive* buffer) override;

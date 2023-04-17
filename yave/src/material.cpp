@@ -18,13 +18,13 @@
  * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+ */
 
 
 #include "material.h"
 
-#include "camera.h"
 #include "backend/convert_to_vk.h"
+#include "camera.h"
 #include "engine.h"
 #include "mapped_texture.h"
 #include "renderable.h"
@@ -33,9 +33,8 @@
 #include "utility/bitset_enum.h"
 #include "vulkan-api/pipeline.h"
 #include "vulkan-api/pipeline_cache.h"
-#include "vulkan-api/utility.h"
 #include "vulkan-api/sampler_cache.h"
-
+#include "vulkan-api/utility.h"
 #include "yave/texture_sampler.h"
 
 #include <spdlog/spdlog.h>
@@ -43,10 +42,7 @@
 namespace yave
 {
 
-IMaterial::IMaterial(IEngine& engine)
-    : doubleSided_(false),
-      pipelineId_(0),
-      viewLayer_(0x2)
+IMaterial::IMaterial(IEngine& engine) : doubleSided_(false), pipelineId_(0), viewLayer_(0x2)
 {
     pushBlock_[util::ecast(backend::ShaderStage::Vertex)] =
         std::make_unique<PushBlock>("VertexPushBlock", "push_params");
@@ -105,11 +101,9 @@ void IMaterial::addVariant(const Material::ImageType type)
 
 void IMaterial::addVariant(Variants variant) { variantBits_ |= variant; }
 
-vkapi::VDefinitions
-IMaterial::createVariants(util::BitSetEnum<IMaterial::Variants>& bits)
+vkapi::VDefinitions IMaterial::createVariants(util::BitSetEnum<IMaterial::Variants>& bits)
 {
-    vkapi::VDefinitions map(
-        static_cast<uint8_t>(backend::ShaderStage::Fragment));
+    vkapi::VDefinitions map(static_cast<uint8_t>(backend::ShaderStage::Fragment));
     if (bits.testBit(MrPipeline))
     {
         map.emplace("METALLIC_ROUGHNESS_PIPELINE", 1);
@@ -214,18 +208,14 @@ void IMaterial::addImageTexture(
         vkapi::PipelineCache::MaxSamplerBindCount);
 
     // TODO: check for 3d textures when supported
-    SamplerSet::SamplerType samplerType = texture->isCubeMap()
-        ? SamplerSet::SamplerType::Cube
-        : SamplerSet::SamplerType::e2d;
+    SamplerSet::SamplerType samplerType =
+        texture->isCubeMap() ? SamplerSet::SamplerType::Cube : SamplerSet::SamplerType::e2d;
 
-    setSamplerParamI(
-        imageTypeToStr(type), binding, samplerType);
+    setSamplerParamI(imageTypeToStr(type), binding, samplerType);
 
     // keep reference to the mapped texture.
     programBundle_->setTexture(
-        texture->getBackendHandle(),
-        binding,
-        driver.getSamplerCache().createSampler(params));
+        texture->getBackendHandle(), binding, driver.getSamplerCache().createSampler(params));
 }
 
 void IMaterial::addBuffer(BufferBase* buffer, backend::ShaderStage type)
@@ -273,27 +263,22 @@ void IMaterial::build(
             params.size, params.binding, params.buffer, params.type);
     }
 
-    // add the custom material ubo - we create the device buffer here so 
+    // add the custom material ubo - we create the device buffer here so
     // its no longer possible to change to outlay of the ubo
     if (!ubo_->empty())
     {
         ubo_->createGpuBuffer(driver);
         auto uboParams = ubo_->getBufferParams(driver);
         programBundle_->addDescriptorBinding(
-            uboParams.size,
-            uboParams.binding,
-            uboParams.buffer,
-            uboParams.type);
+            uboParams.size, uboParams.binding, uboParams.buffer, uboParams.type);
     }
 
-    PushBlock* vPushBlock =
-        pushBlock_[util::ecast(backend::ShaderStage::Vertex)].get();
-    PushBlock* fPushBlock =
-        pushBlock_[util::ecast(backend::ShaderStage::Fragment)].get();
-    
+    PushBlock* vPushBlock = pushBlock_[util::ecast(backend::ShaderStage::Vertex)].get();
+    PushBlock* fPushBlock = pushBlock_[util::ecast(backend::ShaderStage::Fragment)].get();
+
     vProgram->addAttributeBlock(vPushBlock->createShaderStr());
     fProgram->addAttributeBlock(fPushBlock->createShaderStr());
-    fProgram->addAttributeBlock(ubo_->createShaderStr());        
+    fProgram->addAttributeBlock(ubo_->createShaderStr());
     fProgram->addAttributeBlock(samplerSet_.createShaderStr());
 
     // add the render primitive, with sub meshes (not properly implemented yet)
@@ -308,14 +293,10 @@ void IMaterial::build(
     // create the veretx shader (renderable)
     // variants for the vertex - in/out attributes - these are also
     // used on the fragment shader.
-    vkapi::VDefinitions vertexVariants =
-        prim->createVertexAttributeVariants();
+    vkapi::VDefinitions vertexVariants = prim->createVertexAttributeVariants();
 
     vkapi::Shader* vertexShader = manager.findShaderVariantOrCreate(
-        vertexVariants,
-        backend::ShaderStage::Vertex,
-        prim->getTopology(),
-        programBundle_);
+        vertexVariants, backend::ShaderStage::Vertex, prim->getTopology(), programBundle_);
     vProgram->addShader(vertexShader);
 
     // create the fragment shader (material)
@@ -335,10 +316,8 @@ void IMaterial::update(IEngine& engine) noexcept
 {
     // TODO: could do with dirty flags here so we aren't updating data
     // that hasn't changed.
-    PushBlock* vPushBlock =
-        pushBlock_[util::ecast(backend::ShaderStage::Vertex)].get();
-    PushBlock* fPushBlock =
-        pushBlock_[util::ecast(backend::ShaderStage::Fragment)].get();
+    PushBlock* vPushBlock = pushBlock_[util::ecast(backend::ShaderStage::Vertex)].get();
+    PushBlock* fPushBlock = pushBlock_[util::ecast(backend::ShaderStage::Fragment)].get();
     if (!vPushBlock->empty())
     {
         void* data = vPushBlock->getBlockData();
@@ -365,78 +344,58 @@ void IMaterial::setDoubleSidedStateI(bool state)
         state ? vk::CullModeFlagBits::eNone : vk::CullModeFlagBits::eBack;
 }
 
-void IMaterial::setTestEnableI(bool state)
-{
-    programBundle_->dsState_.testEnable = state;
-}
+void IMaterial::setTestEnableI(bool state) { programBundle_->dsState_.testEnable = state; }
 
-void IMaterial::setWriteEnableI(bool state)
-{
-    programBundle_->dsState_.writeEnable = state;
-}
+void IMaterial::setWriteEnableI(bool state) { programBundle_->dsState_.writeEnable = state; }
 
-void IMaterial::setDepthCompareOpI(vk::CompareOp op)
-{
-    programBundle_->dsState_.compareOp = op;
-}
+void IMaterial::setDepthCompareOpI(vk::CompareOp op) { programBundle_->dsState_.compareOp = op; }
 
 void IMaterial::setPolygonModeI(vk::PolygonMode mode)
 {
     programBundle_->rasterState_.polygonMode = mode;
 }
 
-void IMaterial::setFrontFaceI(vk::FrontFace face)
-{
-    programBundle_->rasterState_.frontFace = face;
-}
+void IMaterial::setFrontFaceI(vk::FrontFace face) { programBundle_->rasterState_.frontFace = face; }
 
 void IMaterial::setCullModeI(vk::CullModeFlagBits mode)
 {
     programBundle_->rasterState_.cullMode = mode;
 }
 
-void IMaterial::setBlendFactorStateI(VkBool32 state) 
+void IMaterial::setBlendFactorStateI(VkBool32 state)
 {
     programBundle_->blendState_.blendEnable = state;
 }
 
-void IMaterial::setSrcColorBlendFactorI(vk::BlendFactor factor) 
+void IMaterial::setSrcColorBlendFactorI(vk::BlendFactor factor)
 {
     programBundle_->blendState_.srcColor = factor;
 }
 
-void IMaterial::setDstColorBlendFactorI(vk::BlendFactor factor) 
+void IMaterial::setDstColorBlendFactorI(vk::BlendFactor factor)
 {
     programBundle_->blendState_.dstColor = factor;
 }
-void IMaterial::setColourBlendOpI(vk::BlendOp op) 
-{
-    programBundle_->blendState_.colour = op;
-}
+void IMaterial::setColourBlendOpI(vk::BlendOp op) { programBundle_->blendState_.colour = op; }
 
-void IMaterial::setSrcAlphaBlendFactorI(vk::BlendFactor factor) 
+void IMaterial::setSrcAlphaBlendFactorI(vk::BlendFactor factor)
 {
     programBundle_->blendState_.srcAlpha = factor;
 }
 
-void IMaterial::setDstAlphaBlendFactorI(vk::BlendFactor factor) 
+void IMaterial::setDstAlphaBlendFactorI(vk::BlendFactor factor)
 {
     programBundle_->blendState_.dstAlpha = factor;
 }
 
-void IMaterial::setAlphaBlendOpI(vk::BlendOp op)
-{
-    programBundle_->blendState_.alpha = op;
-}
+void IMaterial::setAlphaBlendOpI(vk::BlendOp op) { programBundle_->blendState_.alpha = op; }
 
-void IMaterial::setScissorI(
-    uint32_t width, uint32_t height, uint32_t xOffset, uint32_t yOffset)
+void IMaterial::setScissorI(uint32_t width, uint32_t height, uint32_t xOffset, uint32_t yOffset)
 {
     programBundle_->setScissor(width, height, xOffset, yOffset);
 }
 
-void IMaterial::setViewportI(
-    uint32_t width, uint32_t height, float minDepth, float maxDepth)
+void IMaterial::setViewportI(uint32_t width, uint32_t height, float minDepth, float maxDepth)
 {
     programBundle_->setViewport(width, height, minDepth, maxDepth);
 }
@@ -459,11 +418,8 @@ void IMaterial::setViewLayerI(uint8_t layer)
 Material::Material() = default;
 Material::~Material() = default;
 
- void IMaterial::addTexture(
-    Engine* engine,
-    Texture* texture,
-    ImageType type,
-    const TextureSampler& sampler)
+void IMaterial::addTexture(
+    Engine* engine, Texture* texture, ImageType type, const TextureSampler& sampler)
 {
     uint32_t binding = util::ecast(type);
     addImageTexture(
@@ -481,7 +437,7 @@ void IMaterial::addTexture(
     uint32_t height,
     backend::TextureFormat format,
     Material::ImageType type,
-    const TextureSampler& sampler) 
+    const TextureSampler& sampler)
 {
     ASSERT_LOG(imageBuffer);
 
@@ -492,16 +448,12 @@ void IMaterial::addTexture(
 }
 
 void IMaterial::updatePushConstantParam(
-    const std::string& elementName,
-    backend::ShaderStage stage,
-    void* value)
+    const std::string& elementName, backend::ShaderStage stage, void* value)
 {
     updatePushConstantParamI(elementName, stage, value);
 }
 
-void IMaterial::updateUboParam(
-    const std::string& elementName,
-    void* value) 
+void IMaterial::updateUboParam(const std::string& elementName, void* value)
 {
     updateUboParamI(elementName, value);
 }
@@ -513,15 +465,11 @@ void IMaterial::addPushConstantParam(
     size_t size,
     void* value)
 {
-    addPushConstantParamI(
-        elementName, type, stage, size, value);
+    addPushConstantParamI(elementName, type, stage, size, value);
 }
 
 void IMaterial::addUboParam(
-    const std::string& elementName,
-    backend::BufferElementType type,
-    size_t size,
-    void* value)
+    const std::string& elementName, backend::BufferElementType type, size_t size, void* value)
 {
     addUboParamI(elementName, type, size, value);
 }
@@ -529,70 +477,47 @@ void IMaterial::addUboParam(
 void IMaterial::setColourBaseFactor(const util::Colour4& col) noexcept
 {
     addUboParam(
-        "baseColourFactor",
-        backend::BufferElementType::Float4,
-        sizeof(mathfu::vec4),
-        (void*)&col);
+        "baseColourFactor", backend::BufferElementType::Float4, sizeof(mathfu::vec4), (void*)&col);
     addVariant(IMaterial::Variants::HasBaseColourFactor);
 }
 
 void IMaterial::setAlphaMask(float alphaMask) noexcept
 {
-    addUboParam(
-        "alphaMask",
-        backend::BufferElementType::Float,
-        sizeof(float),
-        (void*)&alphaMask);
+    addUboParam("alphaMask", backend::BufferElementType::Float, sizeof(float), (void*)&alphaMask);
     addVariant(IMaterial::Variants::HasAlphaMask);
 }
 
 void IMaterial::setAlphaMaskCutOff(float cutOff) noexcept
 {
     addUboParam(
-        "alphaMaskCutOff",
-        backend::BufferElementType::Float,
-        sizeof(float),
-        (void*)&cutOff);
+        "alphaMaskCutOff", backend::BufferElementType::Float, sizeof(float), (void*)&cutOff);
     addVariant(IMaterial::Variants::HasAlphaMaskCutOff);
 }
 
 void IMaterial::setMetallicFactor(float metallic) noexcept
 {
-    addUboParam(
-        "metallicFactor",
-        backend::BufferElementType::Float,
-        sizeof(float),
-        &metallic);
+    addUboParam("metallicFactor", backend::BufferElementType::Float, sizeof(float), &metallic);
     addVariant(IMaterial::Variants::HasMetallicFactor);
 }
 
 void IMaterial::setRoughnessFactor(float roughness) noexcept
 {
     addUboParam(
-        "roughnessFactor",
-        backend::BufferElementType::Float,
-        sizeof(float),
-        (void*)&roughness);
+        "roughnessFactor", backend::BufferElementType::Float, sizeof(float), (void*)&roughness);
     addVariant(IMaterial::Variants::HasRoughnessFactor);
 }
 
 void IMaterial::setDiffuseFactor(const util::Colour4& diffuse) noexcept
 {
     addUboParam(
-        "diffuseFactor",
-        backend::BufferElementType::Float4,
-        sizeof(mathfu::vec4),
-        (void*)&diffuse);
+        "diffuseFactor", backend::BufferElementType::Float4, sizeof(mathfu::vec4), (void*)&diffuse);
     addVariant(IMaterial::Variants::HasDiffuseFactor);
 }
 
 void IMaterial::setSpecularFactor(const util::Colour4& spec) noexcept
 {
     addUboParam(
-        "specularFactor",
-        backend::BufferElementType::Float4,
-        sizeof(mathfu::vec4),
-        (void*)&spec);
+        "specularFactor", backend::BufferElementType::Float4, sizeof(mathfu::vec4), (void*)&spec);
     addVariant(IMaterial::Variants::HasSpecularFactor);
 }
 
@@ -629,42 +554,23 @@ void IMaterial::setDepthEnable(bool writeFlag, bool testFlag)
     setWriteEnableI(writeFlag);
 }
 
-void IMaterial::setCullMode(backend::CullMode mode)
-{
-    setCullModeI(backend::cullModeToVk(mode));
-}
+void IMaterial::setCullMode(backend::CullMode mode) { setCullModeI(backend::cullModeToVk(mode)); }
 
-void IMaterial::setPipeline(Material::Pipeline pipeline) noexcept
-{
-    setPipelineI(pipeline);
-}
+void IMaterial::setPipeline(Material::Pipeline pipeline) noexcept { setPipelineI(pipeline); }
 
-void IMaterial::setDoubleSidedState(bool state) noexcept
-{
-    setDoubleSidedStateI(state);
-}
+void IMaterial::setDoubleSidedState(bool state) noexcept { setDoubleSidedStateI(state); }
 
-void IMaterial::setViewLayer(uint8_t layer) 
-{ 
-    setViewLayerI(layer); 
-}
+void IMaterial::setViewLayer(uint8_t layer) { setViewLayerI(layer); }
 
 void IMaterial::setBlendFactor(const Material::BlendFactorParams& factors)
 {
-    setBlendFactorStateI(
-        static_cast<VkBool32>(factors.state));
-    setSrcColorBlendFactorI(
-        backend::blendFactorToVk(factors.srcColor));
-    setSrcAlphaBlendFactorI(
-        backend::blendFactorToVk(factors.srcAlpha));
-    setDstColorBlendFactorI(
-        backend::blendFactorToVk(factors.dstColor));
-    setDstAlphaBlendFactorI(
-        backend::blendFactorToVk(factors.dstAlpha));
-    setColourBlendOpI(
-        backend::blendOpToVk(factors.colour));
-    setColourBlendOpI(
-        backend::blendOpToVk(factors.alpha));
+    setBlendFactorStateI(static_cast<VkBool32>(factors.state));
+    setSrcColorBlendFactorI(backend::blendFactorToVk(factors.srcColor));
+    setSrcAlphaBlendFactorI(backend::blendFactorToVk(factors.srcAlpha));
+    setDstColorBlendFactorI(backend::blendFactorToVk(factors.dstColor));
+    setDstAlphaBlendFactorI(backend::blendFactorToVk(factors.dstAlpha));
+    setColourBlendOpI(backend::blendOpToVk(factors.colour));
+    setColourBlendOpI(backend::blendOpToVk(factors.alpha));
 }
 
 void IMaterial::setBlendFactor(backend::BlendFactorPresets preset)
@@ -688,19 +594,17 @@ void IMaterial::setBlendFactor(backend::BlendFactorPresets preset)
     }
 }
 
-void IMaterial::setScissor(
-    uint32_t width, uint32_t height, uint32_t xOffset, uint32_t yOffset)
+void IMaterial::setScissor(uint32_t width, uint32_t height, uint32_t xOffset, uint32_t yOffset)
 {
     setScissorI(width, height, xOffset, yOffset);
 }
 
-void IMaterial::setViewport(
-    uint32_t width, uint32_t height, float minDepth, float maxDepth)
+void IMaterial::setViewport(uint32_t width, uint32_t height, float minDepth, float maxDepth)
 {
     setViewportI(width, height, minDepth, maxDepth);
 }
 
-Material::ImageType IMaterial::convertImageType(ModelMaterial::TextureType type) 
+Material::ImageType IMaterial::convertImageType(ModelMaterial::TextureType type)
 {
     switch (type)
     {
@@ -726,7 +630,7 @@ Material::ImageType IMaterial::convertImageType(ModelMaterial::TextureType type)
     return Material::ImageType::BaseColour;
 }
 
-Material::Pipeline IMaterial::convertPipeline(ModelMaterial::PbrPipeline pipeline) 
+Material::Pipeline IMaterial::convertPipeline(ModelMaterial::PbrPipeline pipeline)
 {
     Material::Pipeline output = Material::Pipeline::None;
     switch (pipeline)

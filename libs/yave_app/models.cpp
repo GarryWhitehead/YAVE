@@ -23,31 +23,27 @@
 #include "models.h"
 
 #include "yave/engine.h"
-#include "yave/render_primitive.h"
 #include "yave/index_buffer.h"
+#include "yave/render_primitive.h"
 #include "yave/vertex_buffer.h"
 
 #include <array>
+#include <cmath>
 #include <memory>
 #include <vector>
-#include <cmath>
 
 namespace yave
 {
 
 float* generateInterleavedData(
-    mathfu::vec3* positions,
-    mathfu::vec2* texCoords,
-    mathfu::vec3* normals,
-    size_t vertexCount)
+    mathfu::vec3* positions, mathfu::vec2* texCoords, mathfu::vec3* normals, size_t vertexCount)
 {
     if (!positions)
     {
         return nullptr;
     }
 
-    const size_t totalBufferSize =
-        3 * vertexCount + 2 * vertexCount + 3 * vertexCount;
+    const size_t totalBufferSize = 3 * vertexCount + 2 * vertexCount + 3 * vertexCount;
     float* buffer = new float[totalBufferSize];
 
     float* bufferPtr = buffer;
@@ -106,21 +102,16 @@ void generateQuadMesh(
         mathfu::vec3 {0.0f, 0.0f, -1.0f}};
 
     // interleave data
-    float* buffer =
-        generateInterleavedData(positions, texCoords, normals, vertexCount);
+    float* buffer = generateInterleavedData(positions, texCoords, normals, vertexCount);
 
     // quad made up of two triangles
     const std::vector<int> indices = {0, 1, 2, 2, 3, 0};
 
     vBuffer->addAttribute(
-        yave::VertexBuffer::BindingType::Position,
-        backend::BufferElementType::Float3);
+        yave::VertexBuffer::BindingType::Position, backend::BufferElementType::Float3);
+    vBuffer->addAttribute(yave::VertexBuffer::BindingType::Uv, backend::BufferElementType::Float2);
     vBuffer->addAttribute(
-        yave::VertexBuffer::BindingType::Uv,
-        backend::BufferElementType::Float2);
-    vBuffer->addAttribute(
-        yave::VertexBuffer::BindingType::Normal,
-        backend::BufferElementType::Float3);
+        yave::VertexBuffer::BindingType::Normal, backend::BufferElementType::Float3);
     vBuffer->build(engine, totalVertexCount, (void*)buffer);
 
     iBuffer->build(
@@ -191,8 +182,8 @@ void generateSphereMesh(
             {
                 mathfu::vec2 uv {densityMod * x, densityMod * y};
                 texCoords.push_back(uv);
-                mathfu::vec3 pos = mathfu::vec3 {
-                    basePosition[face] + dx[face] * uv.x + dy[face] * uv.y};
+                mathfu::vec3 pos =
+                    mathfu::vec3 {basePosition[face] + dx[face] * uv.x + dy[face] * uv.y};
                 mathfu::vec3 normPos = mathfu::NormalizedHelper(pos);
                 positions.emplace_back(normPos);
             }
@@ -213,15 +204,12 @@ void generateSphereMesh(
 
     // interleave data
     const uint32_t vertexCount = static_cast<uint32_t>(positions.size());
-    float* buffer = generateInterleavedData(
-        positions.data(), texCoords.data(), nullptr, vertexCount);
+    float* buffer =
+        generateInterleavedData(positions.data(), texCoords.data(), nullptr, vertexCount);
 
     vBuffer->addAttribute(
-        yave::VertexBuffer::BindingType::Position,
-        backend::BufferElementType::Float3);
-    vBuffer->addAttribute(
-        yave::VertexBuffer::BindingType::Uv,
-        backend::BufferElementType::Float2);
+        yave::VertexBuffer::BindingType::Position, backend::BufferElementType::Float3);
+    vBuffer->addAttribute(yave::VertexBuffer::BindingType::Uv, backend::BufferElementType::Float2);
     vBuffer->build(engine, vertexCount * 20, (void*)buffer);
 
     iBuffer->build(
@@ -277,15 +265,11 @@ void generateCapsuleMesh(
 
         for (uint32_t j = 0; j < density; ++j)
         {
-            float rad =
-                2.0f * static_cast<float>(M_PI) * (j + 0.5f) * invDensity;
+            float rad = 2.0f * static_cast<float>(M_PI) * (j + 0.5f) * invDensity;
             positions[offset + j] = mathfu::vec3 {
-                w * radius * std::cos(rad),
-                halfHeight + extraHeight,
-                -w * radius * std::sin(rad)};
+                w * radius * std::cos(rad), halfHeight + extraHeight, -w * radius * std::sin(rad)};
 
-            mathfu::vec3 norm {
-                positions[offset + j].x, extraHeight, positions[offset + j].z};
+            mathfu::vec3 norm {positions[offset + j].x, extraHeight, positions[offset + j].z};
             normals[offset + j] = mathfu::NormalizedHelper(norm);
         }
     }
@@ -293,22 +277,17 @@ void generateCapsuleMesh(
     // Bottom rings
     for (uint32_t i = 0; i < innerSize; ++i)
     {
-        float w =
-            static_cast<float>(innerSize - i) / static_cast<float>(innerSize);
+        float w = static_cast<float>(innerSize - i) / static_cast<float>(innerSize);
         float extraHeight = radius * std::sqrt(1.0f - w * w);
         uint32_t offset = (i + innerSize) * density + 2;
 
         for (uint32_t j = 0; j < density; ++j)
         {
-            float rad =
-                2.0f * static_cast<float>(M_PI) * (j + 0.5f) * invDensity;
+            float rad = 2.0f * static_cast<float>(M_PI) * (j + 0.5f) * invDensity;
             positions[offset + j] = mathfu::vec3 {
-                w * radius * std::cos(rad),
-                -halfHeight - extraHeight,
-                -w * radius * std::sin(rad)};
+                w * radius * std::cos(rad), -halfHeight - extraHeight, -w * radius * std::sin(rad)};
 
-            mathfu::vec3 norm {
-                positions[offset + j].x, -extraHeight, positions[offset + j].z};
+            mathfu::vec3 norm {positions[offset + j].x, -extraHeight, positions[offset + j].z};
             normals[offset + j] = mathfu::NormalizedHelper(norm);
         }
     }
@@ -325,8 +304,7 @@ void generateCapsuleMesh(
     for (uint32_t i = 0; i < density; i++)
     {
         indices.emplace_back(1);
-        indices.emplace_back(
-            (2 * innerSize - 1) * density + ((i + 1) % density) + 2);
+        indices.emplace_back((2 * innerSize - 1) * density + ((i + 1) % density) + 2);
         indices.emplace_back((2 * innerSize - 1) * density + i + 2);
     }
 
@@ -349,18 +327,14 @@ void generateCapsuleMesh(
 
     // interleave data
     const uint32_t vertexCount = static_cast<uint32_t>(positions.size());
-    float* buffer = generateInterleavedData(
-        positions.data(), texCoords.data(), normals.data(), vertexCount);
+    float* buffer =
+        generateInterleavedData(positions.data(), texCoords.data(), normals.data(), vertexCount);
 
     vBuffer->addAttribute(
-        yave::VertexBuffer::BindingType::Position,
-        backend::BufferElementType::Float3);
+        yave::VertexBuffer::BindingType::Position, backend::BufferElementType::Float3);
+    vBuffer->addAttribute(yave::VertexBuffer::BindingType::Uv, backend::BufferElementType::Float2);
     vBuffer->addAttribute(
-        yave::VertexBuffer::BindingType::Uv,
-        backend::BufferElementType::Float2);
-    vBuffer->addAttribute(
-        yave::VertexBuffer::BindingType::Normal,
-        backend::BufferElementType::Float3);
+        yave::VertexBuffer::BindingType::Normal, backend::BufferElementType::Float3);
 
     vBuffer->build(engine, vertexCount * 32, (void*)buffer);
 
@@ -413,10 +387,9 @@ void generateCubeMesh(
                                 v6, v5, v4, v4, v7, v6, v5, v1, v0, v0, v4, v5,
                                 v0, v3, v7, v7, v4, v0, v5, v6, v2, v2, v1, v5};
 
-    mathfu::vec2 texCoords[] = {uv1, uv2, uv3, uv3, uv0, uv1, uv2, uv6, uv7,
-                                uv7, uv3, uv2, uv6, uv5, uv4, uv4, uv7, uv6,
-                                uv5, uv1, uv0, uv0, uv4, uv5, uv0, uv3, uv7,
-                                uv7, uv4, uv0, uv5, uv6, uv2, uv2, uv1, uv5};
+    mathfu::vec2 texCoords[] = {uv1, uv2, uv3, uv3, uv0, uv1, uv2, uv6, uv7, uv7, uv3, uv2,
+                                uv6, uv5, uv4, uv4, uv7, uv6, uv5, uv1, uv0, uv0, uv4, uv5,
+                                uv0, uv3, uv7, uv7, uv4, uv0, uv5, uv6, uv2, uv2, uv1, uv5};
 
     mathfu::vec3 normalsPerFace[] = {
         mathfu::vec3 {0.0f, 0.0f, +1.0f},
@@ -485,18 +458,13 @@ void generateCubeMesh(
 
     // interleave data
     const uint32_t vertexCount = static_cast<uint32_t>(normals.size());
-    float* buffer = generateInterleavedData(
-        positions, texCoords, normals.data(), vertexCount);
+    float* buffer = generateInterleavedData(positions, texCoords, normals.data(), vertexCount);
 
     vBuffer->addAttribute(
-        yave::VertexBuffer::BindingType::Position,
-        backend::BufferElementType::Float3);
+        yave::VertexBuffer::BindingType::Position, backend::BufferElementType::Float3);
+    vBuffer->addAttribute(yave::VertexBuffer::BindingType::Uv, backend::BufferElementType::Float2);
     vBuffer->addAttribute(
-        yave::VertexBuffer::BindingType::Uv,
-        backend::BufferElementType::Float2);
-    vBuffer->addAttribute(
-        yave::VertexBuffer::BindingType::Normal,
-        backend::BufferElementType::Float3);
+        yave::VertexBuffer::BindingType::Normal, backend::BufferElementType::Float3);
     vBuffer->build(engine, vertexCount * 32, (void*)buffer);
 
     iBuffer->build(
@@ -513,4 +481,4 @@ void generateCubeMesh(
 }
 
 
-} // namespace utils
+} // namespace yave

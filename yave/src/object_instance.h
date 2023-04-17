@@ -61,24 +61,12 @@ public:
     IObject(const uint64_t id) : id_(id) {}
 
     // operator overloads
-    bool operator==(const IObject& obj) const noexcept
-    {
-        return id_ == obj.id_;
-    }
-    bool operator!=(const IObject& obj) const noexcept
-    {
-        return id_ != obj.id_;
-    }
+    bool operator==(const IObject& obj) const noexcept { return id_ == obj.id_; }
+    bool operator!=(const IObject& obj) const noexcept { return id_ != obj.id_; }
     bool operator>(const IObject& obj) const noexcept { return id_ > obj.id_; }
-    bool operator>=(const IObject& obj) const noexcept
-    {
-        return id_ >= obj.id_;
-    }
+    bool operator>=(const IObject& obj) const noexcept { return id_ >= obj.id_; }
     bool operator<(const IObject& obj) const noexcept { return id_ < obj.id_; }
-    bool operator<=(const IObject& obj) const noexcept
-    {
-        return id_ <= obj.id_;
-    }
+    bool operator<=(const IObject& obj) const noexcept { return id_ <= obj.id_; }
 
     // helper functions
     uint64_t id() const noexcept { return id_; }
@@ -97,18 +85,12 @@ private:
  */
 struct ObjHash
 {
-    size_t operator()(const IObject& id) const
-    {
-        return std::hash<uint64_t> {}(id.id());
-    }
+    size_t operator()(const IObject& id) const { return std::hash<uint64_t> {}(id.id()); }
 };
 
 struct ObjEqual
 {
-    bool operator()(const IObject& lhs, const IObject& rhs) const
-    {
-        return lhs.id() == rhs.id();
-    }
+    bool operator()(const IObject& lhs, const IObject& rhs) const { return lhs.id() == rhs.id(); }
 };
 
 } // namespace yave

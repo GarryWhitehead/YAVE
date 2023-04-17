@@ -70,14 +70,12 @@ std::string ShaderProgram::build()
     return output;
 }
 
-void ShaderProgram::parseMaterialShaderBlock(
-    const std::vector<std::string>& lines, size_t& index)
+void ShaderProgram::parseMaterialShaderBlock(const std::vector<std::string>& lines, size_t& index)
 {
     for (; index < lines.size(); ++index)
     {
         std::string line = lines[index];
-        if (line.find("[[") != std::string::npos &&
-            line.find("]]") != std::string::npos)
+        if (line.find("[[") != std::string::npos && line.find("]]") != std::string::npos)
         {
             break;
         }
@@ -113,8 +111,7 @@ void ShaderProgram::parseShader(const std::vector<std::string>& lines)
         attributeDescriptorBlock_ += lines[idx] + "\n";
     }
 
-    ASSERT_FATAL(
-        idx < lines.size(), "Shader code block contains no main() source.");
+    ASSERT_FATAL(idx < lines.size(), "Shader code block contains no main() source.");
 
     for (; idx < lineCount; ++idx)
     {
@@ -123,29 +120,24 @@ void ShaderProgram::parseShader(const std::vector<std::string>& lines)
 }
 
 ShaderProgramBundle::ShaderProgramBundle()
-: shaderId_(0), pipelineLayout_(std::make_unique<PipelineLayout>())
+    : shaderId_(0), pipelineLayout_(std::make_unique<PipelineLayout>())
 {
 }
 
 ShaderProgramBundle::~ShaderProgramBundle() {}
 
-void ShaderProgramBundle::parseMaterialShader(
-    const std::filesystem::path& shaderPath)
+void ShaderProgramBundle::parseMaterialShader(const std::filesystem::path& shaderPath)
 {
-    std::string absolutePath =
-        YAVE_SHADER_DIRECTORY "/materials/" + shaderPath.string();
+    std::string absolutePath = YAVE_SHADER_DIRECTORY "/materials/" + shaderPath.string();
     std::fstream file(absolutePath, std::ios::in);
     if (!file.is_open())
     {
-        throw std::runtime_error(
-            "Error whilst loading material shader: " + shaderPath.string());
+        throw std::runtime_error("Error whilst loading material shader: " + shaderPath.string());
     }
 
     // we use the material shader as the hash for the key
     shaderId_ = util::murmurHash3(
-        (const uint32_t*)shaderPath.string().c_str(),
-        shaderPath.string().size(),
-        0);
+        (const uint32_t*)shaderPath.string().c_str(), shaderPath.string().size(), 0);
 
     std::string line;
     std::vector<std::string> shaderLines;
@@ -189,10 +181,8 @@ void ShaderProgramBundle::buildShader(std::string filename)
     // use the main shader filename.
     if (!shaderId_)
     {
-        shaderId_ = util::murmurHash3(
-            (const uint32_t*)absolutePath.filename().c_str(),
-            filename.size(),
-            0);
+        shaderId_ =
+            util::murmurHash3((const uint32_t*)absolutePath.filename().c_str(), filename.size(), 0);
     }
 
     // determine the shader stage from the filename extension - need to
@@ -211,8 +201,7 @@ void ShaderProgramBundle::buildShader(std::string filename)
     }
     else
     {
-        throw std::runtime_error(
-            "Shader extension " + shaderExt + "is not supported.");
+        throw std::runtime_error("Shader extension " + shaderExt + "is not supported.");
     }
 
     std::string line;
@@ -241,8 +230,7 @@ ShaderProgram* ShaderProgramBundle::createProgram(const backend::ShaderStage& ty
     return output;
 }
 
-std::vector<vk::PipelineShaderStageCreateInfo>
-ShaderProgramBundle::getShaderStagesCreateInfo()
+std::vector<vk::PipelineShaderStageCreateInfo> ShaderProgramBundle::getShaderStagesCreateInfo()
 {
     std::vector<vk::PipelineShaderStageCreateInfo> output;
     for (size_t i = 0; i < static_cast<size_t>(backend::ShaderStage::Count); ++i)
@@ -284,9 +272,7 @@ void ShaderProgramBundle::setTexture(
 {
     ASSERT_FATAL(handle, "Invalid texture handle.");
     ASSERT_FATAL(
-        binding < PipelineCache::MaxSamplerBindCount,
-        "Binding of %d is out of bounds.",
-        binding);
+        binding < PipelineCache::MaxSamplerBindCount, "Binding of %d is out of bounds.", binding);
     textureHandles_[binding] = handle;
     samplers_[binding] = sampler;
 }
@@ -294,8 +280,7 @@ void ShaderProgramBundle::setTexture(
 void ShaderProgramBundle::setPushBlockData(backend::ShaderStage stage, void* data)
 {
     ASSERT_FATAL(data, "Pushblock data is NULL.");
-    ASSERT_FATAL(
-        pushBlock_, "Trying to set push block data when it's not initialised.");
+    ASSERT_FATAL(pushBlock_, "Trying to set push block data when it's not initialised.");
     pushBlock_[util::ecast(stage)]->data = data;
 }
 
@@ -322,8 +307,7 @@ void ShaderProgramBundle::setScissor(
     uint32_t width, uint32_t height, uint32_t xOffset, uint32_t yOffset)
 {
     scissor_ = vk::Rect2D {
-        {static_cast<int32_t>(xOffset), static_cast<int32_t>(yOffset)},
-        {width, height}};
+        {static_cast<int32_t>(xOffset), static_cast<int32_t>(yOffset)}, {width, height}};
 }
 
 void ShaderProgramBundle::setViewport(
@@ -331,15 +315,11 @@ void ShaderProgramBundle::setViewport(
 {
     ASSERT_LOG(width > 0);
     ASSERT_LOG(height > 0);
-    viewport_ = vk::Viewport {
-        static_cast<float>(width),
-        static_cast<float>(height),
-        minDepth,
-        maxDepth};
+    viewport_ =
+        vk::Viewport {static_cast<float>(width), static_cast<float>(height), minDepth, maxDepth};
 }
 
-void ShaderProgramBundle::addTextureSampler(
-    vk::Sampler sampler, uint32_t binding)
+void ShaderProgramBundle::addTextureSampler(vk::Sampler sampler, uint32_t binding)
 {
     ASSERT_FATAL(
         binding < PipelineCache::MaxSamplerBindCount,
@@ -348,26 +328,21 @@ void ShaderProgramBundle::addTextureSampler(
     samplers_[binding] = sampler;
 }
 
-void ShaderProgramBundle::createPushBlock(size_t size, backend::ShaderStage stage) 
+void ShaderProgramBundle::createPushBlock(size_t size, backend::ShaderStage stage)
 {
     uint32_t stageValue = util::ecast(stage);
     ASSERT_FATAL(
-        stageValue <= 2,
-        "Only vertex and fragment shader currently supports push blocks.");
+        stageValue <= 2, "Only vertex and fragment shader currently supports push blocks.");
 
     if (!pushBlock_[stageValue])
     {
-        pushBlock_[stageValue] =
-            std::make_unique<PipelineLayout::PushBlockBindParams>();
+        pushBlock_[stageValue] = std::make_unique<PipelineLayout::PushBlockBindParams>();
         pushBlock_[stageValue]->stage = Shader::getStageFlags(stage);
     }
-    pushBlock_[stageValue]->size = size; 
+    pushBlock_[stageValue]->size = size;
 }
 
-PipelineLayout& ShaderProgramBundle::getPipelineLayout() noexcept 
-{   
-    return *pipelineLayout_;
-}
+PipelineLayout& ShaderProgramBundle::getPipelineLayout() noexcept { return *pipelineLayout_; }
 
 ProgramManager::ProgramManager(VkDriver& driver) : driver_(driver) {}
 ProgramManager::~ProgramManager() {}
@@ -388,8 +363,7 @@ Shader* ProgramManager::compileShader(
     const VDefinitions& variants,
     const CachedKey& key)
 {
-    std::unique_ptr<Shader> shader =
-        std::make_unique<Shader>(driver_.context(), type);
+    std::unique_ptr<Shader> shader = std::make_unique<Shader>(driver_.context(), type);
     if (!shader->compile(shaderCode, variants))
     {
         return nullptr;
@@ -444,15 +418,14 @@ Shader* ProgramManager::findShaderVariantOrCreate(
 
     for (const auto& layout : binding.descLayouts)
     {
-        plineLayout.addDescriptorLayout(
-            layout.set, layout.binding, layout.type, layout.stage);
+        plineLayout.addDescriptorLayout(layout.set, layout.binding, layout.type, layout.stage);
     }
 
     if (binding.pushBlockSize > 0)
     {
         // Push constant details for the pipeline layout
         plineLayout.addPushConstant(type, binding.pushBlockSize);
-        bundle->createPushBlock(binding.pushBlockSize, type);     
+        bundle->createPushBlock(binding.pushBlockSize, type);
     }
     return shader;
 }

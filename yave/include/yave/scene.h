@@ -40,7 +40,6 @@ public:
     virtual Camera* getCurrentCamera() = 0;
 
 protected:
-
     Scene();
 };
 

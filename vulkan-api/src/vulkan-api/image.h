@@ -51,8 +51,7 @@ public:
      * @brief Calculates the view type based on how many faces and whether the
      * texture is an array
      */
-    static vk::ImageViewType
-    getTextureType(uint32_t faceCount, uint32_t arrayCount);
+    static vk::ImageViewType getTextureType(uint32_t faceCount, uint32_t arrayCount);
 
     /**
      * @brief Create a new image view based on the specified **Image**

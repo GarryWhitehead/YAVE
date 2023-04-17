@@ -32,21 +32,19 @@ namespace yave
 namespace rg
 {
 
-RenderGraphResource::RenderGraphResource(
-    RenderGraph& rGraph, RenderPassNode* node)
+RenderGraphResource::RenderGraphResource(RenderGraph& rGraph, RenderPassNode* node)
     : rGraph_(rGraph), rPassNode_(node)
 {
 }
 
-ResourceBase*
-RenderGraphResource::getResource(const RenderGraphHandle& handle) const noexcept
+ResourceBase* RenderGraphResource::getResource(const RenderGraphHandle& handle) const noexcept
 {
     ASSERT_LOG(handle);
     return rGraph_.getResource(handle);
 }
 
-RenderGraphResource::Info RenderGraphResource::getRenderPassInfo(
-    const RenderGraphHandle& handle) const noexcept
+RenderGraphResource::Info
+RenderGraphResource::getRenderPassInfo(const RenderGraphHandle& handle) const noexcept
 {
     ASSERT_LOG(handle);
     RenderPassInfo ri = rPassNode_->getRenderTargetInfo(handle);
@@ -57,11 +55,9 @@ vkapi::TextureHandle
 RenderGraphResource::getTextureHandle(const RenderGraphHandle& handle) const noexcept
 {
     ASSERT_LOG(handle);
-    auto* textureResource =
-        reinterpret_cast<TextureResource*>(rGraph_.getResource(handle));
+    auto* textureResource = reinterpret_cast<TextureResource*>(rGraph_.getResource(handle));
     ASSERT_FATAL(
-        textureResource && textureResource->handle(),
-        "Invalid handle for vkapi resource.");
+        textureResource && textureResource->handle(), "Invalid handle for vkapi resource.");
     return textureResource->handle();
 }
 

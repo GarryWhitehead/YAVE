@@ -46,10 +46,7 @@ std::string SamplerSet::samplerTypeToStr(SamplerSet::SamplerType type)
 }
 
 void SamplerSet::pushSampler(
-    const std::string& name,
-    uint8_t set,
-    uint8_t binding,
-    SamplerType type) noexcept
+    const std::string& name, uint8_t set, uint8_t binding, SamplerType type) noexcept
 {
     samplers_.push_back({name, set, binding, type});
 }
@@ -61,8 +58,8 @@ std::string SamplerSet::createShaderStr() noexcept
     {
         std::string type = samplerTypeToStr(sampler.type);
         output += "layout (set = " + std::to_string(sampler.set) +
-            ", binding = " + std::to_string(sampler.binding) + ") uniform " +
-            type + " " + sampler.name.c_str() + ";\n";
+            ", binding = " + std::to_string(sampler.binding) + ") uniform " + type + " " +
+            sampler.name.c_str() + ";\n";
     }
     return output;
 }

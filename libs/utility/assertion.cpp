@@ -52,21 +52,18 @@ std::string formatArgs(char const* format, va_list args)
     return error;
 }
 
-std::string createErrorMsg(
-    const char* function, const char* file, int line, const char* error)
+std::string createErrorMsg(const char* function, const char* file, int line, const char* error)
 {
 #ifndef NDEBUG
     return std::string(
-        "\nError at line " + std::to_string(line) + "\nFile: " +
-        std::string(file) + "\nFunction: " + std::string(error) + "\n\n");
+        "\nError at line " + std::to_string(line) + "\nFile: " + std::string(file) +
+        "\nFunction: " + std::string(error) + "\n\n");
 #else
-    return std::string(
-        "Error at line " + std::to_string(line) + "\n" + std::string(error));
+    return std::string("Error at line " + std::to_string(line) + "\n" + std::string(error));
 #endif
 }
 
-void fatal(
-    char const* function, char const* file, int line, const char* format, ...)
+void fatal(char const* function, char const* file, int line, const char* format, ...)
 {
     va_list args;
     va_start(args, format);

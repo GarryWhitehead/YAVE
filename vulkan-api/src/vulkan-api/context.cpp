@@ -25,7 +25,6 @@
 #include "utility/compiler.h"
 
 #include <spdlog/spdlog.h>
-
 #include <string.h>
 
 #include <set>
@@ -156,50 +155,41 @@ bool VkContext::prepareExtensions(
     {
         if (!findExtensionProperties(extensions[i], extensionProps))
         {
-            SPDLOG_ERROR(
-                "Unable to find required extension properties for GLFW.");
+            SPDLOG_ERROR("Unable to find required extension properties for GLFW.");
             return false;
         }
     }
 
     if (findExtensionProperties(
-            VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME,
-            extensionProps))
+            VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME, extensionProps))
     {
-        extensions.push_back(
-            VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
+        extensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
         deviceExtensions_.hasPhysicalDeviceProps2 = true;
 
         if (findExtensionProperties(
-                VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME,
-                extensionProps) &&
+                VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME, extensionProps) &&
             findExtensionProperties(
-                VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_EXTENSION_NAME,
-                extensionProps))
+                VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_EXTENSION_NAME, extensionProps))
         {
-            extensions.push_back(
-                VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME);
-            extensions.push_back(
-                VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_EXTENSION_NAME);
+            extensions.push_back(VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME);
+            extensions.push_back(VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_EXTENSION_NAME);
             deviceExtensions_.hasExternalCapabilities = true;
         }
     }
-    if (findExtensionProperties(
-            VK_EXT_DEBUG_UTILS_EXTENSION_NAME, extensionProps))
+    if (findExtensionProperties(VK_EXT_DEBUG_UTILS_EXTENSION_NAME, extensionProps))
     {
         extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
         deviceExtensions_.hasDebugUtils = true;
     }
 
 #if __APPLE__
-    //extensions.push_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
+    // extensions.push_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
 #endif
 
 #ifdef VULKAN_VALIDATION_DEBUG
     // if debug utils isn't supported, try debug report
     if (!deviceExtensions_.hasDebugUtils &&
-        findExtensionProperties(
-            VK_EXT_DEBUG_REPORT_EXTENSION_NAME, extensionProps))
+        findExtensionProperties(VK_EXT_DEBUG_REPORT_EXTENSION_NAME, extensionProps))
     {
         extensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
     }
@@ -210,11 +200,7 @@ bool VkContext::prepareExtensions(
 bool VkContext::createInstance(const char** glfwExtension, uint32_t extCount)
 {
     vk::ApplicationInfo appInfo(
-        "YAVE",
-        VK_MAKE_VERSION(1, 2, 0),
-        "",
-        VK_MAKE_VERSION(1, 2, 0),
-        VK_API_VERSION_1_2);
+        "YAVE", VK_MAKE_VERSION(1, 2, 0), "", VK_MAKE_VERSION(1, 2, 0), VK_API_VERSION_1_2);
 
     // glfw extensions
     std::vector<const char*> extensions;
@@ -233,8 +219,7 @@ bool VkContext::createInstance(const char** glfwExtension, uint32_t extCount)
     }
 
     // layer extensions, if any
-    std::vector<vk::LayerProperties> layerExt =
-        vk::enumerateInstanceLayerProperties();
+    std::vector<vk::LayerProperties> layerExt = vk::enumerateInstanceLayerProperties();
 
     auto findLayerExtension = [&](const char* name) -> bool {
         for (auto& ext : layerExt)
@@ -264,7 +249,7 @@ bool VkContext::createInstance(const char** glfwExtension, uint32_t extCount)
         requiredLayers_.data(),
         static_cast<uint32_t>(extensions.size()),
         extensions.data());
-    //createInfo.flags = vk::InstanceCreateFlagBits::eEnumeratePortabilityKHR;
+    // createInfo.flags = vk::InstanceCreateFlagBits::eEnumeratePortabilityKHR;
     VK_CHECK_RESULT(vk::createInstance(&createInfo, nullptr, &instance_));
 
 #ifdef VULKAN_VALIDATION_DEBUG
@@ -272,11 +257,11 @@ bool VkContext::createInstance(const char** glfwExtension, uint32_t extCount)
     // get the proc address, only Mac and Linux the VkInstance needs to be
     // passed.
 #ifdef WIN32
-    auto addr = PFN_vkGetInstanceProcAddr(
-        vkGetInstanceProcAddr(VK_NULL_HANDLE, "vkGetInstanceProcAddr"));
+    auto addr =
+        PFN_vkGetInstanceProcAddr(vkGetInstanceProcAddr(VK_NULL_HANDLE, "vkGetInstanceProcAddr"));
 #else
-    auto addr = PFN_vkGetInstanceProcAddr(
-        vkGetInstanceProcAddr(instance_, "vkGetInstanceProcAddr"));
+    auto addr =
+        PFN_vkGetInstanceProcAddr(vkGetInstanceProcAddr(instance_, "vkGetInstanceProcAddr"));
 #endif
     vk::DispatchLoaderDynamic dldi(instance_, addr);
 
@@ -293,21 +278,19 @@ bool VkContext::createInstance(const char** glfwExtension, uint32_t extCount)
             DebugMessenger,
             this);
 
-        auto debugReport = instance_.createDebugUtilsMessengerEXT(
-            &dbgCreateInfo, nullptr, &debugMessenger, dldi);
+        auto debugReport =
+            instance_.createDebugUtilsMessengerEXT(&dbgCreateInfo, nullptr, &debugMessenger, dldi);
     }
-    else if (findExtensionProperties(
-                 VK_EXT_DEBUG_REPORT_EXTENSION_NAME, extensionProps))
+    else if (findExtensionProperties(VK_EXT_DEBUG_REPORT_EXTENSION_NAME, extensionProps))
     {
         vk::DebugReportCallbackCreateInfoEXT cbCreateInfo(
-            vk::DebugReportFlagBitsEXT::eError |
-                vk::DebugReportFlagBitsEXT::eWarning |
+            vk::DebugReportFlagBitsEXT::eError | vk::DebugReportFlagBitsEXT::eWarning |
                 vk::DebugReportFlagBitsEXT::ePerformanceWarning,
             DebugCallback,
             this);
 
-        VK_CHECK_RESULT(instance_.createDebugReportCallbackEXT(
-            &cbCreateInfo, nullptr, &debugCallback, dldi));
+        VK_CHECK_RESULT(
+            instance_.createDebugReportCallbackEXT(&cbCreateInfo, nullptr, &debugCallback, dldi));
     }
 #endif
 
@@ -368,18 +351,16 @@ bool VkContext::prepareDevice(const vk::SurfaceKHR windowSurface)
 
     if (!physical_)
     {
-        SPDLOG_ERROR(
-            "No Vulkan supported GPU devices were found.");
+        SPDLOG_ERROR("No Vulkan supported GPU devices were found.");
         return false;
     }
 
     // Also get all the device extensions for querying later
     std::vector<vk::ExtensionProperties> extensions =
         physical_.enumerateDeviceExtensionProperties();
-    
+
     // find queues for this gpu
-    std::vector<vk::QueueFamilyProperties> queues =
-        physical_.getQueueFamilyProperties();
+    std::vector<vk::QueueFamilyProperties> queues = physical_.getQueueFamilyProperties();
 
     // graphics queue
     for (uint32_t c = 0; c < queues.size(); ++c)
@@ -414,8 +395,7 @@ bool VkContext::prepareDevice(const vk::SurfaceKHR windowSurface)
     // else use a seperate presentation queue
     for (uint32_t c = 0; c < queues.size(); ++c)
     {
-        VK_CHECK_RESULT(physical_.getSurfaceSupportKHR(
-            c, windowSurface, &hasPresentionQueue));
+        VK_CHECK_RESULT(physical_.getSurfaceSupportKHR(c, windowSurface, &hasPresentionQueue));
         if (queues[c].queueCount > 0 && hasPresentionQueue)
         {
             queueFamilyIndex_.present = c;
@@ -451,9 +431,7 @@ bool VkContext::prepareDevice(const vk::SurfaceKHR windowSurface)
     float queuePriority = 1.0f;
     std::vector<vk::DeviceQueueCreateInfo> queueInfo = {};
     std::set<uint32_t> uniqueQueues = {
-        queueFamilyIndex_.graphics,
-        queueFamilyIndex_.present,
-        queueFamilyIndex_.compute};
+        queueFamilyIndex_.graphics, queueFamilyIndex_.present, queueFamilyIndex_.compute};
 
     for (auto& queue : uniqueQueues)
     {
@@ -493,13 +471,17 @@ bool VkContext::prepareDevice(const vk::SurfaceKHR windowSurface)
 
     // print out specifications of the selected device
     auto props = physical_.getProperties();
-    
+
     const uint32_t driverVersion = props.driverVersion;
     const uint32_t vendorID = props.vendorID;
     const uint32_t deviceID = props.deviceID;
-    
-    SPDLOG_INFO("\n\nDevice name: {}\nDriver version: {}\nVendor ID: {:0x}\n", props.deviceName, driverVersion, vendorID);
-    
+
+    SPDLOG_INFO(
+        "\n\nDevice name: {}\nDriver version: {}\nVendor ID: {:0x}\n",
+        props.deviceName,
+        driverVersion,
+        vendorID);
+
     device_.getQueue(queueFamilyIndex_.compute, 0, &computeQueue_);
     device_.getQueue(queueFamilyIndex_.graphics, 0, &graphicsQueue_);
     device_.getQueue(queueFamilyIndex_.present, 0, &presentQueue_);
@@ -507,15 +489,13 @@ bool VkContext::prepareDevice(const vk::SurfaceKHR windowSurface)
     return true;
 }
 
-uint32_t
-VkContext::selectMemoryType(uint32_t flags, vk::MemoryPropertyFlags reqs)
+uint32_t VkContext::selectMemoryType(uint32_t flags, vk::MemoryPropertyFlags reqs)
 {
     auto memProps = physical_.getMemoryProperties();
     for (uint32_t i = 0; i < VK_MAX_MEMORY_TYPES; i++)
     {
         if (flags & 1)
         {
-            
             if ((memProps.memoryTypes[i].propertyFlags & reqs) == reqs)
             {
                 return i;

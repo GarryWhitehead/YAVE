@@ -62,10 +62,7 @@ public:
     /**
      * @brief constructor for creating a sub-resource (has a parent resource)
      */
-    ResourceBase(util::CString name, ResourceBase* parent)
-        : name_(name), parent_(parent)
-    {
-    }
+    ResourceBase(util::CString name, ResourceBase* parent) : name_(name), parent_(parent) {}
 
     void registerPass(PassNodeBase* node);
 
@@ -96,10 +93,7 @@ public:
 
     virtual bool isImported() const = 0;
 
-    virtual ImportedRenderTarget* asImportedRenderTarget() noexcept
-    {
-        return nullptr;
-    }
+    virtual ImportedRenderTarget* asImportedRenderTarget() noexcept { return nullptr; }
 
     virtual void bake(vkapi::VkDriver& driver) = 0;
 
@@ -164,7 +158,7 @@ public:
 
     friend struct RenderPassInfo;
     friend class RenderPassNode;
-    
+
 protected:
     // the image information which will be used to create the image view
     Descriptor desc_;
@@ -172,7 +166,7 @@ protected:
     // this is resolved only upon calling render graph compile()
     vk::ImageUsageFlags imageUsage_;
 
-    // only valid after call to "bake". 
+    // only valid after call to "bake".
     // Note: this will be invalid if resource is imported.
     vkapi::TextureHandle handle_;
 };
@@ -199,21 +193,18 @@ class ImportedRenderTarget : public ImportedResource
 public:
     struct Descriptor
     {
-        vkapi::LoadClearFlags
-            loadClearFlags[vkapi::RenderTarget::MaxAttachmentCount] = {
-                vkapi::LoadClearFlags::DontCare};
-        vkapi::StoreClearFlags
-            storeClearFlags[vkapi::RenderTarget::MaxAttachmentCount] = {};
-          
-        std::array<vk::ImageLayout, vkapi::RenderTarget::MaxAttachmentCount> finalLayouts =
-            {};
+        vkapi::LoadClearFlags loadClearFlags[vkapi::RenderTarget::MaxAttachmentCount] = {
+            vkapi::LoadClearFlags::DontCare};
+        vkapi::StoreClearFlags storeClearFlags[vkapi::RenderTarget::MaxAttachmentCount] = {};
+
+        std::array<vk::ImageLayout, vkapi::RenderTarget::MaxAttachmentCount> finalLayouts = {};
 
         vk::ImageUsageFlags usage;
         util::Colour4 clearColour {0.0f, 0.0f, 0.0f, 1.0f};
 
         uint32_t width;
         uint32_t height;
-        uint8_t samples = 1;  
+        uint8_t samples = 1;
     };
 
     ImportedRenderTarget(
@@ -223,10 +214,7 @@ public:
         const Descriptor& importedDesc);
     ~ImportedRenderTarget();
 
-    ImportedRenderTarget* asImportedRenderTarget() noexcept override
-    {
-        return this;
-    }
+    ImportedRenderTarget* asImportedRenderTarget() noexcept override { return this; }
 
     // handle to the backend render target which will be imported into the graph
     vkapi::RenderTargetHandle rtHandle;

@@ -50,15 +50,10 @@ StagingPool::StageInfo* StagingPool::create(const VkDeviceSize size)
     // cpu staging pool
     VmaAllocationCreateInfo createInfo = {};
     createInfo.usage = VMA_MEMORY_USAGE_AUTO;
-    createInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT |
-        VMA_ALLOCATION_CREATE_MAPPED_BIT;
+    createInfo.flags =
+        VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT;
     VMA_CHECK_RESULT(vmaCreateBuffer(
-        vmaAlloc_,
-        &bufferInfo,
-        &createInfo,
-        &stage->buffer,
-        &stage->mem,
-        &stage->allocInfo));
+        vmaAlloc_, &bufferInfo, &createInfo, &stage->buffer, &stage->mem, &stage->allocInfo));
 
     return stage;
 }
@@ -94,8 +89,7 @@ void StagingPool::garbageCollection(uint64_t currentFrame)
     std::vector<StageInfo*> newFreeStages;
     for (auto* stage : freeStages_)
     {
-        uint64_t collectionFrame =
-            stage->frameLastUsed + Commands::MaxCommandBufferSize;
+        uint64_t collectionFrame = stage->frameLastUsed + Commands::MaxCommandBufferSize;
         if (collectionFrame < currentFrame)
         {
             vmaDestroyBuffer(vmaAlloc_, stage->buffer, stage->mem);
@@ -113,8 +107,7 @@ void StagingPool::garbageCollection(uint64_t currentFrame)
     std::unordered_set<StageInfo*> newInUseStages;
     for (auto* stage : inUseStages_)
     {
-        uint64_t collectionFrame =
-            stage->frameLastUsed + Commands::MaxCommandBufferSize;
+        uint64_t collectionFrame = stage->frameLastUsed + Commands::MaxCommandBufferSize;
         if (collectionFrame < currentFrame)
         {
             freeStages_.emplace_back(stage);
@@ -146,8 +139,7 @@ void StagingPool::clear()
 
 Buffer::Buffer() = default;
 
-void Buffer::prepare(
-    VmaAllocator& vmaAlloc, vk::DeviceSize buffSize, VkBufferUsageFlags usage)
+void Buffer::prepare(VmaAllocator& vmaAlloc, vk::DeviceSize buffSize, VkBufferUsageFlags usage)
 {
     size_ = buffSize;
 
@@ -159,15 +151,13 @@ void Buffer::prepare(
     VmaAllocationCreateInfo allocCreateInfo = {};
     allocCreateInfo.usage = VMA_MEMORY_USAGE_AUTO;
     allocCreateInfo.flags =
-        VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT |
-        VMA_ALLOCATION_CREATE_MAPPED_BIT;
+        VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT;
 
-    VMA_CHECK_RESULT(vmaCreateBuffer(
-        vmaAlloc, &bufferInfo, &allocCreateInfo, &buffer_, &mem_, &allocInfo_));
+    VMA_CHECK_RESULT(
+        vmaCreateBuffer(vmaAlloc, &bufferInfo, &allocCreateInfo, &buffer_, &mem_, &allocInfo_));
 }
 
-void Buffer::createBuffer(
-    VmaAllocator& vmaAlloc, VkBufferUsageFlags usage, VkDeviceSize size)
+void Buffer::createBuffer(VmaAllocator& vmaAlloc, VkBufferUsageFlags usage, VkDeviceSize size)
 {
     // create GPU memory
     VkBufferCreateInfo bufferInfo = {};
@@ -177,29 +167,24 @@ void Buffer::createBuffer(
 
     VmaAllocationCreateInfo createInfo = {};
     createInfo.usage = VMA_MEMORY_USAGE_AUTO;
-    VMA_CHECK_RESULT(vmaCreateBuffer(
-        vmaAlloc, &bufferInfo, &createInfo, &buffer_, &mem_, &allocInfo_));
+    VMA_CHECK_RESULT(
+        vmaCreateBuffer(vmaAlloc, &bufferInfo, &createInfo, &buffer_, &mem_, &allocInfo_));
 }
 
-void Buffer::mapToStage(
-    void* data, size_t dataSize, StagingPool::StageInfo* stage)
+void Buffer::mapToStage(void* data, size_t dataSize, StagingPool::StageInfo* stage)
 {
     ASSERT_FATAL(data, "Data pointer is nullptr for buffer mapping.");
     memcpy(stage->allocInfo.pMappedData, data, dataSize);
 }
 
-void Buffer::mapToGpuBuffer(void* data, size_t dataSize) 
+void Buffer::mapToGpuBuffer(void* data, size_t dataSize)
 {
     ASSERT_FATAL(data, "Data pointer is nullptr for buffer mapping.");
     memcpy(allocInfo_.pMappedData, data, dataSize);
 }
 
 void Buffer::mapAndCopyToGpu(
-    VkDriver& driver,
-    StagingPool& pool,
-    VkDeviceSize size,
-    VkBufferUsageFlags usage,
-    void* data)
+    VkDriver& driver, StagingPool& pool, VkDeviceSize size, VkBufferUsageFlags usage, void* data)
 {
     StagingPool::StageInfo* stage = pool.getStage(size);
     mapToStage(data, size, stage);
@@ -207,10 +192,7 @@ void Buffer::mapAndCopyToGpu(
 }
 
 void Buffer::copyStagedToGpu(
-    VkDriver& driver,
-    VkDeviceSize size,
-    StagingPool::StageInfo* stage,
-    VkBufferUsageFlags usage)
+    VkDriver& driver, VkDeviceSize size, StagingPool::StageInfo* stage, VkBufferUsageFlags usage)
 {
     // copy from the staging area to the allocated GPU memory
     auto& cmds = driver.getCommands();
@@ -223,13 +205,11 @@ void Buffer::copyStagedToGpu(
     vkCmdCopyBuffer(cmd.cmdBuffer, stage->buffer, buffer_, 1, &copyRegion);
 
     // ensure that the copy finishes before the next frames draw call
-    if (usage & VK_BUFFER_USAGE_VERTEX_BUFFER_BIT ||
-        usage & VK_BUFFER_USAGE_INDEX_BUFFER_BIT)
+    if (usage & VK_BUFFER_USAGE_VERTEX_BUFFER_BIT || usage & VK_BUFFER_USAGE_INDEX_BUFFER_BIT)
     {
         vk::BufferMemoryBarrier memBarrier {
             vk::AccessFlagBits::eTransferWrite,
-            vk::AccessFlagBits::eTransferWrite |
-                vk::AccessFlagBits::eVertexAttributeRead |
+            vk::AccessFlagBits::eTransferWrite | vk::AccessFlagBits::eVertexAttributeRead |
                 vk::AccessFlagBits::eIndexRead,
             VK_QUEUE_FAMILY_IGNORED,
             VK_QUEUE_FAMILY_IGNORED,
@@ -238,8 +218,7 @@ void Buffer::copyStagedToGpu(
             VK_WHOLE_SIZE};
         cmd.cmdBuffer.pipelineBarrier(
             vk::PipelineStageFlagBits::eTransfer,
-            vk::PipelineStageFlagBits::eTransfer |
-                vk::PipelineStageFlagBits::eVertexInput,
+            vk::PipelineStageFlagBits::eTransfer | vk::PipelineStageFlagBits::eVertexInput,
             vk::DependencyFlags(0),
             0,
             nullptr,
@@ -252,8 +231,7 @@ void Buffer::copyStagedToGpu(
     {
         vk::BufferMemoryBarrier memBarrier {
             vk::AccessFlagBits::eTransferWrite,
-            vk::AccessFlagBits::eTransferWrite |
-                vk::AccessFlagBits::eUniformRead,
+            vk::AccessFlagBits::eTransferWrite | vk::AccessFlagBits::eUniformRead,
             VK_QUEUE_FAMILY_IGNORED,
             VK_QUEUE_FAMILY_IGNORED,
             buffer_,
@@ -261,8 +239,7 @@ void Buffer::copyStagedToGpu(
             VK_WHOLE_SIZE};
         cmd.cmdBuffer.pipelineBarrier(
             vk::PipelineStageFlagBits::eTransfer,
-            vk::PipelineStageFlagBits::eTransfer |
-                vk::PipelineStageFlagBits::eVertexShader |
+            vk::PipelineStageFlagBits::eTransfer | vk::PipelineStageFlagBits::eVertexShader |
                 vk::PipelineStageFlagBits::eFragmentShader,
             vk::DependencyFlags(0),
             0,
@@ -274,10 +251,7 @@ void Buffer::copyStagedToGpu(
     }
 }
 
-void Buffer::destroy(VmaAllocator& vmaAlloc)
-{
-    vmaDestroyBuffer(vmaAlloc, buffer_, mem_);
-}
+void Buffer::destroy(VmaAllocator& vmaAlloc) { vmaDestroyBuffer(vmaAlloc, buffer_, mem_); }
 
 vk::Buffer Buffer::get() { return vk::Buffer(buffer_); }
 
@@ -318,10 +292,9 @@ void IndexBuffer::create(
     void* data,
     const VkDeviceSize dataSize)
 {
-    ASSERT_FATAL(
-        data, "Data pointer is nullptr for index buffer initialisation.");
+    ASSERT_FATAL(data, "Data pointer is nullptr for index buffer initialisation.");
 
-   // get a staging pool for hosting on the CPU side
+    // get a staging pool for hosting on the CPU side
     StagingPool::StageInfo* stage = pool.getStage(dataSize);
     ASSERT_LOG(stage);
 

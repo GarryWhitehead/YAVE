@@ -30,32 +30,22 @@ namespace yave
 class NoiseGenerator
 {
 public:
-
     NoiseGenerator(uint32_t noiseWidth, uint32_t noiseHeight);
     ~NoiseGenerator();
 
-	void generateNoise(
-        double* noiseBuffer, uint32_t noiseWidth, uint32_t noiseHeight);
+    void generateNoise(double* noiseBuffer, uint32_t noiseWidth, uint32_t noiseHeight);
 
-	double smoothNoise(
-            double x,
-            double y,
-            double* noiseBuffer,
-            uint32_t noiseWidth,
-            uint32_t noiseHeight);
+    double
+    smoothNoise(double x, double y, double* noiseBuffer, uint32_t noiseWidth, uint32_t noiseHeight);
 
     uint8_t* generateImage(
-            uint32_t imageWidth,
-            uint32_t imageHeight,
-            uint32_t noiseWidth,
-            uint32_t noiseHeight);
+        uint32_t imageWidth, uint32_t imageHeight, uint32_t noiseWidth, uint32_t noiseHeight);
 
 private:
-
     double* noiseBuffer_;
 
     uint32_t noiseWidth_;
     uint32_t noiseHeight_;
 };
 
-}
+} // namespace yave

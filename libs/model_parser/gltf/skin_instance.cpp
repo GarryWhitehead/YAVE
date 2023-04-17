@@ -23,7 +23,6 @@
 #include "skin_instance.h"
 
 #include "node_instance.h"
-
 #include "utility/assertion.h"
 #include "utility/logger.h"
 
@@ -48,13 +47,11 @@ bool SkinInstance::prepare(cgltf_skin& skin, NodeInstance& node)
     ASSERT_LOG(stride == 16);
 
     invBindMatrices.reserve(accessor->count);
-    memcpy(
-        invBindMatrices.data(), base, accessor->count * sizeof(mathfu::mat4));
+    memcpy(invBindMatrices.data(), base, accessor->count * sizeof(mathfu::mat4));
 
     if (invBindMatrices.size() != skin.joints_count)
     {
-        LOGGER_ERROR(
-            "The inverse bind matrices and joint sizes don't match.\n");
+        LOGGER_ERROR("The inverse bind matrices and joint sizes don't match.\n");
         return false;
     }
 

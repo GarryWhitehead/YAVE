@@ -41,36 +41,25 @@ public:
 
     void addAttributeI(backend::BufferElementType type, uint32_t binding);
 
-    void
-    buildI(vkapi::VkDriver& driver, uint32_t vertexCount, void* vertexData);
+    void buildI(vkapi::VkDriver& driver, uint32_t vertexCount, void* vertexData);
 
-    vk::VertexInputAttributeDescription* getInputAttr() noexcept
-    {
-        return attributes_;
-    }
+    vk::VertexInputAttributeDescription* getInputAttr() noexcept { return attributes_; }
 
-    vk::VertexInputBindingDescription* getInputBind() noexcept
-    {
-        return bindDesc_;
-    }
+    vk::VertexInputBindingDescription* getInputBind() noexcept { return bindDesc_; }
 
-    util::BitSetEnum<VertexBuffer::BindingType>
-    getAtrributeBits() const noexcept;
+    util::BitSetEnum<VertexBuffer::BindingType> getAtrributeBits() const noexcept;
 
     vkapi::VertexBuffer* getGpuBuffer(vkapi::VkDriver& driver) noexcept;
 
     // =============== client api virtual =======================
 
-    void addAttribute(
-        BindingType bindType, backend::BufferElementType attrType) override;
+    void addAttribute(BindingType bindType, backend::BufferElementType attrType) override;
 
     void build(Engine* engine, uint32_t vertexCount, void* vertexData) override;
 
 private:
-    vk::VertexInputAttributeDescription
-        attributes_[vkapi::PipelineCache::MaxVertexAttributeCount];
-    vk::VertexInputBindingDescription
-        bindDesc_[vkapi::PipelineCache::MaxVertexAttributeCount];
+    vk::VertexInputAttributeDescription attributes_[vkapi::PipelineCache::MaxVertexAttributeCount];
+    vk::VertexInputBindingDescription bindDesc_[vkapi::PipelineCache::MaxVertexAttributeCount];
     vkapi::VertexBufferHandle vHandle_;
 };
 

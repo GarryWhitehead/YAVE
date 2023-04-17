@@ -22,9 +22,9 @@
 
 #pragma once
 
+#include "backend/enums.h"
 #include "samplerset.h"
 #include "uniform_buffer.h"
-#include "backend/enums.h"
 #include "utility/assertion.h"
 #include "utility/cstring.h"
 #include "utility/handle.h"
@@ -86,8 +86,7 @@ public:
     IMaterial(IMaterial&&) = default;
     IMaterial& operator=(IMaterial&&) = default;
 
-    static vkapi::VDefinitions
-    createVariants(util::BitSetEnum<IMaterial::Variants>& bits);
+    static vkapi::VDefinitions createVariants(util::BitSetEnum<IMaterial::Variants>& bits);
 
     void addVariant(const Material::ImageType type);
     void addVariant(Variants variant);
@@ -109,24 +108,15 @@ public:
 
     void update(IEngine& engine) noexcept;
 
-    void updateUboParamI(const std::string& name, void* value)
-    {
-        ubo_->updateElement(name, value);
-    }
+    void updateUboParamI(const std::string& name, void* value) { ubo_->updateElement(name, value); }
 
     void addUboParamI(
-        const std::string& elementName,
-        backend::BufferElementType type,
-        size_t size,
-        void* value)
+        const std::string& elementName, backend::BufferElementType type, size_t size, void* value)
     {
         ubo_->pushElement(elementName, type, static_cast<uint32_t>(size), (void*)value);
     }
 
-    void updatePushConstantParamI(
-        const std::string& name,
-        backend::ShaderStage stage,
-        void* value)
+    void updatePushConstantParamI(const std::string& name, backend::ShaderStage stage, void* value)
     {
         pushBlock_[util::ecast(stage)]->updateElement(name, value);
     }
@@ -142,12 +132,10 @@ public:
             elementName, type, static_cast<uint32_t>(size), (void*)value);
     }
 
-    void setSamplerParamI(
-        const std::string& name, uint8_t binding, SamplerSet::SamplerType type)
+    void setSamplerParamI(const std::string& name, uint8_t binding, SamplerSet::SamplerType type)
     {
         // all samplers use the same set
-        samplerSet_.pushSampler(
-            name, vkapi::PipelineCache::SamplerSetValue, binding, type);
+        samplerSet_.pushSampler(name, vkapi::PipelineCache::SamplerSetValue, binding, type);
     }
 
     // ====== material state setters ========
@@ -170,10 +158,8 @@ public:
     void setDstAlphaBlendFactorI(vk::BlendFactor factor);
     void setAlphaBlendOpI(vk::BlendOp op);
 
-    void setScissorI(
-        uint32_t width, uint32_t height, uint32_t xOffset, uint32_t yOffset);
-    void setViewportI(
-        uint32_t width, uint32_t height, float minDepth, float maxDepth);
+    void setScissorI(uint32_t width, uint32_t height, uint32_t xOffset, uint32_t yOffset);
+    void setViewportI(uint32_t width, uint32_t height, float minDepth, float maxDepth);
 
     // defines the draw ordering of the material
     void setViewLayerI(uint8_t layer);
@@ -208,14 +194,9 @@ public:
     ImageType convertImageType(ModelMaterial::TextureType type) override;
     Pipeline convertPipeline(ModelMaterial::PbrPipeline pipeline) override;
 
-    void setScissor(
-        uint32_t width,
-        uint32_t height,
-        uint32_t xOffset,
-        uint32_t yOffset) override;
+    void setScissor(uint32_t width, uint32_t height, uint32_t xOffset, uint32_t yOffset) override;
 
-    void setViewport(
-        uint32_t width, uint32_t height, float minDepth, float maxDepth) override;
+    void setViewport(uint32_t width, uint32_t height, float minDepth, float maxDepth) override;
 
     void addPushConstantParam(
         const std::string& elementName,
@@ -231,13 +212,9 @@ public:
         void* value) override;
 
     void updatePushConstantParam(
-        const std::string& elementName,
-        backend::ShaderStage stage,
-        void* value) override;
+        const std::string& elementName, backend::ShaderStage stage, void* value) override;
 
-    void updateUboParam(
-        const std::string& elementName,
-        void* value) override;
+    void updateUboParam(const std::string& elementName, void* value) override;
 
     void addTexture(
         Engine* engine,
@@ -248,11 +225,8 @@ public:
         ImageType type,
         const TextureSampler& sampler) override;
 
-     void addTexture(
-        Engine* engine,
-        Texture* texture,
-        ImageType type,
-        const TextureSampler& sampler) override;
+    void addTexture(
+        Engine* engine, Texture* texture, ImageType type, const TextureSampler& sampler) override;
 
 private:
     // handle to ourself
@@ -288,7 +262,6 @@ private:
     vkapi::ShaderProgramBundle* programBundle_;
 
     /// the sampler descriptor bindings
-    vkapi::PipelineCache::DescriptorImage
-        samplers_[vkapi::PipelineCache::MaxSamplerBindCount];
+    vkapi::PipelineCache::DescriptorImage samplers_[vkapi::PipelineCache::MaxSamplerBindCount];
 };
 } // namespace yave

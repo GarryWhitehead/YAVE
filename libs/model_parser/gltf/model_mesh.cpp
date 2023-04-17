@@ -31,9 +31,7 @@
 namespace yave
 {
 
-ModelMesh::ModelMesh() : material_(nullptr), topology_(Topology::TriangleList)
-{
-}
+ModelMesh::ModelMesh() : material_(nullptr), topology_(Topology::TriangleList) {}
 ModelMesh::~ModelMesh() {}
 
 void ModelMesh::create(
@@ -108,9 +106,7 @@ void ModelMesh::create(
 bool ModelMesh::build(const cgltf_mesh& mesh, GltfModel& model)
 {
     cgltf_primitive* meshEnd = mesh.primitives + mesh.primitives_count;
-    for (const cgltf_primitive* primitive = mesh.primitives;
-         primitive < meshEnd;
-         ++primitive)
+    for (const cgltf_primitive* primitive = mesh.primitives; primitive < meshEnd; ++primitive)
     {
         Primitive newPrimitive;
 
@@ -152,9 +148,7 @@ bool ModelMesh::build(const cgltf_mesh& mesh, GltfModel& model)
         size_t attribStride = 0;
 
         cgltf_attribute* attribEnd = primitive->attributes + attribCount;
-        for (const cgltf_attribute* attrib = primitive->attributes;
-             attrib < attribEnd;
-             ++attrib)
+        for (const cgltf_attribute* attrib = primitive->attributes; attrib < attribEnd; ++attrib)
         {
             if (attrib->type == cgltf_attribute_type_position)
             {
@@ -188,16 +182,13 @@ bool ModelMesh::build(const cgltf_mesh& mesh, GltfModel& model)
 
             else if (attrib->type == cgltf_attribute_type_weights)
             {
-                weightsBase =
-                    GltfModel::getAttributeData(attrib, weightsStride);
+                weightsBase = GltfModel::getAttributeData(attrib, weightsStride);
                 attribStride += weightsStride;
                 variantBits_ |= ModelMesh::Variant::HasWeight;
             }
             else
             {
-                LOGGER_INFO(
-                    "Gltf attribute not supported - %s. Will skip.\n",
-                    attrib->name);
+                LOGGER_INFO("Gltf attribute not supported - %s. Will skip.\n", attrib->name);
             }
         }
 
@@ -244,10 +235,8 @@ bool ModelMesh::build(const cgltf_mesh& mesh, GltfModel& model)
             // sort out min/max boundaries of the sub-mesh
             float* posPtr = reinterpret_cast<float*>(posBase);
             mathfu::vec3 pos {*posPtr, *(posPtr + 1), *(posPtr + 2)};
-            newPrimitive.dimensions.min =
-                mathfu::MinHelper(newPrimitive.dimensions.min, pos);
-            newPrimitive.dimensions.max =
-                mathfu::MaxHelper(newPrimitive.dimensions.max, pos);
+            newPrimitive.dimensions.min = mathfu::MinHelper(newPrimitive.dimensions.min, pos);
+            newPrimitive.dimensions.max = mathfu::MaxHelper(newPrimitive.dimensions.max, pos);
 
             memcpy(dataPtr, posBase, posStride);
             posBase += posStride;
@@ -294,26 +283,19 @@ bool ModelMesh::build(const cgltf_mesh& mesh, GltfModel& model)
         }
 
         const uint8_t* base =
-            static_cast<const uint8_t*>(
-                primitive->indices->buffer_view->buffer->data) +
-            primitive->indices->offset +
-            primitive->indices->buffer_view->offset;
+            static_cast<const uint8_t*>(primitive->indices->buffer_view->buffer->data) +
+            primitive->indices->offset + primitive->indices->buffer_view->offset;
 
         for (size_t i = 0; i < primitive->indices->count; ++i)
         {
             uint32_t index = 0;
-            if (primitive->indices->component_type ==
-                cgltf_component_type_r_32u)
+            if (primitive->indices->component_type == cgltf_component_type_r_32u)
             {
-                index = *reinterpret_cast<const uint32_t*>(
-                    base + sizeof(uint32_t) * i);
+                index = *reinterpret_cast<const uint32_t*>(base + sizeof(uint32_t) * i);
             }
-            else if (
-                primitive->indices->component_type ==
-                cgltf_component_type_r_16u)
+            else if (primitive->indices->component_type == cgltf_component_type_r_16u)
             {
-                index = *reinterpret_cast<const uint16_t*>(
-                    base + sizeof(uint16_t) * i);
+                index = *reinterpret_cast<const uint16_t*>(base + sizeof(uint16_t) * i);
             }
             else
             {
@@ -325,10 +307,8 @@ bool ModelMesh::build(const cgltf_mesh& mesh, GltfModel& model)
         }
 
         // adjust the overall model boundaries based on the sub mesh
-        dimensions_.min =
-            mathfu::MinHelper(dimensions_.min, newPrimitive.dimensions.min);
-        dimensions_.max =
-            mathfu::MaxHelper(dimensions_.max, newPrimitive.dimensions.max);
+        dimensions_.min = mathfu::MinHelper(dimensions_.min, newPrimitive.dimensions.min);
+        dimensions_.max = mathfu::MaxHelper(dimensions_.max, newPrimitive.dimensions.max);
 
         primitives_.emplace_back(newPrimitive);
     }

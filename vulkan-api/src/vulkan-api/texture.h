@@ -80,11 +80,7 @@ public:
         vk::ImageUsageFlags usageFlags);
 
     void createTexture2d(
-        VkDriver& driver,
-        vk::Format format,
-        uint32_t width,
-        uint32_t height,
-        vk::Image image);
+        VkDriver& driver, vk::Format format, uint32_t width, uint32_t height, vk::Image image);
 
     void destroy() const;
 

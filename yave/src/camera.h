@@ -34,7 +34,6 @@ namespace yave
 class ICamera : public Camera
 {
 public:
-       
     ICamera();
     ~ICamera();
 
@@ -42,12 +41,7 @@ public:
 
     void shutDown(vkapi::VkDriver& driver) noexcept;
 
-    void setProjectionMatrixI(
-        float fovy,
-        float aspect,
-        float near,
-        float far,
-        ProjectionType type);
+    void setProjectionMatrixI(float fovy, float aspect, float near, float far, ProjectionType type);
 
     void setFovI(float fovy) noexcept;
 
@@ -84,7 +78,6 @@ public:
     void setFov(float fovy) override;
 
 private:
-
     // current matrices
     mathfu::mat4 projection_;
     mathfu::mat4 view_;

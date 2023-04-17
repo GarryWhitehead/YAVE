@@ -69,10 +69,8 @@ void Frustum::checkIntersection(
             for (size_t j = 0; j < 6; ++j)
             {
                 const float dot = planes_[j].x * centers[i].x -
-                    std::abs(planes_[j].x) * extents[i].x +
-                    planes_[j].y * centers[i].y -
-                    std::abs(planes_[j].y) * extents[i].y +
-                    planes_[j].z * centers[i].z -
+                    std::abs(planes_[j].x) * extents[i].x + planes_[j].y * centers[i].y -
+                    std::abs(planes_[j].y) * extents[i].y + planes_[j].z * centers[i].z -
                     std::abs(planes_[j].z) * extents[i].z + planes_[j].w;
 
                 visible &= dot <= 0.0f;
@@ -95,8 +93,8 @@ bool Frustum::checkSphereIntersect(const mathfu::vec3& center, float radius)
 {
     for (size_t i = 0; i < 6; ++i)
     {
-        const float dot = planes_[i].x * center.x +
-            planes_[i].y * center.y * planes_[i].z + center.z + planes_[i].w;
+        const float dot = planes_[i].x * center.x + planes_[i].y * center.y * planes_[i].z +
+            center.z + planes_[i].w;
         if (dot <= -radius)
         {
             return false;

@@ -26,35 +26,22 @@ namespace yave
 {
 
 IRenderable::IRenderable()
-    : program_(nullptr),
-      meshDynamicOffset_(0),   
-      skinDynamicOffset_(IRenderable::UNINITIALISED)
+    : program_(nullptr), meshDynamicOffset_(0), skinDynamicOffset_(IRenderable::UNINITIALISED)
 {
 }
 
 IRenderable::~IRenderable() {}
 
-void IRenderable::shutDown(vkapi::VkDriver& driver) noexcept 
-{
-}
+void IRenderable::shutDown(vkapi::VkDriver& driver) noexcept {}
 
-uint32_t IRenderable::getMeshDynamicOffset() const noexcept
-{
-    return meshDynamicOffset_;
-}
+uint32_t IRenderable::getMeshDynamicOffset() const noexcept { return meshDynamicOffset_; }
 
-uint32_t IRenderable::getSkinDynamicOffset() const noexcept
-{
-    return skinDynamicOffset_;
-}
+uint32_t IRenderable::getSkinDynamicOffset() const noexcept { return skinDynamicOffset_; }
 
-void IRenderable::skipVisibilityChecksI() 
-{ 
-    visibility_.setBit(IRenderable::Visible::Ignore);
-}
+void IRenderable::skipVisibilityChecksI() { visibility_.setBit(IRenderable::Visible::Ignore); }
 
 void IRenderable::setPrimitiveI(IRenderPrimitive* prim, size_t idx) noexcept
-{ 
+{
     ASSERT_FATAL(
         idx < primitives_.size(),
         "Primitive index of %d is greater than the allocated primitive count "
@@ -64,22 +51,19 @@ void IRenderable::setPrimitiveI(IRenderPrimitive* prim, size_t idx) noexcept
     primitives_[idx] = prim;
 }
 
-void IRenderable::setPrimitiveCountI(size_t count) noexcept 
+void IRenderable::setPrimitiveCountI(size_t count) noexcept
 {
     ASSERT_LOG(count > 0);
     primitives_.resize(count);
 }
 
-IRenderPrimitive*
-IRenderable::getRenderPrimitive(size_t idx) noexcept
+IRenderPrimitive* IRenderable::getRenderPrimitive(size_t idx) noexcept
 {
-    ASSERT_FATAL(
-        idx < primitives_.size(),
-        "Primitive handle is out of bounds.");
+    ASSERT_FATAL(idx < primitives_.size(), "Primitive handle is out of bounds.");
     return primitives_[idx];
 }
 
-std::vector<IRenderPrimitive*>& IRenderable::getAllRenderPrimitives() noexcept 
+std::vector<IRenderPrimitive*>& IRenderable::getAllRenderPrimitives() noexcept
 {
     ASSERT_LOG(!primitives_.empty());
     return primitives_;
@@ -95,14 +79,8 @@ void IRenderable::setPrimitive(RenderPrimitive* prim, size_t idx)
     setPrimitiveI(reinterpret_cast<IRenderPrimitive*>(prim), idx);
 }
 
-void IRenderable::setPrimitiveCount(size_t count) noexcept 
-{
-    setPrimitiveCountI(count);
-}
+void IRenderable::setPrimitiveCount(size_t count) noexcept { setPrimitiveCountI(count); }
 
-void IRenderable::skipVisibilityChecks()
-{ 
-    skipVisibilityChecksI();
-}
+void IRenderable::skipVisibilityChecks() { skipVisibilityChecksI(); }
 
 } // namespace yave

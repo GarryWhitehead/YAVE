@@ -89,7 +89,6 @@ enum class StoreClearFlags : uint32_t
 class RenderPass
 {
 public:
-
     static constexpr int LifetimeFrameCount = 10;
 
     enum class DependencyType
@@ -118,7 +117,7 @@ public:
 
     RenderPass(VkContext& context);
     ~RenderPass();
- 
+
     // static functions
     static vk::ImageLayout getAttachmentLayout(vk::Format format);
     static vk::AttachmentLoadOp loadFlagsToVk(const LoadClearFlags flags);
@@ -150,7 +149,7 @@ public:
         return static_cast<uint32_t>(colourAttachRefs_.size());
     }
 
-    // The frame in which this renderpass was created. Used to 
+    // The frame in which this renderpass was created. Used to
     // calculate the point at which this renderpass will be destroyed
     // based on its lifetime.
     uint64_t lastUsedFrameStamp_;
@@ -179,12 +178,11 @@ private:
  */
 struct RenderPassData
 {
-    std::array<vkapi::LoadClearFlags, RenderTarget::MaxAttachmentCount>
-        loadClearFlags = {vkapi::LoadClearFlags::DontCare};
-    std::array<vkapi::StoreClearFlags, RenderTarget::MaxAttachmentCount>
-        storeClearFlags = {vkapi::StoreClearFlags::DontCare};
-    std::array<vk::ImageLayout, RenderTarget::MaxAttachmentCount> finalLayouts =
-        {};
+    std::array<vkapi::LoadClearFlags, RenderTarget::MaxAttachmentCount> loadClearFlags = {
+        vkapi::LoadClearFlags::DontCare};
+    std::array<vkapi::StoreClearFlags, RenderTarget::MaxAttachmentCount> storeClearFlags = {
+        vkapi::StoreClearFlags::DontCare};
+    std::array<vk::ImageLayout, RenderTarget::MaxAttachmentCount> finalLayouts = {};
     util::Colour4 clearCol;
     uint32_t width = 0;
     uint32_t height = 0;
@@ -193,7 +191,6 @@ struct RenderPassData
 class FrameBuffer
 {
 public:
-
     static constexpr int LifetimeFrameCount = 10;
 
     FrameBuffer(VkContext& context);

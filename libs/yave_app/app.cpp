@@ -22,16 +22,14 @@
 
 #include "app.h"
 
-#include "yave/engine.h"
-#include "yave/scene.h"
-#include "yave/renderer.h"
-
 #include "camera_view.h"
-
 #include "utility/timer.h"
+#include "yave/engine.h"
+#include "yave/renderer.h"
+#include "yave/scene.h"
 
-#include <thread>
 #include <filesystem>
+#include <thread>
 
 using namespace std::literals::chrono_literals;
 
@@ -47,11 +45,7 @@ Application::Application(const AppParams& params, bool showUI)
       cameraFar_(256.0f)
 {
     window_ = std::make_unique<Window>(
-        *this,
-        params.winTitle.c_str(),
-        params.winWidth,
-        params.winHeight,
-        showUI);
+        *this, params.winTitle.c_str(), params.winWidth, params.winHeight, showUI);
 
     // create a scene for our application
     scene_ = engine_->createScene();
@@ -60,7 +54,7 @@ Application::Application(const AppParams& params, bool showUI)
 }
 
 bool Application::run(Renderer* renderer, Scene* scene)
-{ 
+{
     // convert delta time to ms
     const NanoSeconds frameTime(33ms);
     util::Timer<NanoSeconds> timer;
@@ -73,10 +67,9 @@ bool Application::run(Renderer* renderer, Scene* scene)
         window_->poll();
 
         double now = glfwGetTime();
-        double timeStep =
-            time_ > 0.0 ? (float)(now - time_) : (float)(1.0f / 60.0f);
+        double timeStep = time_ > 0.0 ? (float)(now - time_) : (float)(1.0f / 60.0f);
         time_ = timeStep;
-        
+
         if (showUI_)
         {
             ImGuiIO& io = ImGui::GetIO();
@@ -88,7 +81,7 @@ bool Application::run(Renderer* renderer, Scene* scene)
             int displayWidth, displayHeight;
             glfwGetWindowSize(win, &winWidth, &winHeight);
             glfwGetFramebufferSize(win, &displayWidth, &displayHeight);
-            
+
             float scaleX = winWidth > 0 ? static_cast<float>(displayWidth / winWidth) : 0;
             float scaleY = winHeight > 0 ? static_cast<float>(displayHeight / winHeight) : 0;
             imgui_->setDisplaySize(winWidth, winHeight, scaleX, scaleY);

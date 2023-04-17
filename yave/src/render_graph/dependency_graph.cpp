@@ -35,10 +35,7 @@ DependencyGraph::DependencyGraph() {}
 
 void DependencyGraph::addNode(Node* node) { nodes_.emplace_back(node); }
 
-uint64_t DependencyGraph::createId() const
-{
-    return static_cast<uint64_t>(nodes_.size());
-}
+uint64_t DependencyGraph::createId() const { return static_cast<uint64_t>(nodes_.size()); }
 
 Node* DependencyGraph::getNode(const uint64_t id)
 {
@@ -103,8 +100,7 @@ void DependencyGraph::cull()
     {
         Node* node = nodesToCull.back();
         nodesToCull.pop_back();
-        const auto readerEdges =
-            getReaderEdges(static_cast<RenderPassNode*>(node));
+        const auto readerEdges = getReaderEdges(static_cast<RenderPassNode*>(node));
         for (const auto& edge : readerEdges)
         {
             // remove any linked nodes that have no reference after the
@@ -129,8 +125,7 @@ void DependencyGraph::exportGraphViz(std::string& output)
     for (auto* node : nodes_)
     {
         std::string nodeStr = node->getGraphViz();
-        output +=
-            "\"N" + std::to_string(node->getId()) + "\" " + nodeStr + "\n";
+        output += "\"N" + std::to_string(node->getId()) + "\" " + nodeStr + "\n";
     }
 
     output += "\n";
@@ -146,16 +141,14 @@ void DependencyGraph::exportGraphViz(std::string& output)
             const Node* link = getNode(edge->toId);
             if (isValidEdge(edge))
             {
-                validStr = validStr.empty()
-                    ? "N" + std::to_string(node->getId()) + " -> { "
-                    : validStr;
+                validStr =
+                    validStr.empty() ? "N" + std::to_string(node->getId()) + " -> { " : validStr;
                 validStr += "N" + std::to_string(link->getId()) + " ";
             }
             else
             {
-                invalidStr = invalidStr.empty()
-                    ? "N" + std::to_string(node->getId()) + " -> { "
-                    : invalidStr;
+                invalidStr = invalidStr.empty() ? "N" + std::to_string(node->getId()) + " -> { "
+                                                : invalidStr;
                 invalidStr += "N" + std::to_string(link->getId()) + " ";
             }
         }
@@ -193,16 +186,14 @@ std::string Node::getGraphViz()
 {
     std::string output;
     output += "[label=\"node\\n name: " + std::string(name_.c_str()) +
-        " id: " + std::to_string(id_) +
-        ", refCount: " + std::to_string(refCount) + "\",";
+        " id: " + std::to_string(id_) + ", refCount: " + std::to_string(refCount) + "\",";
     output += " style=filled, fillcolor=green]";
     return output;
 }
 
 // ================ edge functions ====================
 
-Edge::Edge(DependencyGraph& dGraph, Node* from, Node* to)
-    : fromId(from->getId()), toId(to->getId())
+Edge::Edge(DependencyGraph& dGraph, Node* from, Node* to) : fromId(from->getId()), toId(to->getId())
 {
     dGraph.addEdge(this);
 }

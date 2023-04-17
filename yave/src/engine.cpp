@@ -73,7 +73,7 @@ IEngine* IEngine::create(Window* win)
     engine->currentWindow_ = win;
     engine->driver_ = std::unique_ptr<vkapi::VkDriver>(driver);
 
-    // its safe to initialise the lighting manager now 
+    // its safe to initialise the lighting manager now
     // (requires the device to be init)
     engine->lightManager_ = std::make_unique<ILightManager>(*engine);
 
@@ -106,11 +106,9 @@ void IEngine::createDefaultQuadBuffers() noexcept
     const std::vector<int> indices = {0, 1, 2, 2, 3, 0};
 
     quadVertexBuffer_.addAttribute(
-        yave::VertexBuffer::BindingType::Position,
-        backend::BufferElementType::Float3);
+        yave::VertexBuffer::BindingType::Position, backend::BufferElementType::Float3);
     quadVertexBuffer_.addAttribute(
-        yave::VertexBuffer::BindingType::Uv,
-        backend::BufferElementType::Float2);
+        yave::VertexBuffer::BindingType::Uv, backend::BufferElementType::Float2);
 
     quadVertexBuffer_.buildI(*driver_, 4, (void*)vertices);
 
@@ -149,58 +147,36 @@ SwapchainHandle IEngine::createSwapchainI(Window* win)
     return handle;
 }
 
-IRenderer*
-IEngine::createRendererI(const SwapchainHandle& handle, IScene& scene)
+IRenderer* IEngine::createRendererI(const SwapchainHandle& handle, IScene& scene)
 {
     return createResource(renderers_, this);
 }
 
-IScene* IEngine::createSceneI() 
-{ 
-    return createResource(scenes_, *this); 
-}
+IScene* IEngine::createSceneI() { return createResource(scenes_, *this); }
 
-IVertexBuffer* IEngine::createVertexBufferI() noexcept
-{
-    return createResource(vBuffers_);
-}
+IVertexBuffer* IEngine::createVertexBufferI() noexcept { return createResource(vBuffers_); }
 
-IIndexBuffer* IEngine::createIndexBufferI() noexcept
-{
-    return createResource(iBuffers_);
-}
+IIndexBuffer* IEngine::createIndexBufferI() noexcept { return createResource(iBuffers_); }
 
-IRenderPrimitive* IEngine::createRenderPrimitiveI() noexcept
-{
-    return createResource(primitives_);
-}
+IRenderPrimitive* IEngine::createRenderPrimitiveI() noexcept { return createResource(primitives_); }
 
-IRenderable* IEngine::createRenderableI() noexcept
-{
-    return createResource(renderables_);
-}
+IRenderable* IEngine::createRenderableI() noexcept { return createResource(renderables_); }
 
 IMappedTexture* IEngine::createMappedTextureI() noexcept
 {
     return createResource(mappedTextures_, *this);
 }
 
-ISkybox* IEngine::createSkyboxI() noexcept
-{
-    return createResource(skyboxes_, *this);
-}
+ISkybox* IEngine::createSkyboxI() noexcept { return createResource(skyboxes_, *this); }
 
-ICamera* IEngine::createCameraI() noexcept 
-{ 
-    return createResource(cameras_); 
-}
+ICamera* IEngine::createCameraI() noexcept { return createResource(cameras_); }
 
 template <typename RESOURCE>
 void IEngine::destroyResource(RESOURCE* buffer, std::unordered_set<RESOURCE*>& container)
 {
     ASSERT_LOG(buffer);
-    
-    // we silently fail if the buffer is not found in the resource list. 
+
+    // we silently fail if the buffer is not found in the resource list.
     if (container.find(buffer) == container.end())
     {
         return;
@@ -213,20 +189,18 @@ void IEngine::destroyResource(RESOURCE* buffer, std::unordered_set<RESOURCE*>& c
 template void IEngine::destroyResource<IVertexBuffer>(
     IVertexBuffer*, std::unordered_set<IVertexBuffer*>& container);
 
-template void IEngine::destroyResource<IIndexBuffer>(
-    IIndexBuffer*, std::unordered_set<IIndexBuffer*>& container);
+template void
+IEngine::destroyResource<IIndexBuffer>(IIndexBuffer*, std::unordered_set<IIndexBuffer*>& container);
 
 template void IEngine::destroyResource<IRenderPrimitive>(
     IRenderPrimitive*, std::unordered_set<IRenderPrimitive*>& container);
 
-template void IEngine::destroyResource<IRenderable>(
-    IRenderable*, std::unordered_set<IRenderable*>& container);
+template void
+IEngine::destroyResource<IRenderable>(IRenderable*, std::unordered_set<IRenderable*>& container);
 
-template void IEngine::destroyResource<IScene>(
-    IScene*, std::unordered_set<IScene*>& container);
+template void IEngine::destroyResource<IScene>(IScene*, std::unordered_set<IScene*>& container);
 
-template void IEngine::destroyResource<ICamera>(
-    ICamera*, std::unordered_set<ICamera*>& container);
+template void IEngine::destroyResource<ICamera>(ICamera*, std::unordered_set<ICamera*>& container);
 
 IObject* IEngine::createObjectI()
 {
@@ -267,28 +241,15 @@ void IEngine::destroyObject(IObject* obj)
 Engine::Engine() {}
 Engine::~Engine() {}
 
-Engine* Engine::create(Window* win)
-{
-    return reinterpret_cast<Engine*>(IEngine::create(win));
-}
+Engine* Engine::create(Window* win) { return reinterpret_cast<Engine*>(IEngine::create(win)); }
 
-void Engine::destroy(Engine* engine)
-{
-    IEngine::destroy(reinterpret_cast<IEngine*>(engine));
-}
+void Engine::destroy(Engine* engine) { IEngine::destroy(reinterpret_cast<IEngine*>(engine)); }
 
-Scene* IEngine::createScene()
-{
-    return reinterpret_cast<Scene*>(createSceneI());
-}
+Scene* IEngine::createScene() { return reinterpret_cast<Scene*>(createSceneI()); }
 
-vkapi::SwapchainHandle IEngine::createSwapchain(Window* win)
-{
-    return createSwapchainI(win);
-}
+vkapi::SwapchainHandle IEngine::createSwapchain(Window* win) { return createSwapchainI(win); }
 
-Renderer*
-IEngine::createRenderer(const vkapi::SwapchainHandle& handle, Scene* scene)
+Renderer* IEngine::createRenderer(const vkapi::SwapchainHandle& handle, Scene* scene)
 {
     return reinterpret_cast<Renderer*>(
         createRendererI(handle, *(reinterpret_cast<IScene*>(scene))));
@@ -314,15 +275,9 @@ Renderable* IEngine::createRenderable()
     return reinterpret_cast<Renderable*>(createRenderableI());
 }
 
-void IEngine::setCurrentSwapchain(const SwapchainHandle& handle)
-{
-    setCurrentSwapchainI(handle);
-}
+void IEngine::setCurrentSwapchain(const SwapchainHandle& handle) { setCurrentSwapchainI(handle); }
 
-void IEngine::setCurrentScene(Scene* scene)
-{
-    setCurrentSceneI(reinterpret_cast<IScene*>(scene));
-}
+void IEngine::setCurrentScene(Scene* scene) { setCurrentSceneI(reinterpret_cast<IScene*>(scene)); }
 
 RenderableManager* IEngine::getRenderManager()
 {
@@ -339,32 +294,20 @@ LightManager* IEngine::getLightManager()
     return reinterpret_cast<LightManager*>(getLightManagerI());
 }
 
-Object* IEngine::createObject()
-{
-    return reinterpret_cast<Object*>(createObjectI());
-}
+Object* IEngine::createObject() { return reinterpret_cast<Object*>(createObjectI()); }
 
-Texture* IEngine::createTexture()
-{
-    return reinterpret_cast<Texture*>(createMappedTextureI());
-}
+Texture* IEngine::createTexture() { return reinterpret_cast<Texture*>(createMappedTextureI()); }
 
-Skybox* IEngine::createSkybox()
-{
-    return reinterpret_cast<Skybox*>(createSkyboxI());
-}
+Skybox* IEngine::createSkybox() { return reinterpret_cast<Skybox*>(createSkyboxI()); }
 
-Camera* IEngine::createCamera()
-{
-    return reinterpret_cast<Camera*>(createCameraI());
-}
+Camera* IEngine::createCamera() { return reinterpret_cast<Camera*>(createCameraI()); }
 
-void IEngine::destroy(VertexBuffer* buffer) 
-{ 
-    destroyResource(reinterpret_cast<IVertexBuffer*>(buffer), vBuffers_); 
+void IEngine::destroy(VertexBuffer* buffer)
+{
+    destroyResource(reinterpret_cast<IVertexBuffer*>(buffer), vBuffers_);
 };
 
-void IEngine::destroy(IndexBuffer* buffer) 
+void IEngine::destroy(IndexBuffer* buffer)
 {
     destroyResource(reinterpret_cast<IIndexBuffer*>(buffer), iBuffers_);
 }

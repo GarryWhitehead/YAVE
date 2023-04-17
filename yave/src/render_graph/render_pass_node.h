@@ -69,8 +69,7 @@ public:
     virtual ~PassNodeBase();
 
     virtual void build() = 0;
-    virtual void execute(
-        vkapi::VkDriver& driver, const RenderGraphResource& graphResource) = 0;
+    virtual void execute(vkapi::VkDriver& driver, const RenderGraphResource& graphResource) = 0;
 
     void addToBakeList(ResourceBase* res);
 
@@ -93,22 +92,15 @@ protected:
 class RenderPassNode : public PassNodeBase
 {
 public:
-    RenderPassNode(
-        RenderGraph& rGraph,
-        RenderGraphPassBase* rgPass,
-        const util::CString& name);
+    RenderPassNode(RenderGraph& rGraph, RenderGraphPassBase* rgPass, const util::CString& name);
 
-    RenderGraphHandle
-    createRenderTarget(const util::CString& name, const PassDescriptor& desc);
+    RenderGraphHandle createRenderTarget(const util::CString& name, const PassDescriptor& desc);
 
-    RenderPassInfo::VkBackend
-    getRenderTargetBackendInfo(const RenderGraphHandle& handle);
+    RenderPassInfo::VkBackend getRenderTargetBackendInfo(const RenderGraphHandle& handle);
 
     void build() override;
 
-    void execute(
-        vkapi::VkDriver& driver,
-        const RenderGraphResource& graphResource) override;
+    void execute(vkapi::VkDriver& driver, const RenderGraphResource& graphResource) override;
 
     const RenderPassInfo& getRenderTargetInfo(const RenderGraphHandle& handle);
 
@@ -126,9 +118,7 @@ public:
 
     void build() override;
 
-    void execute(
-        vkapi::VkDriver& driver,
-        const RenderGraphResource& graphResource) override;
+    void execute(vkapi::VkDriver& driver, const RenderGraphResource& graphResource) override;
 
 private:
 };

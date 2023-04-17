@@ -40,8 +40,7 @@ class TransformManager
 public:
     ~TransformManager();
 
-    virtual void
-    addModelTransform(const ModelTransform& transform, Object* obj) = 0;
+    virtual void addModelTransform(const ModelTransform& transform, Object* obj) = 0;
 
 protected:
     TransformManager();

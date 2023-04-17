@@ -129,14 +129,10 @@ std::filesystem::path ModelMaterial::getTextureUri(cgltf_texture_view& view)
         // values
         if (view.texture->sampler)
         {
-            sampler.magFilter =
-                getSamplerFilter(view.texture->sampler->mag_filter);
-            sampler.minFilter =
-                getSamplerFilter(view.texture->sampler->min_filter);
-            sampler.addressModeU =
-                getAddressMode(view.texture->sampler->wrap_s);
-            sampler.addressModeV =
-                getAddressMode(view.texture->sampler->wrap_t);
+            sampler.magFilter = getSamplerFilter(view.texture->sampler->mag_filter);
+            sampler.minFilter = getSamplerFilter(view.texture->sampler->min_filter);
+            sampler.addressModeU = getAddressMode(view.texture->sampler->wrap_s);
+            sampler.addressModeV = getAddressMode(view.texture->sampler->wrap_t);
         }
 
         // also set variant bit
@@ -145,8 +141,7 @@ std::filesystem::path ModelMaterial::getTextureUri(cgltf_texture_view& view)
     return "";
 }
 
-bool ModelMaterial::create(
-    cgltf_material& mat, GltfExtension& extensions)
+bool ModelMaterial::create(cgltf_material& mat, GltfExtension& extensions)
 {
     name = mat.name;
 
@@ -168,8 +163,7 @@ bool ModelMaterial::create(
             // two share the same slot. Should maybe be renamed to be more
             // transparent?
             TextureInfo mrInfo {
-                getTextureUri(
-                    mat.pbr_specular_glossiness.specular_glossiness_texture),
+                getTextureUri(mat.pbr_specular_glossiness.specular_glossiness_texture),
                 TextureType::MetallicRoughness};
             textures.emplace_back(mrInfo);
         }
@@ -184,8 +178,7 @@ bool ModelMaterial::create(
         pipeline = PbrPipeline::MetallicRoughness;
 
         {
-            auto path =
-                getTextureUri(mat.pbr_metallic_roughness.base_color_texture);
+            auto path = getTextureUri(mat.pbr_metallic_roughness.base_color_texture);
             if (!path.empty())
             {
                 TextureInfo colourInfo {path, TextureType::BaseColour};
@@ -193,8 +186,7 @@ bool ModelMaterial::create(
             }
         }
         {
-            auto path = getTextureUri(
-                mat.pbr_metallic_roughness.metallic_roughness_texture);
+            auto path = getTextureUri(mat.pbr_metallic_roughness.metallic_roughness_texture);
             if (!path.empty())
             {
                 TextureInfo mrInfo {path, TextureType::MetallicRoughness};

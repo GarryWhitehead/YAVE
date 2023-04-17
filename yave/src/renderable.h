@@ -39,9 +39,7 @@ namespace yave
 class IRenderable : public Renderable
 {
 public:
-
-    constexpr static uint32_t UNINITIALISED =
-        std::numeric_limits<uint32_t>::max();
+    constexpr static uint32_t UNINITIALISED = std::numeric_limits<uint32_t>::max();
 
     IRenderable();
     ~IRenderable();
@@ -52,7 +50,7 @@ public:
     enum class Visible : uint8_t
     {
         Render,
-        Ignore,     // removes this renderable from the culling process
+        Ignore, // removes this renderable from the culling process
         Shadow,
         __SENTINEL__
     };
@@ -75,7 +73,7 @@ public:
 
     IRenderPrimitive* getRenderPrimitive(size_t idx = 0) noexcept;
     std::vector<IRenderPrimitive*>& getAllRenderPrimitives() noexcept;
-    
+
     util::BitSetEnum<Visible>& getVisibility() { return visibility_; }
 
     uint32_t getMeshDynamicOffset() const noexcept;
@@ -90,7 +88,6 @@ public:
     friend class IRenderableManager;
 
 private:
-
     // visibilty of this renderable and their shadow
     util::BitSetEnum<Visible> visibility_;
 

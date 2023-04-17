@@ -55,8 +55,7 @@ vk::Format findSupportedFormat(
         else
         {
             // terminal error so throw
-            throw std::runtime_error(
-                "Error! Unable to find supported vulkan format");
+            throw std::runtime_error("Error! Unable to find supported vulkan format");
         }
     }
     return outputFormat;
@@ -67,9 +66,7 @@ vk::Format getSupportedDepthFormat(vk::PhysicalDevice& gpu)
     // in order of preference - TODO: allow user to define whether stencil
     // format is required or not
     std::vector<vk::Format> formats = {
-        vk::Format::eD32SfloatS8Uint,
-        vk::Format::eD24UnormS8Uint,
-        vk::Format::eD32Sfloat};
+        vk::Format::eD32SfloatS8Uint, vk::Format::eD24UnormS8Uint, vk::Format::eD32Sfloat};
 
     return findSupportedFormat(
         formats,
@@ -121,8 +118,7 @@ vk::Format convertToVk(std::string type, uint32_t width)
         }
         else
         {
-            LOGGER_ERROR(
-                "Unsupported Vulkan format type specified: %s", type.c_str());
+            LOGGER_ERROR("Unsupported Vulkan format type specified: %s", type.c_str());
         }
     }
 
@@ -154,8 +150,7 @@ uint32_t getStrideFromType(std::string type)
     else
     {
         LOGGER_ERROR(
-            "Unsupported type specified: %s. Unable to determine stride size.",
-            type.c_str());
+            "Unsupported type specified: %s. Unable to determine stride size.", type.c_str());
     }
 
     return size;
@@ -170,8 +165,7 @@ bool isDepth(const vk::Format format)
         vk::Format::eD16UnormS8Uint,
         vk::Format::eD24UnormS8Uint,
         vk::Format::eD32SfloatS8Uint};
-    return std::find(depthFormats.begin(), depthFormats.end(), format) !=
-        std::end(depthFormats);
+    return std::find(depthFormats.begin(), depthFormats.end(), format) != std::end(depthFormats);
 }
 
 bool isStencil(const vk::Format format)
@@ -187,8 +181,7 @@ bool isStencil(const vk::Format format)
 
 bool isBufferType(const vk::DescriptorType& type)
 {
-    if (type == vk::DescriptorType::eUniformBuffer ||
-        type == vk::DescriptorType::eStorageBuffer ||
+    if (type == vk::DescriptorType::eUniformBuffer || type == vk::DescriptorType::eStorageBuffer ||
         type == vk::DescriptorType::eUniformBufferDynamic ||
         type == vk::DescriptorType::eStorageBufferDynamic)
     {
@@ -199,8 +192,7 @@ bool isBufferType(const vk::DescriptorType& type)
 
 bool isSamplerType(const vk::DescriptorType& type)
 {
-    if (type == vk::DescriptorType::eSampler ||
-        type == vk::DescriptorType::eStorageImage ||
+    if (type == vk::DescriptorType::eSampler || type == vk::DescriptorType::eStorageImage ||
         type == vk::DescriptorType::eCombinedImageSampler ||
         type == vk::DescriptorType::eSampledImage)
     {

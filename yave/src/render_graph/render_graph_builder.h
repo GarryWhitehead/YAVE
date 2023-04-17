@@ -58,8 +58,8 @@ public:
      * @ creates a texture resource for using as a render target in a graphics
      * pass
      */
-    RenderGraphHandle createResource(
-        const util::CString& name, const TextureResource::Descriptor& desc);
+    RenderGraphHandle
+    createResource(const util::CString& name, const TextureResource::Descriptor& desc);
 
     RenderGraphHandle createSubResource(
         const util::CString& name,
@@ -69,17 +69,14 @@ public:
     /**
      * @brief Adds a reader (i.e. input attachment) to the render pass.
      */
-    RenderGraphHandle
-    addReader(const RenderGraphHandle& handle, vk::ImageUsageFlags usage);
+    RenderGraphHandle addReader(const RenderGraphHandle& handle, vk::ImageUsageFlags usage);
 
     /**
      * @brief Adds a writer (i.e. colour/depth/stencil attachment) to the pass
      */
-    RenderGraphHandle
-    addWriter(const RenderGraphHandle& handle, vk::ImageUsageFlags usage);
+    RenderGraphHandle addWriter(const RenderGraphHandle& handle, vk::ImageUsageFlags usage);
 
-    RenderGraphHandle
-    createRenderTarget(const util::CString& name, const PassDescriptor& desc);
+    RenderGraphHandle createRenderTarget(const util::CString& name, const PassDescriptor& desc);
 
     void addPresent(const RenderGraphHandle& presentHandle);
 

@@ -42,8 +42,7 @@ public:
 
     virtual ~Texture();
 
-    virtual void
-    setTexture(const Descriptor& desc, size_t* offsets = nullptr) noexcept = 0;
+    virtual void setTexture(const Descriptor& desc, size_t* offsets = nullptr) noexcept = 0;
 
     virtual Descriptor getTextureDescriptor() noexcept = 0;
 

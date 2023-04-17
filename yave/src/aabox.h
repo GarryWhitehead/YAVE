@@ -47,18 +47,12 @@ struct AABBox
     /**
      * Calculates the center position of the box
      */
-    mathfu::vec3 getCenter() const
-    {
-        return (extents[1] + extents[0]) * mathfu::vec3 {0.5f};
-    }
+    mathfu::vec3 getCenter() const { return (extents[1] + extents[0]) * mathfu::vec3 {0.5f}; }
 
     /**
      * Calculates the half extent of the box
      */
-    mathfu::vec3 getHalfExtent() const
-    {
-        return (extents[1] - extents[0]) * mathfu::vec3 {0.5f};
-    }
+    mathfu::vec3 getHalfExtent() const { return (extents[1] - extents[0]) * mathfu::vec3 {0.5f}; }
 };
 
 } // namespace yave

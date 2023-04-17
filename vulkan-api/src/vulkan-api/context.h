@@ -53,8 +53,8 @@ public:
     VkContext();
     ~VkContext();
 
-    static bool findExtensionProperties(
-        const char* name, std::vector<vk::ExtensionProperties>& properties);
+    static bool
+    findExtensionProperties(const char* name, std::vector<vk::ExtensionProperties>& properties);
 
     bool prepareExtensions(
         std::vector<const char*>& extensions,

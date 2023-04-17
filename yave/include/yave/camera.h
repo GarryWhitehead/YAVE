@@ -28,7 +28,6 @@ namespace yave
 class Camera
 {
 public:
-
     enum class ProjectionType
     {
         Perspective,

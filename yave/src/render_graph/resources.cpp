@@ -62,8 +62,7 @@ bool ResourceBase::connectWriter(
     }
     else
     {
-        auto newEdge = std::make_unique<ResourceEdge>(
-            graph, passNode, resourceNode, usage);
+        auto newEdge = std::make_unique<ResourceEdge>(graph, passNode, resourceNode, usage);
         resourceNode->setWriterEdge(newEdge);
     }
     return true;
@@ -82,8 +81,7 @@ bool ResourceBase::connectReader(
     }
     else
     {
-        auto newEdge = std::make_unique<ResourceEdge>(
-            graph, resourceNode, passNode, usage);
+        auto newEdge = std::make_unique<ResourceEdge>(graph, resourceNode, passNode, usage);
         resourceNode->setReaderEdge(newEdge);
     }
     return true;
@@ -91,8 +89,7 @@ bool ResourceBase::connectReader(
 
 bool ResourceBase::isSubResource() const { return parent_ != this; }
 
-TextureResource::TextureResource(
-    const util::CString& name, const Descriptor& desc)
+TextureResource::TextureResource(const util::CString& name, const Descriptor& desc)
     : ResourceBase(name), desc_(desc)
 {
 }
@@ -127,19 +124,10 @@ void TextureResource::bake(vkapi::VkDriver& driver)
 {
     ASSERT_FATAL(imageUsage_, "Image usage not resolved for this resource!");
     handle_ = driver.createTexture2d(
-        desc_.format,
-        desc_.width,
-        desc_.height,
-        desc_.mipLevels,
-        1,
-        1,
-        imageUsage_);
+        desc_.format, desc_.width, desc_.height, desc_.mipLevels, 1, 1, imageUsage_);
 }
 
-void TextureResource::destroy(vkapi::VkDriver& driver)
-{
-    driver.destroyTexture2D(handle_);
-}
+void TextureResource::destroy(vkapi::VkDriver& driver) { driver.destroyTexture2D(handle_); }
 
 bool TextureResource::isDepthFormat()
 {
@@ -194,12 +182,10 @@ ImportedRenderTarget::ImportedRenderTarget(
     const vkapi::RenderTargetHandle& handle,
     const TextureResource::Descriptor& resDesc,
     const Descriptor& importedDesc)
-    : ImportedResource(name, resDesc, importedDesc.usage, {}),
-      rtHandle(handle),
-      desc(importedDesc)
+    : ImportedResource(name, resDesc, importedDesc.usage, {}), rtHandle(handle), desc(importedDesc)
 {
 }
-    
+
 ImportedRenderTarget::~ImportedRenderTarget() = default;
 
 

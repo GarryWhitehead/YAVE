@@ -37,34 +37,24 @@ Swapchain::Swapchain() {}
 
 Swapchain::~Swapchain() {}
 
-void Swapchain::destroy(VkContext& context)
-{
-    context.device().destroy(swapchain_);
-}
+void Swapchain::destroy(VkContext& context) { context.device().destroy(swapchain_); }
 
 bool Swapchain::create(
-    VkDriver& driver,
-    const vk::SurfaceKHR& surface,
-    uint32_t winWidth,
-    uint32_t winHeight)
+    VkDriver& driver, const vk::SurfaceKHR& surface, uint32_t winWidth, uint32_t winHeight)
 {
     vk::Device device = driver.context().device();
     vk::PhysicalDevice gpu = driver.context().physical();
 
     // Get the basic surface properties of the physical device
-    vk::SurfaceCapabilitiesKHR capabilities =
-        gpu.getSurfaceCapabilitiesKHR(surface);
-    std::vector<vk::SurfaceFormatKHR> surfaceFormats =
-        gpu.getSurfaceFormatsKHR(surface);
-    std::vector<vk::PresentModeKHR> presentModes =
-        gpu.getSurfacePresentModesKHR(surface);
+    vk::SurfaceCapabilitiesKHR capabilities = gpu.getSurfaceCapabilitiesKHR(surface);
+    std::vector<vk::SurfaceFormatKHR> surfaceFormats = gpu.getSurfaceFormatsKHR(surface);
+    std::vector<vk::PresentModeKHR> presentModes = gpu.getSurfacePresentModesKHR(surface);
 
     // make sure that we have suitable swap chain extensions available before
     // continuing
     if (surfaceFormats.empty() || presentModes.empty())
     {
-        LOGGER_ERROR(
-            "Critcal error! Unable to locate suitable swap chains on device.");
+        LOGGER_ERROR("Critcal error! Unable to locate suitable swap chains on device.");
         return false;
     }
 
@@ -73,8 +63,7 @@ bool Swapchain::create(
     // our colour needs - i.e. 8bitBGRA and SRGB.
     vk::SurfaceFormatKHR requiredSurfaceFormats;
 
-    if ((surfaceFormats.size() > 0) &&
-        (surfaceFormats[0].format == vk::Format::eUndefined))
+    if ((surfaceFormats.size() > 0) && (surfaceFormats[0].format == vk::Format::eUndefined))
     {
         requiredSurfaceFormats.format = vk::Format::eB8G8R8A8Unorm;
         requiredSurfaceFormats.colorSpace = vk::ColorSpaceKHR::eSrgbNonlinear;
@@ -98,16 +87,14 @@ bool Swapchain::create(
     vk::PresentModeKHR requiredPresentMode;
     for (auto& mode : presentModes)
     {
-        if (mode ==
-            vk::PresentModeKHR::eFifo) // our preferred triple buffering mode
+        if (mode == vk::PresentModeKHR::eFifo) // our preferred triple buffering mode
         {
             requiredPresentMode = mode;
             break;
         }
         else if (mode == vk::PresentModeKHR::eImmediate)
         {
-            requiredPresentMode =
-                mode; // immediate mode is only supported on some drivers.
+            requiredPresentMode = mode; // immediate mode is only supported on some drivers.
             break;
         }
     }
@@ -115,8 +102,7 @@ bool Swapchain::create(
     // Finally set the resoultion of the swap chain buffers
     // First of check if we can manually set the dimension - some GPUs allow
     // this by setting the max as the size of uint32
-    if (capabilities.currentExtent.width !=
-        std::numeric_limits<uint32_t>::max())
+    if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max())
     {
         extent_ = capabilities.currentExtent; // go with the automatic settings
     }
@@ -131,17 +117,15 @@ bool Swapchain::create(
     }
 
     // Get the number of possible images we can send to the queue
-    uint32_t imageCount = capabilities.minImageCount +
-        1; // adding one as we would like to implement triple buffering
-    if (capabilities.maxImageCount > 0 &&
-        imageCount > capabilities.maxImageCount)
+    uint32_t imageCount =
+        capabilities.minImageCount + 1; // adding one as we would like to implement triple buffering
+    if (capabilities.maxImageCount > 0 && imageCount > capabilities.maxImageCount)
     {
         imageCount = capabilities.maxImageCount;
     }
 
     auto compositeFlag = vk::CompositeAlphaFlagBitsKHR::eOpaque;
-    if (capabilities.supportedCompositeAlpha &
-        vk::CompositeAlphaFlagBitsKHR::eInherit)
+    if (capabilities.supportedCompositeAlpha & vk::CompositeAlphaFlagBitsKHR::eInherit)
     {
         compositeFlag = vk::CompositeAlphaFlagBitsKHR::eInherit;
     }
@@ -177,16 +161,14 @@ bool Swapchain::create(
         {});
 
     // And finally, create the swap chain
-    VK_CHECK_RESULT(
-        device.createSwapchainKHR(&createInfo, nullptr, &swapchain_));
+    VK_CHECK_RESULT(device.createSwapchainKHR(&createInfo, nullptr, &swapchain_));
 
     prepareImageViews(driver, surfaceFormat_);
 
     return true;
 }
 
-void Swapchain::prepareImageViews(
-    VkDriver& driver, const vk::SurfaceFormatKHR& surfaceFormat)
+void Swapchain::prepareImageViews(VkDriver& driver, const vk::SurfaceFormatKHR& surfaceFormat)
 {
     vk::Device device = driver.context().device();
 
@@ -196,18 +178,15 @@ void Swapchain::prepareImageViews(
     for (size_t i = 0; i < images.size(); ++i)
     {
         SwapchainContext scContext;
-        scContext.handle = driver.createTexture2d(
-            surfaceFormat.format, extent_.width, extent_.height, images[i]);
+        scContext.handle =
+            driver.createTexture2d(surfaceFormat.format, extent_.width, extent_.height, images[i]);
         contexts_.emplace_back(std::move(scContext));
     }
 }
 
 TextureHandle& Swapchain::getTexture(const uint32_t index)
 {
-    ASSERT_FATAL(
-        index < contexts_.size(),
-        "Index out of range (=%i) for image view.",
-        index);
+    ASSERT_FATAL(index < contexts_.size(), "Index out of range (=%i) for image view.", index);
     return contexts_[index].handle;
 }
 

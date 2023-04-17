@@ -56,15 +56,13 @@ Commands::Commands(VkDriver& driver, vk::Queue queue)
         vk::CommandPoolCreateFlagBits::eResetCommandBuffer |
             vk::CommandPoolCreateFlagBits::eTransient,
         context.queueIndices().graphics};
-    VK_CHECK_RESULT(
-        context.device().createCommandPool(&createInfo, nullptr, &cmdPool_));
+    VK_CHECK_RESULT(context.device().createCommandPool(&createInfo, nullptr, &cmdPool_));
 
     // create the semaphore for signalling a new frame is ready now
     for (auto& signal : signals_)
     {
         vk::SemaphoreCreateInfo semaphoreCreateInfo;
-        VK_CHECK_RESULT(context.device().createSemaphore(
-            &semaphoreCreateInfo, nullptr, &signal));
+        VK_CHECK_RESULT(context.device().createSemaphore(&semaphoreCreateInfo, nullptr, &signal));
     }
 }
 
@@ -110,13 +108,11 @@ CmdBuffer& Commands::getCmdBuffer()
     ASSERT_LOG(currentCmdBuffer_);
     ASSERT_LOG(currentSignal_);
 
-    vk::CommandBufferAllocateInfo allocInfo(
-        cmdPool_, vk::CommandBufferLevel::ePrimary, 1);
-    VK_CHECK_RESULT(context.device().allocateCommandBuffers(
-        &allocInfo, &currentCmdBuffer_->cmdBuffer));
+    vk::CommandBufferAllocateInfo allocInfo(cmdPool_, vk::CommandBufferLevel::ePrimary, 1);
+    VK_CHECK_RESULT(
+        context.device().allocateCommandBuffers(&allocInfo, &currentCmdBuffer_->cmdBuffer));
 
-    vk::CommandBufferUsageFlags usageFlags =
-        vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
+    vk::CommandBufferUsageFlags usageFlags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
     vk::CommandBufferBeginInfo beginInfo(usageFlags, nullptr);
     VK_CHECK_RESULT(currentCmdBuffer_->cmdBuffer.begin(&beginInfo));
 
@@ -150,12 +146,10 @@ void Commands::freeCmdBuffers()
     {
         if (buffer.cmdBuffer)
         {
-            auto result = context.device().waitForFences(
-                1, &buffer.fence->fence, VK_TRUE, 0);
+            auto result = context.device().waitForFences(1, &buffer.fence->fence, VK_TRUE, 0);
             if (result == vk::Result::eSuccess)
             {
-                context.device().freeCommandBuffers(
-                    cmdPool_, 1, &buffer.cmdBuffer);
+                context.device().freeCommandBuffers(cmdPool_, 1, &buffer.cmdBuffer);
                 buffer.cmdBuffer = VK_NULL_HANDLE;
                 buffer.fence.reset();
                 ++availableCmdBuffers_;
@@ -173,10 +167,10 @@ void Commands::flush()
     }
 
     currentCmdBuffer_->cmdBuffer.end();
-    
+
     std::vector<vk::Semaphore> waitSignals;
     waitSignals.reserve(2);
-    
+
     if (submittedSignal_)
     {
         waitSignals.emplace_back(*submittedSignal_);
@@ -185,7 +179,7 @@ void Commands::flush()
     {
         waitSignals.emplace_back(*externalSignal_);
     }
-    
+
     vk::PipelineStageFlags flags[2] = {
         vk::PipelineStageFlagBits::eColorAttachmentOutput,
         vk::PipelineStageFlagBits::eColorAttachmentOutput};
@@ -198,39 +192,33 @@ void Commands::flush()
         1,
         currentSignal_};
     VK_CHECK_RESULT(queue_.submit(1, &info, currentCmdBuffer_->fence->fence));
-    
+
     SPDLOG_INFO("Command flush:");
     if (submittedSignal_)
     {
-        SPDLOG_INFO(
-            "wait signal (submitted): {:p}",
-            fmt::ptr((void*)*submittedSignal_));
+        SPDLOG_INFO("wait signal (submitted): {:p}", fmt::ptr((void*)*submittedSignal_));
     }
     if (externalSignal_)
     {
-        SPDLOG_INFO(
-            "wait signal (external): {:p}",
-            fmt::ptr((void*)*externalSignal_));
+        SPDLOG_INFO("wait signal (external): {:p}", fmt::ptr((void*)*externalSignal_));
     }
     if (currentSignal_)
     {
-        SPDLOG_INFO(
-            "signal: {:p}",
-            fmt::ptr((void*)*currentSignal_));
-    } 
+        SPDLOG_INFO("signal: {:p}", fmt::ptr((void*)*currentSignal_));
+    }
 
     currentCmdBuffer_ = nullptr;
     externalSignal_ = nullptr;
     submittedSignal_ = currentSignal_;
 }
 
-vk::Semaphore* Commands::getFinishedSignal() noexcept 
-{ 
+vk::Semaphore* Commands::getFinishedSignal() noexcept
+{
     vk::Semaphore* output = submittedSignal_;
     submittedSignal_ = nullptr;
 
     SPDLOG_INFO("Acquired finished signal: {:p}", fmt::ptr((void*)*output));
-    return output; 
+    return output;
 }
 
 

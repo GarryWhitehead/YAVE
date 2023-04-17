@@ -27,32 +27,25 @@
 namespace yave
 {
 
-CameraView::CameraView()
-    : rotation_ {0.0f, 0.0f, 0.0f}, mouseButtonDown_(false), moveSpeed_(0.2f)
+CameraView::CameraView() : rotation_ {0.0f, 0.0f, 0.0f}, mouseButtonDown_(false), moveSpeed_(0.2f)
 {
 }
 
 CameraView::~CameraView() {}
 
-void CameraView::keyUpEvent(Movement movement) 
-{
-    keyEvent_[movement] = false;
-}
+void CameraView::keyUpEvent(Movement movement) { keyEvent_[movement] = false; }
 
-void CameraView::keyDownEvent(Movement movement) 
-{
-    keyEvent_[movement] = true;
-}
+void CameraView::keyDownEvent(Movement movement) { keyEvent_[movement] = true; }
 
-void CameraView::mouseButtonDown(double x, double y) 
+void CameraView::mouseButtonDown(double x, double y)
 {
     mousePosition_ = {static_cast<float>(x), static_cast<float>(y)};
     mouseButtonDown_ = true;
 }
 
 void CameraView::mouseUpdate(double x, double y)
-{ 
-    if (!mouseButtonDown_) 
+{
+    if (!mouseButtonDown_)
     {
         return;
     }
@@ -73,13 +66,10 @@ void CameraView::mouseUpdate(double x, double y)
     updateView();
 }
 
-void CameraView::mouseButtonUp() 
-{ 
-    mouseButtonDown_ = false; 
-}
+void CameraView::mouseButtonUp() { mouseButtonDown_ = false; }
 
-void CameraView::updateView() 
-{ 
+void CameraView::updateView()
+{
     view_ = mathfu::mat4::LookAt(eye_ + frontVec(), eye_, {0.0f, 1.0f, 0.0f}, 1.0f);
 }
 
@@ -93,11 +83,11 @@ mathfu::vec3 CameraView::frontVec() const
 
 mathfu::vec3 CameraView::rightVec() const
 {
-    return mathfu::NormalizedHelper(mathfu::vec3::CrossProduct(
-        frontVec(), mathfu::vec3(0.0f, 1.0f, 0.0f)));
+    return mathfu::NormalizedHelper(
+        mathfu::vec3::CrossProduct(frontVec(), mathfu::vec3(0.0f, 1.0f, 0.0f)));
 }
 
-void CameraView::updateKeyEvents(float dt) 
+void CameraView::updateKeyEvents(float dt)
 {
     float speed = moveSpeed_ * dt;
 
@@ -121,14 +111,8 @@ void CameraView::updateKeyEvents(float dt)
     updateView();
 }
 
-void CameraView::setPosition(const mathfu::vec3& pos) 
-{ 
-    eye_ = pos; 
-}
+void CameraView::setPosition(const mathfu::vec3& pos) { eye_ = pos; }
 
-mathfu::mat4 CameraView::getLookAt() const noexcept 
-{
-    return view_;
-}
+mathfu::mat4 CameraView::getLookAt() const noexcept { return view_; }
 
 } // namespace yave

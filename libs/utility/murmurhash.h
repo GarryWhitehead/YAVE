@@ -45,8 +45,7 @@ static YAVE_FORCE_INLINE uint32_t rotl32(uint32_t x, int8_t r)
  * https://github.com/PeterScott/murmur3 This is for the use with smaller keys
  * with an improvement in performance compared to 128bit versions
  */
-YAVE_FORCE_INLINE uint32_t
-murmurHash3(const uint32_t* key, size_t len, uint32_t seed) noexcept
+YAVE_FORCE_INLINE uint32_t murmurHash3(const uint32_t* key, size_t len, uint32_t seed) noexcept
 {
     size_t nblocks = len / 4;
 

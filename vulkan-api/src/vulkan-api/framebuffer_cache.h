@@ -43,11 +43,10 @@ using FramebufferHandle = util::Handle<FrameBuffer>;
 class FramebufferCache
 {
 public:
-
     static constexpr int FramesUntilClear = 10;
 
-// ================ Frame buffer cache =========================
-    
+    // ================ Frame buffer cache =========================
+
 #pragma clang diagnostic push
 #pragma clang diagnostic warning "-Wpadded"
 
@@ -81,8 +80,7 @@ public:
 #pragma clang diagnostic pop
 
     static_assert(
-        std::is_pod<RPassKey>::value,
-        "RPassKey must be a POD for the hashing to work correctly");
+        std::is_pod<RPassKey>::value, "RPassKey must be a POD for the hashing to work correctly");
     static_assert(
         std::is_trivially_copyable<FboKey>::value,
         "FboKey must be a POD for the hashing to work correctly");
@@ -90,14 +88,8 @@ public:
     using RPassHasher = ::util::Murmur3Hasher<RPassKey>;
     using FboHasher = ::util::Murmur3Hasher<FboKey>;
 
-    using RenderPassMap = std::unordered_map<
-        RPassKey,
-        RenderPass*,
-        RPassHasher>;
-    using FrameBufferMap = std::unordered_map<
-        FboKey,
-        FrameBuffer*,
-        FboHasher>;
+    using RenderPassMap = std::unordered_map<RPassKey, RenderPass*, RPassHasher>;
+    using FrameBufferMap = std::unordered_map<FboKey, FrameBuffer*, FboHasher>;
 
     FramebufferCache(VkContext& conext, VkDriver& driver);
 

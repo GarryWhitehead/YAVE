@@ -22,16 +22,14 @@
 
 #include "asset_loader.h"
 
+#include <utility/assertion.h>
 #include <yave/engine.h>
 #include <yave/texture.h>
 
-#include <utility/assertion.h>
-
 #define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
-
-#include <spdlog/spdlog.h>
 #include <ktx.h>
+#include <spdlog/spdlog.h>
+#include <stb_image.h>
 
 #include <filesystem>
 
@@ -41,7 +39,7 @@ namespace yave
 AssetLoader::AssetLoader(Engine* engine) : engine_(engine) {}
 AssetLoader::~AssetLoader() {}
 
-uint32_t AssetLoader::compSizeFromFormat(backend::TextureFormat format) 
+uint32_t AssetLoader::compSizeFromFormat(backend::TextureFormat format)
 {
     uint32_t output;
     switch (format)
@@ -72,8 +70,8 @@ uint32_t AssetLoader::compSizeFromFormat(backend::TextureFormat format)
     return output;
 }
 
-Texture* AssetLoader::loadFromFile(
-    const std::filesystem::path& filePath, backend::TextureFormat format)
+Texture*
+AssetLoader::loadFromFile(const std::filesystem::path& filePath, backend::TextureFormat format)
 {
     std::filesystem::path assetPath = filePath;
     if (!assetFolder_.empty())
@@ -81,15 +79,13 @@ Texture* AssetLoader::loadFromFile(
         assetPath = assetFolder_ / filePath;
     }
     auto platformAssetPath = assetPath.make_preferred();
-    
+
     Texture* tex = nullptr;
     if (platformAssetPath.extension() == ".ktx")
     {
         tex = parseKtxFile(platformAssetPath, format);
     }
-    else if (
-        platformAssetPath.extension() == ".png" ||
-        platformAssetPath.extension() == ".jpg")
+    else if (platformAssetPath.extension() == ".png" || platformAssetPath.extension() == ".jpg")
     {
         tex = parseImageFile(platformAssetPath, format);
     }
@@ -103,8 +99,8 @@ Texture* AssetLoader::loadFromFile(
     return tex;
 }
 
-Texture* AssetLoader::parseImageFile(
-    const std::filesystem::path& filePath, backend::TextureFormat format)
+Texture*
+AssetLoader::parseImageFile(const std::filesystem::path& filePath, backend::TextureFormat format)
 {
     ImageParams params;
 
@@ -116,8 +112,7 @@ Texture* AssetLoader::parseImageFile(
     }
 
     int width, height, comp;
-    params.data =
-        stbi_load((const char*)filePath.c_str(), &width, &height, &comp, reqComp);
+    params.data = stbi_load((const char*)filePath.c_str(), &width, &height, &comp, reqComp);
 
     if (!params.data)
     {
@@ -156,8 +151,8 @@ Texture* AssetLoader::parseImageFile(
     return tex;
 }
 
-Texture* AssetLoader::parseKtxFile(
-    const std::filesystem::path& filePath, backend::TextureFormat format)
+Texture*
+AssetLoader::parseKtxFile(const std::filesystem::path& filePath, backend::TextureFormat format)
 {
     ImageParams params;
 
@@ -165,9 +160,7 @@ Texture* AssetLoader::parseKtxFile(
     KTX_error_code result;
 
     result = ktxTexture_CreateFromNamedFile(
-        filePath.string().c_str(),
-        KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT,
-        &texture);
+        filePath.string().c_str(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &texture);
 
     if (result != KTX_error_code::KTX_SUCCESS)
     {
@@ -176,8 +169,7 @@ Texture* AssetLoader::parseKtxFile(
     }
 
     ASSERT_FATAL(
-        texture->numDimensions == 2,
-        "Only 2D textures supported by the engine currently.");
+        texture->numDimensions == 2, "Only 2D textures supported by the engine currently.");
 
     params.width = texture->baseWidth;
     params.height = texture->baseHeight;
@@ -186,7 +178,7 @@ Texture* AssetLoader::parseKtxFile(
     params.arrayCount = texture->numLayers;
     params.data = texture->pData;
     params.dataSize = static_cast<uint32_t>(texture->dataSize);
-    
+
     size_t* offsets = new size_t[params.faceCount * params.mipLevels];
     for (uint32_t face = 0; face < params.faceCount; face++)
     {
@@ -194,8 +186,7 @@ Texture* AssetLoader::parseKtxFile(
         {
             KTX_error_code ret = ktxTexture_GetImageOffset(
                 texture, level, 0, face, &offsets[face * params.mipLevels + level]);
-            ASSERT_FATAL(
-                ret == KTX_SUCCESS, "Error whilst generating image offsets.");
+            ASSERT_FATAL(ret == KTX_SUCCESS, "Error whilst generating image offsets.");
         }
     }
 
@@ -208,7 +199,7 @@ Texture* AssetLoader::parseKtxFile(
          params.mipLevels,
          params.faceCount,
          format},
-         offsets);
+        offsets);
 
     ktxTexture_Destroy(texture);
     delete[] offsets;
@@ -216,7 +207,7 @@ Texture* AssetLoader::parseKtxFile(
     return tex;
 }
 
-void AssetLoader::setAssetFolder(const std::filesystem::path& assetPath) 
+void AssetLoader::setAssetFolder(const std::filesystem::path& assetPath)
 {
     ASSERT_LOG(!assetPath.empty());
     assetFolder_ = assetPath;

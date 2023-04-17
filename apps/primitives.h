@@ -31,7 +31,6 @@
 class PrimitiveApp : public yave::Application
 {
 public:
-
     enum class PrimitiveType
     {
         Sphere,
@@ -51,7 +50,6 @@ public:
     void uiCallback(yave::Engine* engine) override;
 
 private:
-    
     yave::Material::MaterialFactors sphereFactors_;
     yave::Material::MaterialFactors capsuleFactors_;
     yave::Material::MaterialFactors cubeFactors_;
@@ -59,5 +57,4 @@ private:
     yave::Material* sphereMat_;
     yave::Material* capsuleMat_;
     yave::Material* cubeMat_;
-
 };

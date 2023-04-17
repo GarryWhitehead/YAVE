@@ -29,10 +29,7 @@
 namespace yave
 {
 
-BufferBase::BufferBase()
-    : bufferData_(nullptr), currentBufferSize_(0), accumSize_(0)
-{
-}
+BufferBase::BufferBase() : bufferData_(nullptr), currentBufferSize_(0), accumSize_(0) {}
 
 BufferBase::~BufferBase()
 {
@@ -107,8 +104,7 @@ vk::DescriptorType bufferTypeFromSet(uint32_t set)
             return vk::DescriptorType::eStorageBuffer;
             break;
         default:
-            SPDLOG_WARN(
-                "Unrecognised buffer type when converting from set value.");
+            SPDLOG_WARN("Unrecognised buffer type when converting from set value.");
             break;
     }
     return vk::DescriptorType::eUniformBuffer;
@@ -189,14 +185,12 @@ void BufferBase::pushElement(
 
 void BufferBase::updateElement(const std::string& name, void* data) noexcept
 {
-    auto iter = std::find_if(
-        elements_.begin(),
-        elements_.end(),
-        [&name](const BufferBase::Info& info) { return info.name == name; });
+    auto iter =
+        std::find_if(elements_.begin(), elements_.end(), [&name](const BufferBase::Info& info) {
+            return info.name == name;
+        });
     ASSERT_FATAL(
-        iter != elements_.end(),
-        "Uniform buffer name %s not found in elements list",
-        name.c_str());
+        iter != elements_.end(), "Uniform buffer name %s not found in elements list", name.c_str());
 
     size_t size = iter->size;
     if (iter->value)
@@ -244,8 +238,8 @@ std::string PushBlock::createShaderStr() noexcept
     for (const auto& element : elements_)
     {
         const auto& [type, size] = elementTypeToStrAndSize(element);
-        output += "\tlayout (offset = " + std::to_string(offset) + ") " + type +
-            " " + element.name + ";\n";
+        output += "\tlayout (offset = " + std::to_string(offset) + ") " + type + " " +
+            element.name + ";\n";
         offset += size;
     }
     output += "}" + aliasName_ + ";\n";
@@ -253,10 +247,7 @@ std::string PushBlock::createShaderStr() noexcept
 }
 
 UniformBuffer::UniformBuffer(
-    uint32_t set,
-    uint32_t binding,
-    const std::string& memberName,
-    const std::string& aliasName)
+    uint32_t set, uint32_t binding, const std::string& memberName, const std::string& aliasName)
     : memberName_(memberName),
       aliasName_(aliasName),
       binding_(binding),
@@ -275,9 +266,8 @@ std::string UniformBuffer::createShaderStr() noexcept
     }
 
     std::string output;
-    output += "layout (set = " + std::to_string(set_) +
-        ", binding = " + std::to_string(binding_) + ") uniform " + memberName_ +
-        "\n{\n";
+    output += "layout (set = " + std::to_string(set_) + ", binding = " + std::to_string(binding_) +
+        ") uniform " + memberName_ + "\n{\n";
 
     for (const auto& element : elements_)
     {
@@ -294,8 +284,7 @@ std::string UniformBuffer::createShaderStr() noexcept
     return output;
 }
 
-void UniformBuffer::createGpuBuffer(
-    vkapi::VkDriver& driver, size_t size) noexcept
+void UniformBuffer::createGpuBuffer(vkapi::VkDriver& driver, size_t size) noexcept
 {
     ASSERT_FATAL(elements_.size() > 0, "This uniform has no elements added.");
     if (size > currentGpuBufferSize_)
@@ -315,8 +304,7 @@ void UniformBuffer::createGpuBuffer(vkapi::VkDriver& driver) noexcept
     }
 }
 
-void UniformBuffer::mapGpuBuffer(
-    vkapi::VkDriver& driver, void* data, size_t size) noexcept
+void UniformBuffer::mapGpuBuffer(vkapi::VkDriver& driver, void* data, size_t size) noexcept
 {
     vkapi::Buffer* buffer = vkHandle_.getResource();
     ASSERT_LOG(buffer);
@@ -328,15 +316,9 @@ void UniformBuffer::mapGpuBuffer(vkapi::VkDriver& driver, void* data) noexcept
     mapGpuBuffer(driver, data, accumSize_);
 }
 
-UniformBuffer::BackendBufferParams
-UniformBuffer::getBufferParams(vkapi::VkDriver& driver) noexcept
+UniformBuffer::BackendBufferParams UniformBuffer::getBufferParams(vkapi::VkDriver& driver) noexcept
 {
-    return {
-        vkHandle_.getResource()->get(),
-        accumSize_,
-        set_,
-        binding_,
-        bufferTypeFromSet(set_)};
+    return {vkHandle_.getResource()->get(), accumSize_, set_, binding_, bufferTypeFromSet(set_)};
 }
 
 StorageBuffer::StorageBuffer(
@@ -359,12 +341,10 @@ std::string StorageBuffer::createShaderStr() noexcept
     }
 
     std::string output;
-    std::string ssboType =
-        accessType_ == AccessType::ReadOnly ? "readonly" : "";
+    std::string ssboType = accessType_ == AccessType::ReadOnly ? "readonly" : "";
 
-    output += "layout (set = " + std::to_string(set_) +
-        ", binding = " + std::to_string(binding_) + ") " + ssboType +
-        " buffer " + memberName_ + "\n{\n";
+    output += "layout (set = " + std::to_string(set_) + ", binding = " + std::to_string(binding_) +
+        ") " + ssboType + " buffer " + memberName_ + "\n{\n";
 
     for (const auto& element : elements_)
     {
@@ -386,24 +366,16 @@ std::string StorageBuffer::createShaderStr() noexcept
     return output;
 }
 
-void StorageBuffer::createGpuBuffer(
-    vkapi::VkDriver& driver, uint32_t size) noexcept
+void StorageBuffer::createGpuBuffer(vkapi::VkDriver& driver, uint32_t size) noexcept
 {
-    ASSERT_FATAL(
-        elements_.size() > 0, "This storage buffer has no elements added.");
+    ASSERT_FATAL(elements_.size() > 0, "This storage buffer has no elements added.");
     ASSERT_LOG(size > 0);
     vkHandle_ = driver.addUbo(size, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT);
 }
 
-BufferBase::BackendBufferParams
-StorageBuffer::getBufferParams(vkapi::VkDriver& driver) noexcept
+BufferBase::BackendBufferParams StorageBuffer::getBufferParams(vkapi::VkDriver& driver) noexcept
 {
-    return {
-        vkHandle_.getResource()->get(),
-        accumSize_,
-        set_,
-        binding_,
-        bufferTypeFromSet(set_)};
+    return {vkHandle_.getResource()->get(), accumSize_, set_, binding_, bufferTypeFromSet(set_)};
 }
 
 } // namespace yave

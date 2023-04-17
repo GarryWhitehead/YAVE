@@ -79,7 +79,7 @@ public:
     void flush();
 
     vk::Semaphore* getFinishedSignal() noexcept;
-    
+
     void setExternalWaitSignal(vk::Semaphore* sp) noexcept
     {
         ASSERT_FATAL(sp, "External semaphore is nullptr");
@@ -94,10 +94,10 @@ private:
 
     CmdBuffer* currentCmdBuffer_;
     vk::Semaphore* currentSignal_;
-    
+
     // current semaphore that has been submitted to the queue
     vk::Semaphore* submittedSignal_;
-    
+
     // wait semaphore passed by the client
     vk::Semaphore* externalSignal_;
 

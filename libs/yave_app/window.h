@@ -22,17 +22,14 @@
 
 #pragma once
 
-#include "yave/camera.h"
-
 #include "utility/cstring.h"
-
 #include "vulkan/vulkan.hpp"
+#include "yave/camera.h"
 
 #include <mathfu/glsl_mappings.h>
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
-
 #include <imgui.h>
 
 #include <cstdint>
@@ -44,10 +41,9 @@ class CameraView;
 class Engine;
 class Application;
 
-class Window 
+class Window
 {
 public:
-
     Window(Application& app, const char* title, uint32_t width, uint32_t height, bool showUI);
     ~Window();
 
@@ -57,17 +53,15 @@ public:
     void poll() noexcept;
 
     void updateCameraForWindow();
-    
+
     const std::pair<const char**, uint32_t> getInstanceExt() const noexcept;
 
     bool createSurfaceVk(const vk::Instance& instance);
 
     const vk::SurfaceKHR getSurface() const;
 
-    void keyResponse(
-        GLFWwindow* window, int key, int scan_code, int action, int mode);
-    void
-    mouseButtonResponse(GLFWwindow* window, int button, int action, int mods);
+    void keyResponse(GLFWwindow* window, int key, int scan_code, int action, int mode);
+    void mouseButtonResponse(GLFWwindow* window, int button, int action, int mods);
     void mouseMoveResponse(GLFWwindow* window, double xpos, double ypos);
     void scrollResponse(GLFWwindow* window, double xOffset, double yOffset);
     void enterResponse(GLFWwindow* window, int entered);
@@ -83,7 +77,6 @@ public:
     Camera* getCamera() noexcept { return camera_; }
 
 private:
-
     Application& app_;
 
     uint32_t width_;
@@ -111,11 +104,9 @@ private:
 };
 
 // Callbacks from GLFW
-void keyCallback(
-    GLFWwindow* window, int key, int scan_code, int action, int mode);
+void keyCallback(GLFWwindow* window, int key, int scan_code, int action, int mode);
 
-void mouseButtonPressCallback(
-    GLFWwindow* window, int button, int action, int mods);
+void mouseButtonPressCallback(GLFWwindow* window, int button, int action, int mods);
 
 void mouseCallback(GLFWwindow* window, double xpos, double ypos);
 

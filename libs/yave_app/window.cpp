@@ -21,14 +21,13 @@
  */
 
 #include "window.h"
+
 #include "app.h"
 #include "camera_view.h"
 
-#include <yave/engine.h>
-
-#include <utility/assertion.h>
-
 #include <imgui.h>
+#include <utility/assertion.h>
+#include <yave/engine.h>
 
 namespace yave
 {
@@ -43,12 +42,7 @@ void imGuiGlfwSetClipboardText(void* user_data, const char* text)
     glfwSetClipboardString((GLFWwindow*)user_data, text);
 }
 
-Window::Window(
-    Application& app,
-    const char* title,
-    uint32_t width,
-    uint32_t height,
-    bool showUI)
+Window::Window(Application& app, const char* title, uint32_t width, uint32_t height, bool showUI)
     : app_(app),
       width_(width),
       height_(height),
@@ -59,7 +53,7 @@ Window::Window(
 {
     bool success = glfwInit();
     ASSERT_FATAL(success, "Failed to initialise GLFW.");
-    
+
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
@@ -102,35 +96,27 @@ Window::Window(
 
     if (showUI_)
     {
-        std::filesystem::path fontPath = std::string(YAVE_ASSETS_DIRECTORY) /
-            std::filesystem::path("fonts/Roboto-Regular.ttf");
+        std::filesystem::path fontPath =
+            std::string(YAVE_ASSETS_DIRECTORY) / std::filesystem::path("fonts/Roboto-Regular.ttf");
         app.imgui_ = std::make_unique<ImGuiHelper>(app.engine_, fontPath);
 
         ImGuiIO& io = ImGui::GetIO();
-        io.BackendFlags |=
-            ImGuiBackendFlags_HasMouseCursors;                           
-        io.BackendFlags |=
-            ImGuiBackendFlags_HasSetMousePos;
+        io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
+        io.BackendFlags |= ImGuiBackendFlags_HasSetMousePos;
 
         io.SetClipboardTextFn = imGuiGlfwSetClipboardText;
         io.GetClipboardTextFn = imGuiGlfwGetClipboardText;
         io.ClipboardUserData = window_;
-        
+
         // if showing UI, setup the cursors used by imgui
         GLFWerrorfun prev_error_callback = glfwSetErrorCallback(nullptr);
-        mouseCursors[ImGuiMouseCursor_Arrow] =
-            glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
-        mouseCursors[ImGuiMouseCursor_TextInput] =
-            glfwCreateStandardCursor(GLFW_IBEAM_CURSOR);
-        mouseCursors[ImGuiMouseCursor_ResizeNS] =
-            glfwCreateStandardCursor(GLFW_VRESIZE_CURSOR);
-        mouseCursors[ImGuiMouseCursor_ResizeEW] =
-            glfwCreateStandardCursor(GLFW_HRESIZE_CURSOR);
-        mouseCursors[ImGuiMouseCursor_Hand] =
-            glfwCreateStandardCursor(GLFW_HAND_CURSOR);
+        mouseCursors[ImGuiMouseCursor_Arrow] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
+        mouseCursors[ImGuiMouseCursor_TextInput] = glfwCreateStandardCursor(GLFW_IBEAM_CURSOR);
+        mouseCursors[ImGuiMouseCursor_ResizeNS] = glfwCreateStandardCursor(GLFW_VRESIZE_CURSOR);
+        mouseCursors[ImGuiMouseCursor_ResizeEW] = glfwCreateStandardCursor(GLFW_HRESIZE_CURSOR);
+        mouseCursors[ImGuiMouseCursor_Hand] = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
 #if GLFW_HAS_NEW_CURSORS
-        mouseCursors[ImGuiMouseCursor_ResizeAll] =
-            glfwCreateStandardCursor(GLFW_RESIZE_ALL_CURSOR);
+        mouseCursors[ImGuiMouseCursor_ResizeAll] = glfwCreateStandardCursor(GLFW_RESIZE_ALL_CURSOR);
         mouseCursors[ImGuiMouseCursor_ResizeNESW] =
             glfwCreateStandardCursor(GLFW_RESIZE_NESW_CURSOR);
         mouseCursors[ImGuiMouseCursor_ResizeNWSE] =
@@ -138,14 +124,10 @@ Window::Window(
         mouseCursors[ImGuiMouseCursor_NotAllowed] =
             glfwCreateStandardCursor(GLFW_NOT_ALLOWED_CURSOR);
 #else
-        mouseCursors[ImGuiMouseCursor_ResizeAll] =
-            glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
-        mouseCursors[ImGuiMouseCursor_ResizeNESW] =
-            glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
-        mouseCursors[ImGuiMouseCursor_ResizeNWSE] =
-            glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
-        mouseCursors[ImGuiMouseCursor_NotAllowed] =
-            glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
+        mouseCursors[ImGuiMouseCursor_ResizeAll] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
+        mouseCursors[ImGuiMouseCursor_ResizeNESW] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
+        mouseCursors[ImGuiMouseCursor_ResizeNWSE] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
+        mouseCursors[ImGuiMouseCursor_NotAllowed] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
 #endif
         glfwSetErrorCallback(prev_error_callback);
     }
@@ -153,30 +135,27 @@ Window::Window(
 
 Window::~Window() {}
 
-void Window::updateCameraForWindow() 
+void Window::updateCameraForWindow()
 {
     // update the window dimensions
     uint32_t width, height;
     glfwGetWindowSize(window_, (int*)&width, (int*)&height);
     width_ = static_cast<uint32_t>(width);
     height_ = static_cast<uint32_t>(height);
-    
+
     int fbWidth, fbHeight;
     glfwGetFramebufferSize(window_, &fbWidth, &fbHeight);
     float dpiScaleX = static_cast<float>(width / fbWidth);
     float dpiScaleY = static_cast<float>(height / fbHeight);
 
     camera_->setProjection(
-        app_.cameraFov_,
-        static_cast<float>(width / height),
-        app_.cameraNear_,
-        app_.cameraFar_);
+        app_.cameraFov_, static_cast<float>(width / height), app_.cameraNear_, app_.cameraFar_);
 }
 
-CameraView::Movement convertKeyCode(int code) 
+CameraView::Movement convertKeyCode(int code)
 {
     CameraView::Movement dir;
-    switch(code) 
+    switch (code)
     {
         case GLFW_KEY_W:
             dir = CameraView::Movement::Forward;
@@ -196,13 +175,9 @@ CameraView::Movement convertKeyCode(int code)
     return dir;
 }
 
-void Window::poll() noexcept 
-{ 
-    glfwPollEvents(); 
-}
+void Window::poll() noexcept { glfwPollEvents(); }
 
-const std::pair<const char**, uint32_t>
-Window::getInstanceExt() const noexcept
+const std::pair<const char**, uint32_t> Window::getInstanceExt() const noexcept
 {
     uint32_t count = 0;
     const char** glfwExtensions;
@@ -223,12 +198,9 @@ bool Window::createSurfaceVk(const vk::Instance& instance)
     return true;
 }
 
-const vk::SurfaceKHR Window::getSurface() const
-{
-    return surface_;
-}
+const vk::SurfaceKHR Window::getSurface() const { return surface_; }
 
-void Window::updateUiMouseData() 
+void Window::updateUiMouseData()
 {
     if (!showUI_)
     {
@@ -249,18 +221,14 @@ void Window::updateUiMouseData()
         if (io.WantSetMousePos)
         {
             glfwSetCursorPos(
-                window_,
-                static_cast<double>(io.MousePos.x),
-                static_cast<double>(io.MousePos.y));
+                window_, static_cast<double>(io.MousePos.x), static_cast<double>(io.MousePos.y));
 
             if (!enterWindow_)
             {
                 double mouseX, mouseY;
                 glfwGetCursorPos(window_, &mouseX, &mouseY);
-                lastValidMousePos_ = ImVec2(
-                    static_cast<float>(mouseX), static_cast<float>(mouseY));
-                io.AddMousePosEvent(
-                    static_cast<float>(mouseX), static_cast<float>(mouseY));
+                lastValidMousePos_ = ImVec2(static_cast<float>(mouseX), static_cast<float>(mouseY));
+                io.AddMousePosEvent(static_cast<float>(mouseX), static_cast<float>(mouseY));
             }
         }
     }
@@ -287,15 +255,14 @@ void Window::updateUiMouseCursor()
     }
     else
     {
-        glfwSetCursor(window_, mouseCursors[uiCursor]
-                    ? mouseCursors[uiCursor]
-                    : mouseCursors[ImGuiMouseCursor_Arrow]);
+        glfwSetCursor(
+            window_,
+            mouseCursors[uiCursor] ? mouseCursors[uiCursor] : mouseCursors[ImGuiMouseCursor_Arrow]);
         glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     }
 }
 
-void Window::keyResponse(
-    GLFWwindow* window, int key, int scan_code, int action, int mode)
+void Window::keyResponse(GLFWwindow* window, int key, int scan_code, int action, int mode)
 {
     if (action != GLFW_PRESS && action != GLFW_RELEASE)
     {
@@ -325,8 +292,7 @@ void Window::keyResponse(
     }
 }
 
-void Window::mouseButtonResponse(
-    GLFWwindow* window, int button, int action, int mods)
+void Window::mouseButtonResponse(GLFWwindow* window, int button, int action, int mods)
 {
     ImGuiIO& io = ImGui::GetIO();
     if (button >= 0 && button < ImGuiMouseButton_COUNT)
@@ -362,9 +328,8 @@ void Window::mouseMoveResponse(GLFWwindow* window, double xpos, double ypos)
 
     ImGuiIO& io = ImGui::GetIO();
     io.AddMousePosEvent(static_cast<float>(xpos), static_cast<float>(ypos));
-    lastValidMousePos_ =
-        ImVec2(static_cast<float>(xpos), static_cast<float>(ypos));
-    
+    lastValidMousePos_ = ImVec2(static_cast<float>(xpos), static_cast<float>(ypos));
+
     if (!io.WantCaptureMouse)
     {
         cameraView_->mouseUpdate(xpos, ypos);
@@ -374,8 +339,7 @@ void Window::mouseMoveResponse(GLFWwindow* window, double xpos, double ypos)
 void Window::scrollResponse(GLFWwindow* window, double xoffset, double yoffset)
 {
     ImGuiIO& io = ImGui::GetIO();
-    io.AddMouseWheelEvent(
-        static_cast<float>(xoffset), static_cast<float>(yoffset));
+    io.AddMouseWheelEvent(static_cast<float>(xoffset), static_cast<float>(yoffset));
 
     if (!io.WantCaptureMouse)
     {
@@ -384,10 +348,9 @@ void Window::scrollResponse(GLFWwindow* window, double xoffset, double yoffset)
         camera_->setFov(app_.cameraFov_);
     }
 }
-void Window::enterResponse(GLFWwindow* window, int entered) 
+void Window::enterResponse(GLFWwindow* window, int entered)
 {
-    if (!showUI_ ||
-        glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
+    if (!showUI_ || glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
     {
         return;
     }
@@ -406,40 +369,33 @@ void Window::enterResponse(GLFWwindow* window, int entered)
     }
 }
 
-void keyCallback(
-    GLFWwindow* window, int key, int scan_code, int action, int mode)
+void keyCallback(GLFWwindow* window, int key, int scan_code, int action, int mode)
 {
-    Window* inputSys =
-        reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
+    Window* inputSys = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
     inputSys->keyResponse(window, key, scan_code, action, mode);
 }
 
-void mouseButtonPressCallback(
-    GLFWwindow* window, int button, int action, int mods)
+void mouseButtonPressCallback(GLFWwindow* window, int button, int action, int mods)
 {
-    Window* inputSys =
-        reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
+    Window* inputSys = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
     inputSys->mouseButtonResponse(window, button, action, mods);
 }
 
 void mouseCallback(GLFWwindow* window, double xpos, double ypos)
 {
-    Window* inputSys =
-        reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
+    Window* inputSys = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
     inputSys->mouseMoveResponse(window, xpos, ypos);
 }
 
-void scrollCallback(GLFWwindow* window, double xoffset, double yoffset) 
+void scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 {
-    Window* inputSys =
-        reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
+    Window* inputSys = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
     inputSys->scrollResponse(window, xoffset, yoffset);
 }
 
-void cursorEnterCallback(GLFWwindow* window, int entered) 
+void cursorEnterCallback(GLFWwindow* window, int entered)
 {
-    Window* inputSys =
-        reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
+    Window* inputSys = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
     inputSys->enterResponse(window, entered);
 }
 

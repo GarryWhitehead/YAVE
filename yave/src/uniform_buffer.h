@@ -22,12 +22,11 @@
 
 #pragma once
 
+#include "backend/enums.h"
 #include "utility/cstring.h"
 #include "vulkan-api/buffer.h"
 #include "vulkan-api/driver.h"
 #include "vulkan-api/resource_cache.h"
-
-#include "backend/enums.h"
 
 #include <string>
 #include <vector>
@@ -86,11 +85,7 @@ public:
 
     virtual std::string createShaderStr() noexcept { return ""; };
 
-    virtual BackendBufferParams
-    getBufferParams(vkapi::VkDriver& driver) noexcept
-    {
-        return {};
-    }
+    virtual BackendBufferParams getBufferParams(vkapi::VkDriver& driver) noexcept { return {}; }
 
 protected:
     std::vector<Info> elements_;
@@ -118,11 +113,9 @@ public:
 
     void mapGpuBuffer(vkapi::VkDriver& driver, void* data) noexcept;
 
-    void
-    mapGpuBuffer(vkapi::VkDriver& driver, void* data, size_t size) noexcept;
+    void mapGpuBuffer(vkapi::VkDriver& driver, void* data, size_t size) noexcept;
 
-    BackendBufferParams
-    getBufferParams(vkapi::VkDriver& driver) noexcept override;
+    BackendBufferParams getBufferParams(vkapi::VkDriver& driver) noexcept override;
 
     uint8_t getBinding() const noexcept { return binding_; }
 
@@ -160,8 +153,7 @@ public:
 
     void createGpuBuffer(vkapi::VkDriver& driver, uint32_t size) noexcept;
 
-    BackendBufferParams
-    getBufferParams(vkapi::VkDriver& driver) noexcept override;
+    BackendBufferParams getBufferParams(vkapi::VkDriver& driver) noexcept override;
 
 private:
     AccessType accessType_;

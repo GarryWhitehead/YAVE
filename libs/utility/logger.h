@@ -49,8 +49,7 @@ struct Logger
         return error;
     }
 
-    static void
-    print(const char* type, int line, const char* file, const char* fmt, ...)
+    static void print(const char* type, int line, const char* file, const char* fmt, ...)
     {
         va_list args;
         va_start(args, fmt);
@@ -63,14 +62,10 @@ struct Logger
 };
 
 // simple file logging tools
-#define LOGGER(fmt, ...)                                                       \
-    Logger::print("", __LINE__, __FILE__, fmt, ##__VA_ARGS__);
+#define LOGGER(fmt, ...) Logger::print("", __LINE__, __FILE__, fmt, ##__VA_ARGS__);
 
-#define LOGGER_ERROR(fmt, ...)                                                 \
-    Logger::print("Error", __LINE__, __FILE__, fmt, ##__VA_ARGS__);
+#define LOGGER_ERROR(fmt, ...) Logger::print("Error", __LINE__, __FILE__, fmt, ##__VA_ARGS__);
 
-#define LOGGER_INFO(fmt, ...)                                                  \
-    Logger::print("Info", __LINE__, __FILE__, fmt, ##__VA_ARGS__);
+#define LOGGER_INFO(fmt, ...) Logger::print("Info", __LINE__, __FILE__, fmt, ##__VA_ARGS__);
 
-#define LOGGER_WARN(fmt, ...)                                                  \
-    Logger::print("Warn", __LINE__, __FILE__, fmt, ##__VA_ARGS__);
+#define LOGGER_WARN(fmt, ...) Logger::print("Warn", __LINE__, __FILE__, fmt, ##__VA_ARGS__);

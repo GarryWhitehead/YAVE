@@ -30,31 +30,29 @@
 #define VULKAN_THREADED 1
 #define VULKAN_THREADED_GROUP_SIZE 512
 
-#define VK_CHECK_RESULT(f)                                                     \
-    {                                                                          \
-        vk::Result res = (f);                                                  \
-        if (res != vk::Result::eSuccess)                                       \
-        {                                                                      \
-            printf(                                                            \
-                "Fatal : VkResult returned error code %i at %s at line %i.\n", \
-                static_cast<int>(res),                                         \
-                __FILE__,                                                      \
-                __LINE__);                                                     \
-            assert(res == vk::Result::eSuccess);                               \
-        }                                                                      \
+#define VK_CHECK_RESULT(f)                                                                         \
+    {                                                                                              \
+        vk::Result res = (f);                                                                      \
+        if (res != vk::Result::eSuccess)                                                           \
+        {                                                                                          \
+            printf(                                                                                \
+                "Fatal : VkResult returned error code %i at %s at line %i.\n",                     \
+                static_cast<int>(res),                                                             \
+                __FILE__,                                                                          \
+                __LINE__);                                                                         \
+            assert(res == vk::Result::eSuccess);                                                   \
+        }                                                                                          \
     }
 
 // VMA doesn't use the c++ bindings, so this is specifically for dealing with
 // VMA functions
-#define VMA_CHECK_RESULT(f)                                                    \
-    {                                                                          \
-        VkResult res = (f);                                                    \
-        if (res != VK_SUCCESS)                                                 \
-        {                                                                      \
-            printf(                                                            \
-                "Fatal : VkResult returned error code at %s at line %i.\n",    \
-                __FILE__,                                                      \
-                __LINE__);                                                     \
-            assert(res == VK_SUCCESS);                                         \
-        }                                                                      \
+#define VMA_CHECK_RESULT(f)                                                                        \
+    {                                                                                              \
+        VkResult res = (f);                                                                        \
+        if (res != VK_SUCCESS)                                                                     \
+        {                                                                                          \
+            printf(                                                                                \
+                "Fatal : VkResult returned error code at %s at line %i.\n", __FILE__, __LINE__);   \
+            assert(res == VK_SUCCESS);                                                             \
+        }                                                                                          \
     }
