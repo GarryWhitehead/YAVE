@@ -44,8 +44,7 @@ mathfu::vec3 GltfExtension::tokenToVec3(util::CString str)
     mathfu::vec3 output;
     auto split = util::CString::split(str, ' ');
     assert(split.size() == 3);
-    return mathfu::vec3 {
-        split[0].toFloat(), split[1].toFloat(), split[2].toFloat()};
+    return mathfu::vec3 {split[0].toFloat(), split[1].toFloat(), split[2].toFloat()};
 }
 
 util::CString GltfExtension::find(util::CString ext)
@@ -71,8 +70,7 @@ bool GltfExtension::build(const cgltf_extras& extras, cgltf_data& data)
     // alloc mem for the json extension data
     char* jsonData = new char[extSize + 1];
 
-    cgltf_result res =
-        cgltf_copy_extras_json(&data, &extras, jsonData, &extSize);
+    cgltf_result res = cgltf_copy_extras_json(&data, &extras, jsonData, &extSize);
     if (res != cgltf_result_success)
     {
         LOGGER_ERROR("Unable to prepare extension data. Error code: %d\n", res);
@@ -84,8 +82,7 @@ bool GltfExtension::build(const cgltf_extras& extras, cgltf_data& data)
     // create json file from data blob - using cgltf implementation here
     jsmn_parser jsonParser;
     jsmn_init(&jsonParser);
-    const int tokenCount =
-        jsmn_parse(&jsonParser, jsonData, extSize + 1, nullptr, 0);
+    const int tokenCount = jsmn_parse(&jsonParser, jsonData, extSize + 1, nullptr, 0);
     if (tokenCount < 1)
     {
         // not an error - just no data
@@ -100,10 +97,8 @@ bool GltfExtension::build(const cgltf_extras& extras, cgltf_data& data)
     std::vector<util::CString> temp;
     for (const jsmntok_t& token : tokenData)
     {
-        util::CString startStr {
-            util::CString::valueToCString(&jsonData[token.start])};
-        util::CString endStr {
-            util::CString::valueToCString(token.end - token.start)};
+        util::CString startStr {util::CString::valueToCString(&jsonData[token.start])};
+        util::CString endStr {util::CString::valueToCString(token.end - token.start)};
         temp.emplace_back(startStr);
         temp.emplace_back(endStr);
     }
@@ -144,8 +139,7 @@ NodeInfo* GltfModel::getNode(util::CString id)
     return foundNode;
 }
 
-uint8_t*
-GltfModel::getAttributeData(const cgltf_attribute* attrib, size_t& stride)
+uint8_t* GltfModel::getAttributeData(const cgltf_attribute* attrib, size_t& stride)
 {
     const cgltf_accessor* accessor = attrib->data;
     stride = accessor->buffer_view->stride; // the size of each sub blob
@@ -154,8 +148,8 @@ GltfModel::getAttributeData(const cgltf_attribute* attrib, size_t& stride)
         stride = accessor->stride;
     }
     assert(stride);
-    return static_cast<uint8_t*>(accessor->buffer_view->buffer->data) +
-        accessor->offset + accessor->buffer_view->offset;
+    return static_cast<uint8_t*>(accessor->buffer_view->buffer->data) + accessor->offset +
+        accessor->buffer_view->offset;
 }
 
 void GltfModel::lineariseRecursive(cgltf_node& node, size_t index)
@@ -201,14 +195,10 @@ bool GltfModel::load(const std::filesystem::path& filename)
     }
     auto platformPath = modelPath.make_preferred();
 
-    cgltf_result res = cgltf_parse_file(
-        &options, platformPath.string().c_str(), &gltfData_);
+    cgltf_result res = cgltf_parse_file(&options, platformPath.string().c_str(), &gltfData_);
     if (res != cgltf_result_success)
     {
-        LOGGER_ERROR(
-            "Unable to open gltf file %s. Error code: %d\n",
-            platformPath.c_str(),
-            res);
+        LOGGER_ERROR("Unable to open gltf file %s. Error code: %d\n", platformPath.c_str(), res);
         return false;
     }
 
@@ -217,9 +207,7 @@ bool GltfModel::load(const std::filesystem::path& filename)
     if (res != cgltf_result_success)
     {
         LOGGER_ERROR(
-            "Unable to open gltf file data for %s. Error code: %d\n",
-            filename.c_str(),
-            res);
+            "Unable to open gltf file data for %s. Error code: %d\n", filename.c_str(), res);
         return false;
     }
 
@@ -248,8 +236,7 @@ bool GltfModel::build()
 
     // for each scene, visit each node in that scene
     cgltf_scene* sceneEnd = gltfData_->scenes + gltfData_->scenes_count;
-    for (const cgltf_scene* scene = gltfData_->scenes; scene < sceneEnd;
-         ++scene)
+    for (const cgltf_scene* scene = gltfData_->scenes; scene < sceneEnd; ++scene)
     {
         cgltf_node* const* nodeEnd = scene->nodes + scene->nodes_count;
         for (cgltf_node* const* node = scene->nodes; node < nodeEnd; ++node)

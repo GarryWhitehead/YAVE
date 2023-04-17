@@ -60,14 +60,13 @@ vk::Sampler SamplerCache::createSampler(const backend::TextureSamplerParams& par
         vk::BorderColor::eFloatOpaqueWhite,
         VK_FALSE);
 
-    VK_CHECK_RESULT(driver_.context().device().createSampler(
-        &samplerInfo, nullptr, &sampler));
+    VK_CHECK_RESULT(driver_.context().device().createSampler(&samplerInfo, nullptr, &sampler));
 
     samplers_.insert({params, sampler});
     return sampler;
 }
 
-void SamplerCache::clear() 
+void SamplerCache::clear()
 {
     for (const auto& [_, sampler] : samplers_)
     {

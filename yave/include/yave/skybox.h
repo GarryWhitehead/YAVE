@@ -37,7 +37,6 @@ public:
     virtual void build(Camera* camera) = 0;
 
 protected:
-    
     Skybox();
 };
 

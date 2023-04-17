@@ -50,11 +50,9 @@ public:
 
     virtual ~VertexBuffer();
 
-    virtual void
-    addAttribute(BindingType bindType, backend::BufferElementType attrType) = 0;
+    virtual void addAttribute(BindingType bindType, backend::BufferElementType attrType) = 0;
 
-    virtual void
-    build(Engine* engine, uint32_t vertexCount, void* vertexData) = 0;
+    virtual void build(Engine* engine, uint32_t vertexCount, void* vertexData) = 0;
 
 protected:
     VertexBuffer();

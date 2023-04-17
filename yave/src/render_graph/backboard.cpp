@@ -58,10 +58,7 @@ void BlackBoard::remove(const std::string& name)
     blackboard_.erase(iter);
 }
 
-void BlackBoard::reset() noexcept
-{
-    blackboard_.clear();
-}
+void BlackBoard::reset() noexcept { blackboard_.clear(); }
 
 } // namespace rg
 } // namespace yave

@@ -50,8 +50,7 @@ RenderGraph::RenderGraph(vkapi::VkDriver& driver)
 
 RenderGraph::~RenderGraph() {}
 
-void RenderGraph::createPassNode(
-    const util::CString& name, RenderGraphPassBase* rgPass)
+void RenderGraph::createPassNode(const util::CString& name, RenderGraphPassBase* rgPass)
 {
     auto node = std::make_unique<RenderPassNode>(*this, rgPass, name);
     ASSERT_LOG(node);
@@ -69,26 +68,24 @@ void RenderGraph::addPresentPass(const RenderGraphHandle& input)
     rPassNodes_.emplace_back(std::move(node));
 }
 
-RenderGraphHandle
-RenderGraph::addResource(std::unique_ptr<ResourceBase> resource)
+RenderGraphHandle RenderGraph::addResource(std::unique_ptr<ResourceBase> resource)
 {
     return addSubResource(std::move(resource), {});
 }
 
-RenderGraphHandle RenderGraph::addSubResource(
-    std::unique_ptr<ResourceBase> resource, const RenderGraphHandle& parent)
+RenderGraphHandle
+RenderGraph::addSubResource(std::unique_ptr<ResourceBase> resource, const RenderGraphHandle& parent)
 {
     RenderGraphHandle handle(static_cast<uint32_t>(resourceSlots_.size()));
     resourceSlots_.push_back({resources_.size(), resourceNodes_.size()});
-    auto node = std::make_unique<ResourceNode>(
-        *this, resource->getName(), handle, parent);
+    auto node = std::make_unique<ResourceNode>(*this, resource->getName(), handle, parent);
     resources_.emplace_back(std::move(resource));
     resourceNodes_.emplace_back(std::move(node));
     return handle;
 }
 
-RenderGraphHandle RenderGraph::moveResource(
-    const RenderGraphHandle& from, const RenderGraphHandle& to)
+RenderGraphHandle
+RenderGraph::moveResource(const RenderGraphHandle& from, const RenderGraphHandle& to)
 {
     ASSERT_LOG(from);
     ASSERT_LOG(to);
@@ -98,7 +95,7 @@ RenderGraphHandle RenderGraph::moveResource(
 
     ResourceNode* fromNode = getResourceNode(from);
     ResourceNode* toNode = getResourceNode(to);
-    
+
     // connect the replacement node to the forwarded node
     fromNode->setAliasResourceEdge(toNode);
     fromSlot.resourceIdx = toSlot.resourceIdx;
@@ -118,17 +115,13 @@ RenderGraphHandle RenderGraph::importRenderTarget(
     const ImportedRenderTarget::Descriptor& importedDesc,
     const vkapi::RenderTargetHandle& handle)
 {
-    TextureResource::Descriptor resDesc {
-        importedDesc.width, importedDesc.height};
-    auto importedRT = std::make_unique<ImportedRenderTarget>(
-        name, handle, resDesc, importedDesc);
+    TextureResource::Descriptor resDesc {importedDesc.width, importedDesc.height};
+    auto importedRT = std::make_unique<ImportedRenderTarget>(name, handle, resDesc, importedDesc);
     return addResource(std::move(importedRT));
 }
 
 RenderGraphHandle RenderGraph::addRead(
-    const RenderGraphHandle& handle,
-    PassNodeBase* passNode,
-    vk::ImageUsageFlags usage)
+    const RenderGraphHandle& handle, PassNodeBase* passNode, vk::ImageUsageFlags usage)
 {
     ASSERT_LOG(handle.getKey() < resources_.size());
     ResourceBase* resource = resources_[handle.getKey()].get();
@@ -148,9 +141,7 @@ RenderGraphHandle RenderGraph::addRead(
 }
 
 RenderGraphHandle RenderGraph::addWrite(
-    const RenderGraphHandle& handle,
-    PassNodeBase* passNode,
-    vk::ImageUsageFlags usage)
+    const RenderGraphHandle& handle, PassNodeBase* passNode, vk::ImageUsageFlags usage)
 {
     ASSERT_LOG(handle.getKey() < resources_.size());
     ResourceBase* resource = resources_[handle.getKey()].get();
@@ -177,7 +168,7 @@ RenderGraphHandle RenderGraph::addWrite(
 }
 
 void RenderGraph::reset()
-{    
+{
     dGraph_.clear();
     blackboard_->reset();
     rGraphPasses_.clear();
@@ -194,9 +185,9 @@ RenderGraph& RenderGraph::compile()
     // partition the container so active nodes are at the
     // front and culled nodes are at the back
     activeNodesEnd_ = std::stable_partition(
-        rPassNodes_.begin(),
-        rPassNodes_.end(),
-        [](std::unique_ptr<PassNodeBase>& node) { return !node->isCulled(); });
+        rPassNodes_.begin(), rPassNodes_.end(), [](std::unique_ptr<PassNodeBase>& node) {
+            return !node->isCulled();
+        });
 
     ASSERT_LOG(rPassNodes_.size() > 0);
     size_t nodeIdx = 0;
@@ -210,16 +201,14 @@ RenderGraph& RenderGraph::compile()
         const auto& readers = dGraph_.getReaderEdges(passNode);
         for (const auto* edge : readers)
         {
-            ResourceNode* node =
-                static_cast<ResourceNode*>(dGraph_.getNode(edge->fromId));
+            ResourceNode* node = static_cast<ResourceNode*>(dGraph_.getNode(edge->fromId));
             passNode->addResource(node->resourceHandle());
         }
 
         const auto& writers = dGraph_.getWriterEdges(passNode);
         for (const auto* edge : writers)
         {
-            ResourceNode* node =
-                static_cast<ResourceNode*>(dGraph_.getNode(edge->toId));
+            ResourceNode* node = static_cast<ResourceNode*>(dGraph_.getNode(edge->toId));
             passNode->addResource(node->resourceHandle());
         }
         passNode->build();
@@ -257,12 +246,11 @@ void RenderGraph::execute()
 {
     size_t nodeIdx = 0;
     auto lastNode = activeNodesEnd_;
-    
+
     while (nodeIdx < rPassNodes_.size() && rPassNodes_[nodeIdx].get() != lastNode->get())
     {
         ASSERT_LOG(nodeIdx < rPassNodes_.size());
-        RenderPassNode* passNode =
-            static_cast<RenderPassNode*>(rPassNodes_[nodeIdx++].get());
+        RenderPassNode* passNode = static_cast<RenderPassNode*>(rPassNodes_[nodeIdx++].get());
 
         // create concrete vulkan resources - these are added to the
         // node during the compile call
@@ -270,7 +258,7 @@ void RenderGraph::execute()
 
         RenderGraphResource resources(*this, passNode);
         passNode->execute(driver_, resources);
-        
+
         // Resources used by the render graph are added to the garbage
         // collector to delay their destruction for a few frames so
         // we can be certain that the cmd buffers in flight have finished
@@ -282,10 +270,7 @@ void RenderGraph::execute()
     }
 }
 
-std::vector<std::unique_ptr<ResourceBase>>& RenderGraph::getResources()
-{
-    return resources_;
-}
+std::vector<std::unique_ptr<ResourceBase>>& RenderGraph::getResources() { return resources_; }
 
 ResourceBase* RenderGraph::getResource(const RenderGraphHandle& handle) const
 {

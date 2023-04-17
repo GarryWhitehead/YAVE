@@ -21,39 +21,37 @@
  */
 
 #include "imgui_helper.h"
-#include "app.h"
 
+#include "app.h"
 #include "yave/engine.h"
-#include "yave/render_primitive.h"
-#include "yave/renderable.h"
-#include "yave/texture.h"
-#include "yave/transform_manager.h"
-#include "yave/object.h"
-#include "yave/renderable_manager.h"
-#include "yave/vertex_buffer.h"
 #include "yave/index_buffer.h"
 #include "yave/material.h"
+#include "yave/object.h"
+#include "yave/render_primitive.h"
+#include "yave/renderable.h"
+#include "yave/renderable_manager.h"
+#include "yave/texture.h"
+#include "yave/transform_manager.h"
+#include "yave/vertex_buffer.h"
 
-#include <filesystem>
 #include <cstdlib>
+#include <filesystem>
 
 namespace yave
 {
 
 ImGuiHelper::ImGuiHelper(Engine* engine, std::filesystem::path& fontPath)
-    : context_(ImGui::CreateContext()),
-      engine_(engine), texture_(nullptr)
+    : context_(ImGui::CreateContext()), engine_(engine), texture_(nullptr)
 {
     ImGuiIO& io = ImGui::GetIO();
 
     if (!fontPath.empty() && std::filesystem::exists(fontPath))
     {
         auto platformPath = fontPath.make_preferred();
-        ImFont* font =
-            io.Fonts->AddFontFromFileTTF(platformPath.string().c_str(), 16.0f);
+        ImFont* font = io.Fonts->AddFontFromFileTTF(platformPath.string().c_str(), 16.0f);
         ASSERT_FATAL(font, "Error whilst trying to add font to IMGUI.");
     }
-    
+
     static uint8_t* pixels;
     int width, height;
     io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
@@ -62,38 +60,37 @@ ImGuiHelper::ImGuiHelper(Engine* engine, std::filesystem::path& fontPath)
     texture_ = engine->createTexture();
     texture_->setTexture(
         {pixels,
-        dataSize,
+         dataSize,
          static_cast<uint32_t>(width),
          static_cast<uint32_t>(height),
          1,
          1,
          backend::TextureFormat::RGBA8});
-    sampler_ = TextureSampler(
-        backend::SamplerFilter::Nearest, backend::SamplerFilter::Nearest);
+    sampler_ = TextureSampler(backend::SamplerFilter::Nearest, backend::SamplerFilter::Nearest);
 
     rendObj_ = engine_->createObject();
     renderable_ = engine_->createRenderable();
-    
+
     ImGui::StyleColorsDark();
 }
 
 ImGuiHelper ::~ImGuiHelper() {}
 
 void ImGuiHelper::beginFrame(Application& app) noexcept
-{ 
+{
     ImGui::SetCurrentContext(context_);
     ImGuiIO& io = ImGui::GetIO();
 
-	ImGui::NewFrame(); 
+    ImGui::NewFrame();
 
-	// execute imgui commands defined by the user
+    // execute imgui commands defined by the user
     app.uiCallback(engine_);
 
-	// generate the draw data
+    // generate the draw data
     ImGui::Render();
 
     ImDrawData* drawData = ImGui::GetDrawData();
-    
+
     createBuffers(drawData->CmdListsCount);
 
     updateDrawCommands(drawData, io);
@@ -109,14 +106,11 @@ void ImGuiHelper::createBuffers(size_t reqBufferCount)
         {
             vBuffers_[idx] = engine_->createVertexBuffer();
             vBuffers_[idx]->addAttribute(
-                VertexBuffer::BindingType::Position,
-                backend::BufferElementType::Float2);
+                VertexBuffer::BindingType::Position, backend::BufferElementType::Float2);
             vBuffers_[idx]->addAttribute(
-                VertexBuffer::BindingType::Uv,
-                backend::BufferElementType::Float2);
+                VertexBuffer::BindingType::Uv, backend::BufferElementType::Float2);
             vBuffers_[idx]->addAttribute(
-                VertexBuffer::BindingType::Colour,
-                backend::BufferElementType::Int4);
+                VertexBuffer::BindingType::Colour, backend::BufferElementType::Int4);
         }
     }
 
@@ -125,20 +119,20 @@ void ImGuiHelper::createBuffers(size_t reqBufferCount)
         size_t currentSize = iBuffers_.size();
         iBuffers_.resize(reqBufferCount);
         for (size_t idx = currentSize; idx < reqBufferCount; ++idx)
-        { 
+        {
             iBuffers_[idx] = engine_->createIndexBuffer();
         }
     }
 }
 
-void ImGuiHelper::setDisplaySize(float winWidth, float winHeight, float scaleX, float scaleY) 
+void ImGuiHelper::setDisplaySize(float winWidth, float winHeight, float scaleX, float scaleY)
 {
     ImGuiIO& io = ImGui::GetIO();
     io.DisplaySize = ImVec2(winWidth, winHeight);
     io.DisplayFramebufferScale = ImVec2(scaleX, scaleY);
 }
 
-void ImGuiHelper::updateDrawCommands(ImDrawData* drawData, const ImGuiIO& io) 
+void ImGuiHelper::updateDrawCommands(ImDrawData* drawData, const ImGuiIO& io)
 {
     int width = static_cast<int>(io.DisplaySize.x * io.DisplayFramebufferScale.x);
     int height = static_cast<int>(io.DisplaySize.y * io.DisplayFramebufferScale.y);
@@ -180,9 +174,7 @@ void ImGuiHelper::updateDrawCommands(ImDrawData* drawData, const ImGuiIO& io)
 
         // copy the vertices and indices for this set of commands to the device
         vBuffers_[idx]->build(
-            engine_,
-            cmd_list->VtxBuffer.Size * sizeof(ImDrawVert),
-            cmd_list->VtxBuffer.Data);
+            engine_, cmd_list->VtxBuffer.Size * sizeof(ImDrawVert), cmd_list->VtxBuffer.Data);
         iBuffers_[idx]->build(
             engine_,
             cmd_list->IdxBuffer.Size,
@@ -196,10 +188,8 @@ void ImGuiHelper::updateDrawCommands(ImDrawData* drawData, const ImGuiIO& io)
             params.material->setBlendFactor(backend::BlendFactorPresets::Translucent);
             params.material->setViewLayer(0x5);
 
-            uint32_t width =
-                static_cast<uint32_t>(pcmd.ClipRect.z - pcmd.ClipRect.x);
-            uint32_t height =
-                static_cast<uint32_t>(pcmd.ClipRect.w - pcmd.ClipRect.y);
+            uint32_t width = static_cast<uint32_t>(pcmd.ClipRect.z - pcmd.ClipRect.x);
+            uint32_t height = static_cast<uint32_t>(pcmd.ClipRect.w - pcmd.ClipRect.y);
             uint32_t offsetX = std::max(static_cast<int32_t>(pcmd.ClipRect.x), 0);
             uint32_t offsetY = std::max(static_cast<int32_t>(pcmd.ClipRect.y), 0);
             params.material->setScissor(width, height, offsetX, offsetY);
@@ -215,8 +205,7 @@ void ImGuiHelper::updateDrawCommands(ImDrawData* drawData, const ImGuiIO& io)
 
             // set the push constant
             PushConstant push;
-            push.scale = {
-                2.0f / drawData->DisplaySize.x, 2.0f / drawData->DisplaySize.y};
+            push.scale = {2.0f / drawData->DisplaySize.x, 2.0f / drawData->DisplaySize.y};
             push.translate = {
                 -1.0f - drawData->DisplayPos.x * push.scale.x,
                 -1.0f - drawData->DisplayPos.y * push.scale.y};
@@ -231,7 +220,7 @@ void ImGuiHelper::updateDrawCommands(ImDrawData* drawData, const ImGuiIO& io)
                 backend::BufferElementType::Float2,
                 backend::ShaderStage::Vertex,
                 push.translate);
-            
+
             params.prim->setMaterial(params.material);
             renderable_->setPrimitive(params.prim, primIdx);
 
@@ -242,4 +231,4 @@ void ImGuiHelper::updateDrawCommands(ImDrawData* drawData, const ImGuiIO& io)
     rendManager->build(renderable_, rendObj_, {}, "ui.glsl");
 }
 
-}
+} // namespace yave

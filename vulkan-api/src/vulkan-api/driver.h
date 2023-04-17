@@ -26,9 +26,9 @@
 #include "commands.h"
 #include "common.h"
 #include "context.h"
-#include "renderpass.h"
-#include "pipeline_cache.h"
 #include "garbage_collector.h"
+#include "pipeline_cache.h"
+#include "renderpass.h"
 #include "utility/compiler.h"
 #include "utility/handle.h"
 
@@ -88,8 +88,7 @@ public:
      */
     VertexBufferHandle addVertexBuffer(const size_t size, void* data);
 
-    void
-    mapVertexBuffer(const VertexBufferHandle& handle, size_t count, void* data); 
+    void mapVertexBuffer(const VertexBufferHandle& handle, size_t count, void* data);
 
     /**
      * @brief Similiar to the **addVertexBuffer** function, adds a index buffer
@@ -97,8 +96,7 @@ public:
      */
     IndexBufferHandle addIndexBuffer(const size_t size, void* data);
 
-    void
-    mapIndexBuffer(const IndexBufferHandle& handle, size_t count, void* data);
+    void mapIndexBuffer(const IndexBufferHandle& handle, size_t count, void* data);
 
     VertexBuffer* getVertexBuffer(const VertexBufferHandle& vbHandle) noexcept;
 
@@ -110,9 +108,8 @@ public:
         uint32_t height,
         uint8_t samples,
         const util::Colour4& clearCol,
-        const std::array<
-            RenderTarget::AttachmentInfo,
-            vkapi::RenderTarget::MaxColourAttachCount>& colours,
+        const std::array<RenderTarget::AttachmentInfo, vkapi::RenderTarget::MaxColourAttachCount>&
+            colours,
         const RenderTarget::AttachmentInfo& depth,
         const RenderTarget::AttachmentInfo& stencil);
 
@@ -139,11 +136,7 @@ public:
 
     // ============= retrieve and delete  resources ============================
 
-    void mapTexture(
-        const TextureHandle& handle,
-        void* data,
-        uint32_t dataSize,
-        size_t* offsets);
+    void mapTexture(const TextureHandle& handle, void* data, uint32_t dataSize, size_t* offsets);
 
     TextureHandle createTexture2d(
         vk::Format format,
@@ -154,8 +147,8 @@ public:
         uint8_t arrayCount,
         vk::ImageUsageFlags usageFlags);
 
-    TextureHandle createTexture2d(
-        vk::Format format, uint32_t width, uint32_t height, vk::Image image);
+    TextureHandle
+    createTexture2d(vk::Format format, uint32_t width, uint32_t height, vk::Image image);
 
     void destroyTexture2D(TextureHandle& handle);
 
@@ -218,9 +211,9 @@ private:
     std::unique_ptr<PipelineCache> pipelineCache_;
     std::unique_ptr<FramebufferCache> framebufferCache_;
     std::unique_ptr<SamplerCache> samplerCache_;
-    
+
     std::unique_ptr<Commands> commands_;
-    
+
     GarbageCollector gc;
 
     /// used for ensuring that the image has completed

@@ -22,14 +22,14 @@
 
 #pragma once
 
-#include "yave_app/app.h"
 #include "yave/engine.h"
-#include "yave/object.h"
 #include "yave/light_manager.h"
 #include "yave/material.h"
+#include "yave/object.h"
+#include "yave_app/app.h"
 
-#include <yave_app/asset_loader.h>
 #include <model_parser/gltf/gltf_model.h>
+#include <yave_app/asset_loader.h>
 
 class GltfModelApp : public yave::Application
 {
@@ -38,29 +38,17 @@ public:
         {2.0f, 2.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.8f, 0.3f, 1.0f}};
 
     yave::LightManager::CreateInfo spotLightParams {
-        {0.0f, 2.0f, -1.0f},
-        {0.0f, 0.0f, -4.0f},
-        {1.0f, 1.0f, 1.0f},
-        45.0f,
-        50.0f,
-        10.0f,
-        100.0f};
-       
-    GltfModelApp(const yave::AppParams& params, bool showUI)
-        : yave::Application(params, showUI)
-    {
-    }
+        {0.0f, 2.0f, -1.0f}, {0.0f, 0.0f, -4.0f}, {1.0f, 1.0f, 1.0f}, 45.0f, 50.0f, 10.0f, 100.0f};
 
-	yave::Object* buildModel(
-        const yave::GltfModel& model,
-        yave::Engine* engine,
-        yave::AssetLoader& loader);
+    GltfModelApp(const yave::AppParams& params, bool showUI) : yave::Application(params, showUI) {}
 
-    void addLighting(
-            yave::LightManager* lightManager, yave::Engine* engine);
+    yave::Object*
+    buildModel(const yave::GltfModel& model, yave::Engine* engine, yave::AssetLoader& loader);
 
-	void uiCallback(yave::Engine* engine) override;
-    
+    void addLighting(yave::LightManager* lightManager, yave::Engine* engine);
+
+    void uiCallback(yave::Engine* engine) override;
+
     bool showDirLight = true;
     bool showSpotLight = true;
 

@@ -52,17 +52,16 @@ public:
     void mouseUpdate(double x, double y);
 
     void updateView();
-    mathfu::vec3 frontVec() const; 
+    mathfu::vec3 frontVec() const;
     mathfu::vec3 rightVec() const;
 
-    void updateKeyEvents(float dt); 
+    void updateKeyEvents(float dt);
 
     void setPosition(const mathfu::vec3& pos);
 
     mathfu::mat4 getLookAt() const noexcept;
 
 private:
-
     mathfu::mat4 view_;
     mathfu::vec3 eye_;
     mathfu::vec3 rotation_;

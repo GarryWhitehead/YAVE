@@ -63,6 +63,6 @@ void generateCubeMesh(
     VertexBuffer* vBuffer,
     IndexBuffer* iBuffer,
     RenderPrimitive* prim);
-   
+
 
 } // namespace yave

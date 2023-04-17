@@ -37,7 +37,7 @@ void GarbageCollector::collectGarbage() noexcept
 {
     std::vector<CollectionInfo> remaining;
     remaining.reserve(50);
-    
+
     for (auto& object : gcObjects_)
     {
         if (!--object.frames)
@@ -61,4 +61,4 @@ void GarbageCollector::reset() noexcept
     gcObjects_.clear();
 }
 
-}
+} // namespace vkapi

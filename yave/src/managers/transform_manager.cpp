@@ -24,12 +24,11 @@
 
 #include "engine.h"
 
+#include <model_parser/gltf/node_instance.h>
+#include <model_parser/gltf/skin_instance.h>
 #include <utility/assertion.h>
 #include <utility/logger.h>
 #include <vulkan-api/driver.h>
-
-#include <model_parser/gltf/node_instance.h>
-#include <model_parser/gltf/skin_instance.h>
 
 #include <algorithm>
 #include <cstdint>
@@ -41,8 +40,7 @@ ITransformManager::ITransformManager(IEngine& engine) {}
 
 ITransformManager::~ITransformManager() {}
 
-bool ITransformManager::addNodeHierachy(
-    NodeInstance& node, IObject& obj, SkinInstance* skin)
+bool ITransformManager::addNodeHierachy(NodeInstance& node, IObject& obj, SkinInstance* skin)
 {
     if (!node.getRootNode())
     {
@@ -81,9 +79,7 @@ bool ITransformManager::addNodeHierachy(
     return true;
 }
 
-void ITransformManager::addTransformI(
-    const mathfu::mat4& local,
-    IObject* obj)
+void ITransformManager::addTransformI(const mathfu::mat4& local, IObject* obj)
 {
     TransformInfo info;
     info.root = new NodeInfo();
@@ -118,8 +114,7 @@ mathfu::mat4 ITransformManager::updateMatrix(NodeInfo* node)
     return mat;
 }
 
-void ITransformManager::updateModelTransform(
-    NodeInfo* parent, TransformInfo& transInfo)
+void ITransformManager::updateModelTransform(NodeInfo* parent, TransformInfo& transInfo)
 {
     // we need to find the mesh node first - we will then update matrices
     // working back towards the root node
@@ -142,8 +137,8 @@ void ITransformManager::updateModelTransform(
             SkinInstance& skin = skins_[skinIndex];
 
             // get the number of joints in the skeleton
-            uint32_t jointCount = std::min(
-                static_cast<uint32_t>(skin.jointNodes.size()), MaxBoneCount);
+            uint32_t jointCount =
+                std::min(static_cast<uint32_t>(skin.jointNodes.size()), MaxBoneCount);
 
             // transform to local space
             mathfu::mat4 inverseMat = mat.Inverse();
@@ -154,8 +149,7 @@ void ITransformManager::updateModelTransform(
                 NodeInfo* jointNode = skin.jointNodes[i];
 
                 // the joint matrix is the local matrix * inverse bin matrix
-                mathfu::mat4 jointMatrix =
-                    updateMatrix(jointNode) * skin.invBindMatrices[i];
+                mathfu::mat4 jointMatrix = updateMatrix(jointNode) * skin.invBindMatrices[i];
 
                 // transform joint to local (joint) space
                 mathfu::mat4 localMatrix = inverseMat * jointMatrix;
@@ -196,8 +190,7 @@ TransformInfo* ITransformManager::getTransform(const IObject& obj)
 TransformManager::TransformManager() {}
 TransformManager::~TransformManager() {}
 
-void ITransformManager::addModelTransform(
-    const ModelTransform& transform, Object* obj)
+void ITransformManager::addModelTransform(const ModelTransform& transform, Object* obj)
 {
     mathfu::mat4 r = transform.rot.ToMatrix4();
     mathfu::mat4 s = mathfu::mat4::FromScaleVector(transform.scale);

@@ -66,7 +66,7 @@ public:
         const ModelTransform& transform,
         const std::string& matShader);
 
-    IMaterial* createMaterialI() noexcept; 
+    IMaterial* createMaterialI() noexcept;
 
     void destroyI(const IObject& obj);
 

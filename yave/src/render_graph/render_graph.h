@@ -78,15 +78,11 @@ public:
 
     void reset();
 
-    RenderGraphHandle addRead(
-        const RenderGraphHandle& handle,
-        PassNodeBase* passNode,
-        vk::ImageUsageFlags usage);
+    RenderGraphHandle
+    addRead(const RenderGraphHandle& handle, PassNodeBase* passNode, vk::ImageUsageFlags usage);
 
-    RenderGraphHandle addWrite(
-        const RenderGraphHandle& handle,
-        PassNodeBase* passNode,
-        vk::ImageUsageFlags usage);
+    RenderGraphHandle
+    addWrite(const RenderGraphHandle& handle, PassNodeBase* passNode, vk::ImageUsageFlags usage);
 
     RenderGraphHandle importRenderTarget(
         const util::CString& name,
@@ -95,8 +91,7 @@ public:
 
     ResourceNode* getResourceNode(const RenderGraphHandle& handle);
 
-    RenderGraphHandle
-    moveResource(const RenderGraphHandle& from, const RenderGraphHandle& to);
+    RenderGraphHandle moveResource(const RenderGraphHandle& from, const RenderGraphHandle& to);
 
     std::vector<std::unique_ptr<ResourceBase>>& getResources();
 
@@ -104,9 +99,8 @@ public:
 
     RenderGraphHandle addResource(std::unique_ptr<ResourceBase> resource);
 
-    RenderGraphHandle addSubResource(
-        std::unique_ptr<ResourceBase> resource,
-        const RenderGraphHandle& parent);
+    RenderGraphHandle
+    addSubResource(std::unique_ptr<ResourceBase> resource, const RenderGraphHandle& parent);
 
     BlackBoard* getBlackboard() { return blackboard_.get(); }
 
@@ -142,14 +136,13 @@ private:
 };
 
 template <typename Data, typename SetupFunc, typename ExecuteFunc>
-RenderGraphPass<Data, ExecuteFunc>& RenderGraph::addPass(
-    const util::CString& name, SetupFunc setup, ExecuteFunc&& execute)
+RenderGraphPass<Data, ExecuteFunc>&
+RenderGraph::addPass(const util::CString& name, SetupFunc setup, ExecuteFunc&& execute)
 {
-    auto rPass = std::make_unique<RenderGraphPass<Data, ExecuteFunc>>(
-        std::forward<ExecuteFunc>(execute));
+    auto rPass =
+        std::make_unique<RenderGraphPass<Data, ExecuteFunc>>(std::forward<ExecuteFunc>(execute));
     createPassNode(name, rPass.get());
-    RenderGraphBuilder builder {
-        this, reinterpret_cast<PassNodeBase*>(rPassNodes_.back().get())};
+    RenderGraphBuilder builder {this, reinterpret_cast<PassNodeBase*>(rPassNodes_.back().get())};
     setup(builder, const_cast<Data&>(rPass->getData()));
     auto& output = *rPass.get();
     rGraphPasses_.emplace_back(std::move(rPass));

@@ -32,8 +32,7 @@
 namespace yave
 {
 
-IRenderer::IRenderer(IEngine* engine)
-    : engine_(engine), rGraph_(engine->driver())
+IRenderer::IRenderer(IEngine* engine) : engine_(engine), rGraph_(engine->driver())
 {
     createBackbufferRT();
 }
@@ -61,9 +60,7 @@ void IRenderer::createBackbufferRT() noexcept
     {
         auto scTextureHandle = swapchain->getTexture(idx);
 
-        std::array<
-            vkapi::RenderTarget::AttachmentInfo,
-            vkapi::RenderTarget::MaxColourAttachCount>
+        std::array<vkapi::RenderTarget::AttachmentInfo, vkapi::RenderTarget::MaxColourAttachCount>
             colourAttach;
         colourAttach[0] = {0, 0, scTextureHandle};
         vkapi::RenderTarget::AttachmentInfo depth {0, 0, depthHandle_};
@@ -104,7 +101,7 @@ void IRenderer::renderI(vkapi::VkDriver& driver, IScene& scene)
     // TODO: This is a temp measure.
     uint32_t width = 1920;
     uint32_t height = 1080;
-    
+
     // update the renderable objects and lights
     scene.update();
 
@@ -124,12 +121,11 @@ void IRenderer::renderI(vkapi::VkDriver& driver, IScene& scene)
     desc.storeClearFlags[0] = vkapi::StoreClearFlags::Store;
     desc.loadClearFlags[0] = vkapi::LoadClearFlags::Clear;
     desc.finalLayouts[0] = vk::ImageLayout::ePresentSrcKHR;
-    
+
     // should be definable via the client api
     desc.clearColour = {0.0f, 0.0f, 0.0f, 1.0f};
 
-    auto backbufferRT =
-        rGraph_.importRenderTarget("backbuffer", desc, rtHandles_[imageIndex]);
+    auto backbufferRT = rGraph_.importRenderTarget("backbuffer", desc, rtHandles_[imageIndex]);
 
     vk::Format depthFormat = driver.getSupportedDepthFormat();
 
@@ -155,7 +151,6 @@ void IRenderer::renderI(vkapi::VkDriver& driver, IScene& scene)
 #endif
 
     rGraph_.execute();
-
 }
 
 // ================== client api =====================
@@ -163,21 +158,13 @@ void IRenderer::renderI(vkapi::VkDriver& driver, IScene& scene)
 Renderer::Renderer() {}
 Renderer::~Renderer() {}
 
-void IRenderer::beginFrame() 
-{ 
-    beginFrameI(); 
-}
+void IRenderer::beginFrame() { beginFrameI(); }
 
-void IRenderer::endFrame() 
-{
-    endFrameI(); 
-}
+void IRenderer::endFrame() { endFrameI(); }
 
-void IRenderer::render(Engine* engine, Scene* scene) 
+void IRenderer::render(Engine* engine, Scene* scene)
 {
-    renderI(
-        reinterpret_cast<IEngine*>(engine)->driver(),
-        *(reinterpret_cast<IScene*>(scene)));
+    renderI(reinterpret_cast<IEngine*>(engine)->driver(), *(reinterpret_cast<IScene*>(scene)));
 };
 
 } // namespace yave

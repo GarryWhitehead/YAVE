@@ -24,8 +24,8 @@
 
 #include "utility/cstring.h"
 
-#include <vector>
 #include <string>
+#include <vector>
 
 namespace yave
 {
@@ -90,7 +90,7 @@ public:
     std::vector<Edge*> getWriterEdges(Node* node) const;
 
     void cull();
-    
+
     void clear() noexcept;
 
 private:

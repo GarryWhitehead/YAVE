@@ -42,8 +42,7 @@ void RenderQueue::resetAll()
 }
 
 void RenderQueue::pushRenderables(
-    std::vector<RenderableQueueInfo>& newRenderables,
-    const RenderQueue::Type type)
+    std::vector<RenderableQueueInfo>& newRenderables, const RenderQueue::Type type)
 {
     size_t newSize = newRenderables.size();
     std::vector<RenderableQueueInfo>& rQueue = renderables_[type];
@@ -69,9 +68,7 @@ void RenderQueue::sortQueue(const RenderQueue::Type type)
 
     // TODO : use a radix sort instead
     std::sort(
-        rQueue.begin(),
-        rQueue.end(),
-        [](const RenderableQueueInfo& lhs, RenderableQueueInfo& rhs) {
+        rQueue.begin(), rQueue.end(), [](const RenderableQueueInfo& lhs, RenderableQueueInfo& rhs) {
             return lhs.sortingKey.u.flags < rhs.sortingKey.u.flags;
         });
 }
@@ -84,13 +81,12 @@ void RenderQueue::sortAll()
     }
 }
 
-SortKey
-RenderQueue::createSortKey(uint8_t screenLayer, uint8_t viewLayer, size_t pipelineId)
+SortKey RenderQueue::createSortKey(uint8_t screenLayer, uint8_t viewLayer, size_t pipelineId)
 {
     SortKey key;
     key.u.s.screenLayer = (uint64_t)screenLayer;
-    key.u.s.viewLayer = (uint64_t)viewLayer; 
-    key.u.s.pipelineId = pipelineId; 
+    key.u.s.viewLayer = (uint64_t)viewLayer;
+    key.u.s.pipelineId = pipelineId;
     key.u.s.depth = 0; // TODO - this is camera-view . mesh_centre - camera-pos
 
     return key;
@@ -117,10 +113,7 @@ void RenderQueue::render(
 }
 
 void RenderQueue::render(
-    IEngine& engine,
-    IScene& scene,
-    const vk::CommandBuffer& cmd,
-    RenderQueue::Type type)
+    IEngine& engine, IScene& scene, const vk::CommandBuffer& cmd, RenderQueue::Type type)
 {
     render(engine, scene, cmd, type, 0, renderables_[type].size());
 }

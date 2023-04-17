@@ -23,8 +23,8 @@
 
 #include "vulkan-api/swapchain.h"
 
-#include <memory>
 #include <filesystem>
+#include <memory>
 
 namespace yave
 {
@@ -56,8 +56,7 @@ public:
 
     virtual vkapi::SwapchainHandle createSwapchain(Window* win) = 0;
 
-    virtual Renderer*
-    createRenderer(const vkapi::SwapchainHandle& handle, Scene* scene) = 0;
+    virtual Renderer* createRenderer(const vkapi::SwapchainHandle& handle, Scene* scene) = 0;
 
     virtual VertexBuffer* createVertexBuffer() = 0;
 
@@ -78,9 +77,9 @@ public:
     virtual LightManager* getLightManager() = 0;
 
     virtual Object* createObject() = 0;
-    
+
     virtual Texture* createTexture() = 0;
-    
+
     virtual Skybox* createSkybox() = 0;
 
     virtual Camera* createCamera() = 0;
@@ -91,7 +90,7 @@ public:
     virtual void destroy(Renderable* buffer) = 0;
     virtual void destroy(Scene* buffer) = 0;
     virtual void destroy(Camera* buffer) = 0;
-    
+
 protected:
     Engine();
 };

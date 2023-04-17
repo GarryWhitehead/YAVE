@@ -28,9 +28,8 @@
 #include "program_manager.h"
 #include "utility/assertion.h"
 
-#include <spdlog/spdlog.h>
-
 #include <shaderc_util/io_shaderc.h>
+#include <spdlog/spdlog.h>
 
 #include <fstream>
 
@@ -45,16 +44,13 @@ shaderc_include_result* IncludeInterface::GetInclude(
     const char* requesting_source,
     size_t)
 {
-    const std::string full_path =
-        (include_type == shaderc_include_type_relative)
-        ? fileFinder.FindRelativeReadableFilepath(
-              requesting_source, requested_source)
+    const std::string full_path = (include_type == shaderc_include_type_relative)
+        ? fileFinder.FindRelativeReadableFilepath(requesting_source, requested_source)
         : fileFinder.FindReadableFilepath(requested_source);
 
     if (full_path.empty())
     {
-        SPDLOG_CRITICAL(
-            "Unable to find or open include file: {}\n", requested_source);
+        SPDLOG_CRITICAL("Unable to find or open include file: {}\n", requested_source);
         return nullptr;
     }
 
@@ -107,7 +103,7 @@ shaderc_shader_kind getShaderKind(const backend::ShaderStage type)
     return result;
 }
 
-void printShader(std::string code) 
+void printShader(std::string code)
 {
     std::stringstream ss(code);
     std::string line;
@@ -120,9 +116,7 @@ void printShader(std::string code)
 }
 
 ShaderCompiler::ShaderCompiler(std::string shaderCode, const backend::ShaderStage type)
-    : kind_(getShaderKind(type)),
-      source_(shaderCode),
-      sourceName_(YAVE_SHADER_DIRECTORY)
+    : kind_(getShaderKind(type)), source_(shaderCode), sourceName_(YAVE_SHADER_DIRECTORY)
 {
 }
 
@@ -145,13 +139,11 @@ bool ShaderCompiler::compile(bool optimise)
     }
 
     options.SetSourceLanguage(shaderc_source_language_glsl);
-    options.SetTargetEnvironment(
-        shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_1);
+    options.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_1);
 
     // we need to create a new instantation of the includer interface - using
     // the one from shaerc - though could use our own.
-    std::unique_ptr<IncludeInterface> includer(
-        new IncludeInterface(&fileFinder_));
+    std::unique_ptr<IncludeInterface> includer(new IncludeInterface(&fileFinder_));
     const auto& used_source_files = includer->filePathTrace();
     options.SetIncluder(std::move(includer));
 
@@ -160,8 +152,7 @@ bool ShaderCompiler::compile(bool optimise)
     // TODO: Should probably check whether the path already ends with a slash.
     sourceName_ += "/";
 
-    auto result =
-        compiler.CompileGlslToSpv(source_, kind_, sourceName_.c_str(), options);
+    auto result = compiler.CompileGlslToSpv(source_, kind_, sourceName_.c_str(), options);
     if (result.GetCompilationStatus() != shaderc_compilation_status_success)
     {
         SPDLOG_CRITICAL(
@@ -172,7 +163,7 @@ bool ShaderCompiler::compile(bool optimise)
 
         return false;
     }
-    
+
     std::copy(result.cbegin(), result.cend(), back_inserter(output_));
 
     return true;
@@ -180,8 +171,7 @@ bool ShaderCompiler::compile(bool optimise)
 
 // ==================== Shader =========================
 
-Shader::Shader(VkContext& context, const backend::ShaderStage type)
-    : context_(context), type_(type)
+Shader::Shader(VkContext& context, const backend::ShaderStage type) : context_(context), type_(type)
 {
 }
 
@@ -241,8 +231,8 @@ vk::ShaderStageFlagBits Shader::getStageFlags(backend::ShaderStage type)
     return ret;
 }
 
-std::tuple<vk::Format, uint32_t> Shader::getVkFormatFromSize(
-    uint32_t width, uint32_t vecSize, const spirv_cross::SPIRType type)
+std::tuple<vk::Format, uint32_t>
+Shader::getVkFormatFromSize(uint32_t width, uint32_t vecSize, const spirv_cross::SPIRType type)
 {
     // TODO: add other base types and widths
     vk::Format format;
@@ -340,23 +330,19 @@ bool Shader::compile(std::string shaderCode, const VDefinitions& variants)
         static_cast<uint32_t>(compiler.getByteSize()) / sizeof(uint32_t));
 
     // create the shader module
-    vk::ShaderModuleCreateInfo shaderInfo(
-        {}, compiler.getByteSize(), compiler.getData());
+    vk::ShaderModuleCreateInfo shaderInfo({}, compiler.getByteSize(), compiler.getData());
 
 
-    VK_CHECK_RESULT(
-        context_.device().createShaderModule(&shaderInfo, nullptr, &module_));
+    VK_CHECK_RESULT(context_.device().createShaderModule(&shaderInfo, nullptr, &module_));
 
     // create the wrapper - this will be used by the pipeline
     vk::ShaderStageFlagBits stage = getStageFlags(type_);
-    createInfo_ =
-        vk::PipelineShaderStageCreateInfo({}, stage, module_, "main", nullptr);
+    createInfo_ = vk::PipelineShaderStageCreateInfo({}, stage, module_, "main", nullptr);
 
     return true;
 }
 
-bool Shader::loadAsBinary(
-    const std::filesystem::path shaderPath, uint32_t* output)
+bool Shader::loadAsBinary(const std::filesystem::path shaderPath, uint32_t* output)
 {
     ASSERT_LOG(output);
     std::ifstream file(shaderPath, std::ios::in | std::ios_base::binary);
@@ -380,8 +366,7 @@ void Shader::reflect(const uint32_t* shaderCode, uint32_t size)
     for (auto& attrib : resources.stage_inputs)
     {
         ShaderBinding::Attribute stageInput;
-        stageInput.location =
-            glsl.get_decoration(attrib.id, spv::DecorationLocation);
+        stageInput.location = glsl.get_decoration(attrib.id, spv::DecorationLocation);
 
         auto& base_type = glsl.get_type(attrib.base_type_id);
         auto& member = glsl.get_type(base_type.self);
@@ -389,8 +374,7 @@ void Shader::reflect(const uint32_t* shaderCode, uint32_t size)
         uint32_t vecSize = member.vecsize;
         uint32_t width = glsl.get_type(attrib.type_id).width;
 
-        const auto& [format, stride] =
-            getVkFormatFromSize(width, vecSize, base_type);
+        const auto& [format, stride] = getVkFormatFromSize(width, vecSize, base_type);
         stageInput.stride = stride;
         stageInput.format = format;
         resourceBinding_.stageInputs.push_back(stageInput);
@@ -400,16 +384,14 @@ void Shader::reflect(const uint32_t* shaderCode, uint32_t size)
     for (auto& attrib : resources.stage_outputs)
     {
         ShaderBinding::Attribute stageOutput;
-        stageOutput.location =
-            glsl.get_decoration(attrib.id, spv::DecorationLocation);
+        stageOutput.location = glsl.get_decoration(attrib.id, spv::DecorationLocation);
 
         auto& base_type = glsl.get_type(attrib.base_type_id);
         auto& member = glsl.get_type(base_type.self);
         uint32_t vecSize = member.vecsize;
         uint32_t width = glsl.get_type(attrib.type_id).width;
 
-        const auto& [format, stride] =
-            getVkFormatFromSize(width, vecSize, base_type);
+        const auto& [format, stride] = getVkFormatFromSize(width, vecSize, base_type);
         stageOutput.stride = stride;
         stageOutput.format = format;
         resourceBinding_.stageOutputs.push_back(stageOutput);
@@ -418,12 +400,10 @@ void Shader::reflect(const uint32_t* shaderCode, uint32_t size)
     // image samplers
     for (auto& sample : resources.sampled_images)
     {
-        const uint32_t set =
-            glsl.get_decoration(sample.id, spv::DecorationDescriptorSet);
+        const uint32_t set = glsl.get_decoration(sample.id, spv::DecorationDescriptorSet);
         ASSERT_LOG(PipelineCache::SamplerSetValue == set);
 
-        const uint32_t binding =
-            glsl.get_decoration(sample.id, spv::DecorationBinding);
+        const uint32_t binding = glsl.get_decoration(sample.id, spv::DecorationBinding);
         ShaderBinding::DescriptorLayout desc;
         desc.set = set;
         desc.binding = binding;
@@ -432,34 +412,30 @@ void Shader::reflect(const uint32_t* shaderCode, uint32_t size)
         desc.stage = getStageFlags(type_);
         resourceBinding_.descLayouts.emplace_back(desc);
     }
-    // unifom buffers 
+    // unifom buffers
     for (auto& buffer : resources.uniform_buffers)
     {
-        uint32_t set =
-            glsl.get_decoration(buffer.id, spv::DecorationDescriptorSet);
-        uint32_t binding =
-            glsl.get_decoration(buffer.id, spv::DecorationBinding);
+        uint32_t set = glsl.get_decoration(buffer.id, spv::DecorationDescriptorSet);
+        uint32_t binding = glsl.get_decoration(buffer.id, spv::DecorationBinding);
         ShaderBinding::DescriptorLayout desc;
         desc.set = set;
         desc.binding = binding;
-        desc.type = set == PipelineCache::UboSetValue ? vk::DescriptorType::eUniformBuffer : vk::DescriptorType::eUniformBufferDynamic;
+        desc.type = set == PipelineCache::UboSetValue ? vk::DescriptorType::eUniformBuffer
+                                                      : vk::DescriptorType::eUniformBufferDynamic;
         desc.name = ::util::CString {buffer.name.c_str()};
         desc.stage = getStageFlags(type_);
-        desc.range =
-            glsl.get_declared_struct_size(glsl.get_type(buffer.base_type_id));
+        desc.range = glsl.get_declared_struct_size(glsl.get_type(buffer.base_type_id));
         resourceBinding_.descLayouts.emplace_back(desc);
     }
     // storage buffers
     for (auto& buffer : resources.storage_buffers)
     {
-        uint32_t set =
-            glsl.get_decoration(buffer.id, spv::DecorationDescriptorSet);
+        uint32_t set = glsl.get_decoration(buffer.id, spv::DecorationDescriptorSet);
         ASSERT_FATAL(
             set == PipelineCache::SsboSetValue,
             "Mismatch between reflected readout and defined set value for "
             "storage buffers.");
-        uint32_t binding =
-            glsl.get_decoration(buffer.id, spv::DecorationBinding);
+        uint32_t binding = glsl.get_decoration(buffer.id, spv::DecorationBinding);
         ShaderBinding::DescriptorLayout desc;
         desc.set = set;
         desc.binding = binding;
@@ -467,8 +443,7 @@ void Shader::reflect(const uint32_t* shaderCode, uint32_t size)
         desc.type = vk::DescriptorType::eStorageBuffer;
         desc.name = ::util::CString {buffer.name.c_str()};
         desc.stage = getStageFlags(type_);
-        desc.range =
-            glsl.get_declared_struct_size(glsl.get_type(buffer.base_type_id));
+        desc.range = glsl.get_declared_struct_size(glsl.get_type(buffer.base_type_id));
         resourceBinding_.descLayouts.emplace_back(desc);
     }
 

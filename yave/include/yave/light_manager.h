@@ -32,7 +32,6 @@ class Object;
 class LightManager
 {
 public:
-
     enum class Type
     {
         Spot,
@@ -40,7 +39,7 @@ public:
         Directional
     };
 
-	struct CreateInfo
+    struct CreateInfo
     {
         // position of the light in world space
         mathfu::vec3 position = {};
@@ -63,9 +62,9 @@ public:
         // used for deriving the spotlight intensity
         float innerCone = 5.0f;
         float outerCone = 10.0f;
-	};
+    };
 
-	virtual ~LightManager();
+    virtual ~LightManager();
 
     virtual void create(const CreateInfo& ci, Type type, Object* obj) = 0;
 
@@ -84,8 +83,7 @@ public:
     virtual void setFov(float fov, Object* obj) = 0;
 
 protected:
-
-	LightManager();
+    LightManager();
 };
 
 } // namespace yave

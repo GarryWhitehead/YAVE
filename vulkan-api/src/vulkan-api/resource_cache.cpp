@@ -21,11 +21,12 @@
  */
 
 #include "resource_cache.h"
-#include "garbage_collector.h"
+
 #include "buffer.h"
-#include "image.h"
 #include "context.h"
 #include "driver.h"
+#include "garbage_collector.h"
+#include "image.h"
 #include "utility/assertion.h"
 
 namespace vkapi
@@ -48,23 +49,13 @@ TextureHandle ResourceCache::createTexture2d(
     auto tex = new Texture(context_);
     TextureHandle handle {tex};
     tex->createTexture2d(
-        driver_,
-        format,
-        width,
-        height,
-        mipLevels,
-        faceCount,
-        arrayCount,
-        usageFlags);
+        driver_, format, width, height, mipLevels, faceCount, arrayCount, usageFlags);
     textures_.insert(std::move(tex));
     return handle;
 }
 
 TextureHandle ResourceCache::createTexture2d(
-    vk::Format format,
-    const uint32_t width,
-    const uint32_t height,
-    vk::Image image)
+    vk::Format format, const uint32_t width, const uint32_t height, vk::Image image)
 {
     auto tex = new Texture(context_);
     TextureHandle handle {tex};
@@ -73,8 +64,7 @@ TextureHandle ResourceCache::createTexture2d(
     return handle;
 }
 
-BufferHandle
-ResourceCache::createUbo(const size_t size, VkBufferUsageFlags usage)
+BufferHandle ResourceCache::createUbo(const size_t size, VkBufferUsageFlags usage)
 {
     auto buffer = new Buffer;
     BufferHandle handle {buffer};
@@ -150,8 +140,8 @@ void ResourceCache::garbageCollection() noexcept
     bufferGc_.swap(newBufferGc);
 }
 
-void ResourceCache::clear() noexcept 
-{ 
+void ResourceCache::clear() noexcept
+{
     for (auto* tex : textureGc_)
     {
         tex->destroy();
@@ -160,7 +150,7 @@ void ResourceCache::clear() noexcept
     {
         context_.device().destroy(buffer->get(), nullptr);
     }
-    textures_.clear(); 
+    textures_.clear();
 }
 
 } // namespace vkapi

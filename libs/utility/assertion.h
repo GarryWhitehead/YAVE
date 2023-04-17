@@ -30,12 +30,9 @@ namespace util
 namespace assertion
 {
 std::string formatArgs(char const* format, va_list args);
-std::string createErrorMsg(
-    const char* function, const char* file, int line, const char* error);
-void fatal(
-    char const* function, char const* file, int line, const char* format, ...);
-void log(
-    char const* function, char const* file, int line, const char* format, ...);
+std::string createErrorMsg(const char* function, const char* file, int line, const char* error);
+void fatal(char const* function, char const* file, int line, const char* format, ...);
+void log(char const* function, char const* file, int line, const char* format, ...);
 } // namespace assertion
 
 } // namespace util
@@ -49,18 +46,13 @@ void log(
 #define ASSERT_FUNCTION __PRETTY_FUNCTION__
 #define ASSERT_FILE(F) (F)
 
-#define ASSERT_LOG(cond)                                                       \
-    (!(cond) ? util::assertion::log(                                           \
-                   ASSERT_FUNCTION, ASSERT_FILE(__FILE__), __LINE__, #cond)    \
+#define ASSERT_LOG(cond)                                                                           \
+    (!(cond) ? util::assertion::log(ASSERT_FUNCTION, ASSERT_FILE(__FILE__), __LINE__, #cond)       \
              : (void)0)
 
-#define ASSERT_FATAL(cond, format, ...)                                        \
-    (!(cond) ? util::assertion::fatal(                                         \
-                   ASSERT_FUNCTION,                                            \
-                   ASSERT_FILE(__FILE__),                                      \
-                   __LINE__,                                                   \
-                   format,                                                     \
-                   ##__VA_ARGS__)                                              \
+#define ASSERT_FATAL(cond, format, ...)                                                            \
+    (!(cond) ? util::assertion::fatal(                                                             \
+                   ASSERT_FUNCTION, ASSERT_FILE(__FILE__), __LINE__, format, ##__VA_ARGS__)        \
              : (void)0)
 
 #else

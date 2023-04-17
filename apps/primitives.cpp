@@ -41,8 +41,8 @@
 #include <utility/colour.h>
 #include <utility/logger.h>
 #include <yave_app/app.h>
-#include <yave_app/models.h>
 #include <yave_app/asset_loader.h>
+#include <yave_app/models.h>
 
 #include <memory>
 
@@ -67,39 +67,34 @@ void PrimitiveApp::buildPrimitive(
     auto vBuffer = engine->createVertexBuffer();
     auto iBuffer = engine->createIndexBuffer();
     auto prim = engine->createRenderPrimitive();
-    
-    yave::Material* mat; 
+
+    yave::Material* mat;
     yave::Material::MaterialFactors factors;
     switch (type)
     {
-        case PrimitiveType::Sphere: 
-        {
+        case PrimitiveType::Sphere: {
             yave::generateSphereMesh(engine, 20, vBuffer, iBuffer, prim);
             sphereMat_ = rendManager->createMaterial();
             mat = sphereMat_;
             factors = sphereFactors_;
             break;
         }
-        case PrimitiveType::Capsule: 
-        {
-            yave::generateCapsuleMesh(
-                engine, 40, 3.0f, 3.0f, vBuffer, iBuffer, prim);
+        case PrimitiveType::Capsule: {
+            yave::generateCapsuleMesh(engine, 40, 3.0f, 3.0f, vBuffer, iBuffer, prim);
             capsuleMat_ = rendManager->createMaterial();
             mat = capsuleMat_;
             factors = capsuleFactors_;
             break;
         }
-        case PrimitiveType::Cube: 
-        {
-            yave::generateCubeMesh(
-                engine, {3.0f, 3.0f, 3.0f}, vBuffer, iBuffer, prim);
+        case PrimitiveType::Cube: {
+            yave::generateCubeMesh(engine, {3.0f, 3.0f, 3.0f}, vBuffer, iBuffer, prim);
             cubeMat_ = rendManager->createMaterial();
             mat = cubeMat_;
             factors = cubeFactors_;
             break;
         }
     }
-    
+
     render->setPrimitiveCount(1);
     prim->setVertexBuffer(vBuffer);
     prim->setIndexBuffer(iBuffer);
@@ -131,69 +126,33 @@ void PrimitiveApp::uiCallback(yave::Engine* engine)
         if (ImGui::CollapsingHeader("Sphere Material"))
         {
             ImGui::Indent();
-            ImGui::ColorEdit3(
-                "Colour##spheremat", sphereFactors_.baseColourFactor.getData());
+            ImGui::ColorEdit3("Colour##spheremat", sphereFactors_.baseColourFactor.getData());
             ImGui::SliderFloat(
-                "Alpha Cutoff##spheremat",
-                &sphereFactors_.alphaMaskCutOff,
-                0.0f,
-                1.0f);
-            ImGui::SliderFloat(
-                "Metallic##spheremat",
-                &sphereFactors_.metallicFactor,
-                0.0f,
-                1.0f);
-            ImGui::SliderFloat(
-                "Roughness##spheremat",
-                &sphereFactors_.roughnessFactor,
-                0.0f,
-                1.0f);
+                "Alpha Cutoff##spheremat", &sphereFactors_.alphaMaskCutOff, 0.0f, 1.0f);
+            ImGui::SliderFloat("Metallic##spheremat", &sphereFactors_.metallicFactor, 0.0f, 1.0f);
+            ImGui::SliderFloat("Roughness##spheremat", &sphereFactors_.roughnessFactor, 0.0f, 1.0f);
             ImGui::Unindent();
         }
 
         if (ImGui::CollapsingHeader("Capsule Material"))
         {
             ImGui::Indent();
-            ImGui::ColorEdit3(
-                "Colour##capsulemat", capsuleFactors_.baseColourFactor.getData());
+            ImGui::ColorEdit3("Colour##capsulemat", capsuleFactors_.baseColourFactor.getData());
             ImGui::SliderFloat(
-                "Alpha Cutoff##capsulemat",
-                &capsuleFactors_.alphaMaskCutOff,
-                0.0f,
-                1.0f);
+                "Alpha Cutoff##capsulemat", &capsuleFactors_.alphaMaskCutOff, 0.0f, 1.0f);
+            ImGui::SliderFloat("Metallic##capsulemat", &capsuleFactors_.metallicFactor, 0.0f, 1.0f);
             ImGui::SliderFloat(
-                "Metallic##capsulemat",
-                &capsuleFactors_.metallicFactor,
-                0.0f,
-                1.0f);
-            ImGui::SliderFloat(
-                "Roughness##capsulemat",
-                &capsuleFactors_.roughnessFactor,
-                0.0f,
-                1.0f);
+                "Roughness##capsulemat", &capsuleFactors_.roughnessFactor, 0.0f, 1.0f);
             ImGui::Unindent();
         }
 
         if (ImGui::CollapsingHeader("Cube Material"))
         {
             ImGui::Indent();
-            ImGui::ColorEdit3(
-                "Colour##cubemat", cubeFactors_.baseColourFactor.getData());
-            ImGui::SliderFloat(
-                "Alpha Cutoff##cubemat",
-                &cubeFactors_.alphaMaskCutOff,
-                0.0f,
-                1.0f);
-            ImGui::SliderFloat(
-                "Metallic##cubemat",
-                &cubeFactors_.metallicFactor,
-                0.0f,
-                1.0f);
-            ImGui::SliderFloat(
-                "Roughness##cubemat",
-                &cubeFactors_.roughnessFactor,
-                0.0f,
-                1.0f);
+            ImGui::ColorEdit3("Colour##cubemat", cubeFactors_.baseColourFactor.getData());
+            ImGui::SliderFloat("Alpha Cutoff##cubemat", &cubeFactors_.alphaMaskCutOff, 0.0f, 1.0f);
+            ImGui::SliderFloat("Metallic##cubemat", &cubeFactors_.metallicFactor, 0.0f, 1.0f);
+            ImGui::SliderFloat("Roughness##cubemat", &cubeFactors_.roughnessFactor, 0.0f, 1.0f);
             ImGui::Unindent();
         }
     }
@@ -226,8 +185,8 @@ int main()
     // create the skybox
     yave::AssetLoader loader(engine);
     loader.setAssetFolder(YAVE_ASSETS_DIRECTORY);
-    yave::Texture* skyboxTexture = loader.loadFromFile(
-        "textures/uffizi_rgba16f_cube.ktx", backend::TextureFormat::RGBA16);
+    yave::Texture* skyboxTexture =
+        loader.loadFromFile("textures/uffizi_rgba16f_cube.ktx", backend::TextureFormat::RGBA16);
     if (!skyboxTexture)
     {
         exit(1);
@@ -247,21 +206,14 @@ int main()
 
     // create objects
     app.buildPrimitive(
-        engine,
-        PrimitiveApp::PrimitiveType::Sphere, {0.0f, 0.0f, 0.0f}, {1.5f, 1.5f, 1.5f});
-    app.buildPrimitive(
-        engine,
-        PrimitiveApp::PrimitiveType::Capsule,
-        {10.0f, 0.0f, 0.0f});
-    app.buildPrimitive(
-        engine,
-        PrimitiveApp::PrimitiveType::Cube, {20.0f, 0.0f, 0.0f});
+        engine, PrimitiveApp::PrimitiveType::Sphere, {0.0f, 0.0f, 0.0f}, {1.5f, 1.5f, 1.5f});
+    app.buildPrimitive(engine, PrimitiveApp::PrimitiveType::Capsule, {10.0f, 0.0f, 0.0f});
+    app.buildPrimitive(engine, PrimitiveApp::PrimitiveType::Cube, {20.0f, 0.0f, 0.0f});
 
     // add some lighting to the scene
     auto* lightManager = engine->getLightManager();
 
-    yave::LightManager::CreateInfo ci {
-        {2.0f, 2.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.8f, 0.3f, 1.0f}};
+    yave::LightManager::CreateInfo ci {{2.0f, 2.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.8f, 0.3f, 1.0f}};
     yave::Object* lightObj1 = engine->createObject();
     lightManager->create(ci, yave::LightManager::Type::Directional, lightObj1);
 

@@ -25,16 +25,16 @@
 #include "backend/enums.h"
 #include "camera.h"
 #include "engine.h"
+#include "index_buffer.h"
+#include "managers/renderable_manager.h"
 #include "mapped_texture.h"
+#include "material.h"
 #include "render_primitive.h"
 #include "renderable.h"
 #include "scene.h"
-#include "material.h"
-#include "vertex_buffer.h"
-#include "index_buffer.h"
-#include "managers/renderable_manager.h"
 #include "utility/assertion.h"
 #include "utility/murmurhash.h"
+#include "vertex_buffer.h"
 #include "vulkan-api/image.h"
 #include "vulkan-api/pipeline.h"
 #include "vulkan-api/program_manager.h"
@@ -50,8 +50,7 @@
 namespace yave
 {
 
-ISkybox::ISkybox(IEngine& engine)
-    : engine_(engine), blurFactor_(0.0f)
+ISkybox::ISkybox(IEngine& engine) : engine_(engine), blurFactor_(0.0f)
 {
     auto* rendManager = engine_.getRenderableManagerI();
     skyboxObj_ = engine_.createObjectI();
@@ -61,15 +60,9 @@ ISkybox::ISkybox(IEngine& engine)
 void ISkybox::buildI(ICamera& cam)
 {
     // cube vertices
-    const std::array<float, 24> vertices {
-        -1.0f, -1.0f, 1.0f,
-        1.0f, -1.0f, 1.0f,
-        1.0f, 1.0f, 1.0f,
-        -1.0f, 1.0f, 1.0f,
-        -1.0f, -1.0f, -1.0f,
-        1.0f, -1.0f, -1.0f,
-        1.0f, 1.0f, -1.0f,
-        -1.0f, 1.0f, -1.0f};
+    const std::array<float, 24> vertices {-1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f,  1.0f,  1.0f,
+                                          1.0f,  -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, -1.0f, 1.0f,
+                                          -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f,  -1.0f};
 
     // cube indices
     // clang-format off
@@ -94,10 +87,7 @@ void ISkybox::buildI(ICamera& cam)
         10);
 
     material_->addImageTexture(
-        engine_.driver(),
-        cubeTexture_,
-        Material::ImageType::BaseColour,
-        sampler.get(), 0);
+        engine_.driver(), cubeTexture_, Material::ImageType::BaseColour, sampler.get(), 0);
 
     auto render = engine_.createRenderableI();
     auto vBuffer = engine_.createVertexBufferI();
@@ -106,9 +96,7 @@ void ISkybox::buildI(ICamera& cam)
     render->setPrimitiveCount(1);
     render->skipVisibilityChecks();
 
-    vBuffer->addAttribute(
-        VertexBuffer::BindingType::Position,
-        backend::BufferElementType::Float3);
+    vBuffer->addAttribute(VertexBuffer::BindingType::Position, backend::BufferElementType::Float3);
     vBuffer->buildI(driver, vertices.size() * sizeof(float), (void*)vertices.data());
     iBuffer->buildI(
         driver, indices.size(), (void*)indices.data(), backend::IndexBufferType::Uint32);
@@ -119,10 +107,7 @@ void ISkybox::buildI(ICamera& cam)
     render->setPrimitive(prim, 0);
 
     material_->addUboParam(
-        "blurFactor",
-        backend::BufferElementType::Float,
-        sizeof(float),
-        &blurFactor_);
+        "blurFactor", backend::BufferElementType::Float, sizeof(float), &blurFactor_);
 
     material_->setCullMode(backend::CullMode::Front);
     material_->setViewLayer(0x4);
@@ -157,9 +142,6 @@ void ISkybox::setTexture(Texture* texture) noexcept
 
 void ISkybox::setBlurFactor(float blur) noexcept { blurFactor_ = blur; }
 
-void ISkybox::build(Camera* camera) 
-{ 
-    buildI(*(reinterpret_cast<ICamera*>(camera))); 
-}
+void ISkybox::build(Camera* camera) { buildI(*(reinterpret_cast<ICamera*>(camera))); }
 
 } // namespace yave

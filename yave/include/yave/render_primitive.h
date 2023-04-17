@@ -50,7 +50,6 @@ public:
     virtual void setMaterial(Material* mat) = 0;
 
 protected:
-
     RenderPrimitive();
 };
 

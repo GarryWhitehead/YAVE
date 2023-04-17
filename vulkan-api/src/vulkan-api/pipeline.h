@@ -23,8 +23,8 @@
 #pragma once
 
 #include "common.h"
-#include "shader.h"
 #include "pipeline_cache.h"
+#include "shader.h"
 #include "utility/compiler.h"
 
 #include <vulkan/vulkan_hash.hpp>
@@ -64,8 +64,7 @@ public:
 
     void addPushConstant(backend::ShaderStage type, size_t size);
 
-    void bindPushBlock(
-        const vk::CommandBuffer& cmdBuffer, const PushBlockBindParams& pushBlock);
+    void bindPushBlock(const vk::CommandBuffer& cmdBuffer, const PushBlockBindParams& pushBlock);
 
     void addDescriptorLayout(
         uint8_t set,
@@ -79,21 +78,17 @@ public:
     const vk::PipelineLayout& get() const noexcept { return layout_; }
     vk::PipelineLayout& get() noexcept { return layout_; }
 
-    vk::DescriptorSetLayout* getDescSetLayout() noexcept
-    {
-        return descriptorLayouts_;
-    }
+    vk::DescriptorSetLayout* getDescSetLayout() noexcept { return descriptorLayouts_; }
 
     using SetValue = uint8_t;
-    using DescriptorBindingMap = std::
-        unordered_map<SetValue, std::vector<vk::DescriptorSetLayoutBinding>>;
+    using DescriptorBindingMap =
+        std::unordered_map<SetValue, std::vector<vk::DescriptorSetLayoutBinding>>;
 
 private:
     // each descriptor type has its own set
     DescriptorBindingMap descriptorBindings_;
 
-    vk::DescriptorSetLayout
-        descriptorLayouts_[PipelineCache::MaxDescriptorTypeCount] {};
+    vk::DescriptorSetLayout descriptorLayouts_[PipelineCache::MaxDescriptorTypeCount] {};
 
     // the shader stage the push constant refers to and its size
     std::unordered_map<vk::ShaderStageFlags, size_t> pConstantSizes_;
@@ -104,7 +99,6 @@ private:
 class Pipeline
 {
 public:
-
     static constexpr int LifetimeFrameCount = 10;
 
     enum class Type
@@ -122,8 +116,7 @@ public:
      * Creates a pipeline using render data from the shader program and
      * associates it with the declared renderpass
      */
-    void create(
-        const PipelineCache::PipelineKey& key, PipelineLayout& pipelineLayout);
+    void create(const PipelineCache::PipelineKey& key, PipelineLayout& pipelineLayout);
 
     Pipeline::Type getType() const { return type_; }
 
@@ -142,7 +135,6 @@ private:
     Type type_;
 
     vk::Pipeline pipeline_;
-
 };
 
 

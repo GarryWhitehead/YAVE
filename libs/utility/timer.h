@@ -49,16 +49,13 @@ template <typename TimeType = std::chrono::nanoseconds>
 class Timer
 {
 public:
-    static_assert(
-        is_chrono_duration<TimeType>::value,
-        "TimeType must be a std::chrono::duration");
+    static_assert(is_chrono_duration<TimeType>::value, "TimeType must be a std::chrono::duration");
 
     Timer() {};
 
     void startTimer()
     {
-        current = std::chrono::duration_cast<TimeType>(
-            std::chrono::high_resolution_clock::now());
+        current = std::chrono::duration_cast<TimeType>(std::chrono::high_resolution_clock::now());
         isRunning = true;
     }
 
@@ -66,15 +63,15 @@ public:
 
     void resetTime()
     {
-        auto timeNow = std::chrono::duration_cast<TimeType>(
-            std::chrono::high_resolution_clock::now());
+        auto timeNow =
+            std::chrono::duration_cast<TimeType>(std::chrono::high_resolution_clock::now());
         current = timeNow;
     }
 
     TimeType getTimeElapsed()
     {
-        auto timeNow = std::chrono::duration_cast<TimeType>(
-            std::chrono::high_resolution_clock::now());
+        auto timeNow =
+            std::chrono::duration_cast<TimeType>(std::chrono::high_resolution_clock::now());
         auto deltaTime = timeNow - current;
 
         return deltaTime;

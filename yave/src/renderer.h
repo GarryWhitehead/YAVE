@@ -39,7 +39,6 @@ class IEngine;
 class IRenderer : public Renderer
 {
 public:
-
     IRenderer(IEngine* engine);
     ~IRenderer();
 
@@ -59,9 +58,9 @@ public:
 
 private:
     IEngine* engine_;
-    
+
     rg::RenderGraph rGraph_;
-    
+
     // render targets for the backbuffer
     std::array<vkapi::RenderTargetHandle, 3> rtHandles_;
 

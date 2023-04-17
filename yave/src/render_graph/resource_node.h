@@ -39,11 +39,7 @@ class PassNodeBase;
 class ResourceEdge : public Edge
 {
 public:
-    ResourceEdge(
-        DependencyGraph& dGraph,
-        Node* from,
-        Node* to,
-        vk::ImageUsageFlags usage)
+    ResourceEdge(DependencyGraph& dGraph, Node* from, Node* to, vk::ImageUsageFlags usage)
         : Edge(dGraph, from, to), usage_(usage)
     {
     }

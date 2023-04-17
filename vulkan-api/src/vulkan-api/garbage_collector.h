@@ -31,33 +31,31 @@ namespace vkapi
 class GarbageCollector
 {
 public:
-    
     // The number of frames to wait until running the destructor
     // for an object. This should be at least three frames due to
     // triple buffering and ensuring that resources are not deleted
     // whilst still in use by a cmd buffer.
     static constexpr int FramesUntilCollection = 10;
-    
+
     GarbageCollector();
     ~GarbageCollector();
-    
+
     GarbageCollector(const GarbageCollector&) = delete;
     GarbageCollector& operator=(const GarbageCollector&) = delete;
-    
+
     void add(std::function<void()> destructor) noexcept;
-    
+
     void collectGarbage() noexcept;
-    
+
     void reset() noexcept;
-    
+
 private:
-    
     struct CollectionInfo
     {
         std::function<void()> destructor;
         int frames;
     };
-    
+
     std::vector<CollectionInfo> gcObjects_;
 };
 

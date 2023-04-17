@@ -41,8 +41,7 @@ RenderGraphBuilder::RenderGraphBuilder(RenderGraph* rGraph, PassNodeBase* node)
 RenderGraphHandle RenderGraphBuilder::createResource(
     const util::CString& name, const TextureResource::Descriptor& desc)
 {
-    std::unique_ptr<TextureResource> tex =
-        std::make_unique<TextureResource>(name, desc);
+    std::unique_ptr<TextureResource> tex = std::make_unique<TextureResource>(name, desc);
     return rGraph_->addResource(std::move(tex));
 }
 
@@ -51,30 +50,26 @@ RenderGraphHandle RenderGraphBuilder::createSubResource(
     const TextureResource::Descriptor& desc,
     const RenderGraphHandle& parent)
 {
-    std::unique_ptr<TextureResource> tex =
-        std::make_unique<TextureResource>(name, desc);
+    std::unique_ptr<TextureResource> tex = std::make_unique<TextureResource>(name, desc);
     return rGraph_->addSubResource(std::move(tex), parent);
 }
 
-RenderGraphHandle RenderGraphBuilder::addReader(
-    const RenderGraphHandle& handle, vk::ImageUsageFlags usage)
+RenderGraphHandle
+RenderGraphBuilder::addReader(const RenderGraphHandle& handle, vk::ImageUsageFlags usage)
 {
     return rGraph_->addRead(handle, passNode_, usage);
 }
 
-RenderGraphHandle RenderGraphBuilder::addWriter(
-    const RenderGraphHandle& handle, vk::ImageUsageFlags usage)
+RenderGraphHandle
+RenderGraphBuilder::addWriter(const RenderGraphHandle& handle, vk::ImageUsageFlags usage)
 {
     return rGraph_->addWrite(handle, passNode_, usage);
 }
 
-void RenderGraphBuilder::addSideEffect() noexcept
-{
-    passNode_->declareSideEffect();
-}
+void RenderGraphBuilder::addSideEffect() noexcept { passNode_->declareSideEffect(); }
 
-RenderGraphHandle RenderGraphBuilder::createRenderTarget(
-    const util::CString& name, const PassDescriptor& desc)
+RenderGraphHandle
+RenderGraphBuilder::createRenderTarget(const util::CString& name, const PassDescriptor& desc)
 {
     return passNode_->createRenderTarget(name, desc);
 }

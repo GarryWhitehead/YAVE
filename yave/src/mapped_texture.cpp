@@ -22,26 +22,23 @@
 
 #include "mapped_texture.h"
 
+#include "backend/enums.h"
 #include "engine.h"
 #include "utility/assertion.h"
 #include "utility/logger.h"
-#include "backend/enums.h"
 #include "yave/texture.h"
 
 namespace yave
 {
 
-IMappedTexture::IMappedTexture(IEngine& engine)
-    : engine_(engine), buffer_(nullptr)
-{
-}
+IMappedTexture::IMappedTexture(IEngine& engine) : engine_(engine), buffer_(nullptr) {}
 
 IMappedTexture::~IMappedTexture() {}
 
-uint32_t IMappedTexture::getFormatByteSize(backend::TextureFormat format) 
+uint32_t IMappedTexture::getFormatByteSize(backend::TextureFormat format)
 {
     size_t output = 0;
-    switch(format)
+    switch (format)
     {
         case backend::TextureFormat::R8:
         case backend::TextureFormat::RG8:
@@ -78,9 +75,7 @@ uint32_t IMappedTexture::totalTextureSize(
     size_t totalSize = 0;
     for (int i = 0; i < mipLevels; ++i)
     {
-        totalSize += ((width >> i) * (height >> i) * 4 *
-                      byteSize) *
-            faceCount * layerCount;
+        totalSize += ((width >> i) * (height >> i) * 4 * byteSize) * faceCount * layerCount;
     }
     return totalSize;
 }
@@ -109,8 +104,7 @@ void IMappedTexture::setTextureI(
     // TODO: should be user defined
     auto usageFlags = vk::ImageUsageFlagBits::eSampled;
 
-    tHandle_ = driver.createTexture2d(
-        format_, width, height, levels, faces, 1, usageFlags);
+    tHandle_ = driver.createTexture2d(format_, width, height, levels, faces, 1, usageFlags);
     driver.mapTexture(tHandle_, buffer, bufferSize, offsets);
 }
 
@@ -123,8 +117,7 @@ void IMappedTexture::setTextureI(
     backend::TextureFormat format,
     size_t* offsets)
 {
-    uint32_t bufferSize =
-        totalTextureSize(width, height, 1, faces, levels, format);
+    uint32_t bufferSize = totalTextureSize(width, height, 1, faces, levels, format);
     setTextureI(buffer, bufferSize, width, height, levels, faces, format, offsets);
 }
 

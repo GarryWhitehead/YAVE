@@ -31,8 +31,7 @@ namespace util
 class HandleBase
 {
 public:
-    constexpr static uint32_t UNINITIALISED =
-        std::numeric_limits<uint32_t>::max();
+    constexpr static uint32_t UNINITIALISED = std::numeric_limits<uint32_t>::max();
 
     explicit operator bool() const noexcept { return key_ != UNINITIALISED; }
 

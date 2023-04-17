@@ -36,8 +36,7 @@
 namespace yave
 {
 
-ILightManager::ILightManager(IEngine& engine)
-    : engine_(engine), programBundle_(nullptr)
+ILightManager::ILightManager(IEngine& engine) : engine_(engine), programBundle_(nullptr)
 {
     ssbo_ = std::make_unique<StorageBuffer>(
         StorageBuffer::AccessType::ReadOnly,
@@ -47,14 +46,8 @@ ILightManager::ILightManager(IEngine& engine)
         "light_ssbo");
 
     ssbo_->pushElement(
-        "params",
-        backend::BufferElementType::Struct,
-        sizeof(LightSsbo),
-        nullptr,
-        0,
-        "LightParams");
-    ssbo_->createGpuBuffer(
-        engine_.driver(), MaxLightCount * sizeof(ILightManager::LightSsbo));
+        "params", backend::BufferElementType::Struct, sizeof(LightSsbo), nullptr, 0, "LightParams");
+    ssbo_->createGpuBuffer(engine_.driver(), MaxLightCount * sizeof(ILightManager::LightSsbo));
 
     // A sampler for each of the gbuffer render targets.
     samplerSets_.pushSampler(
@@ -131,8 +124,7 @@ void ILightManager::prepareI()
         vk::DescriptorType::eStorageBuffer);
 }
 
-void ILightManager::calculateSpotCone(
-    float outerCone, float innerCone, LightInstance& light)
+void ILightManager::calculateSpotCone(float outerCone, float innerCone, LightInstance& light)
 {
     if (light.type != LightManager::Type::Spot)
     {
@@ -149,13 +141,11 @@ void ILightManager::calculateSpotCone(
 
     light.spotLightInfo.outer = outer;
     light.spotLightInfo.cosOuterSquared = cosOuter * cosOuter;
-    light.spotLightInfo.scale =
-        1.0f / std::max(1.0f / 1024.0f, cosInner - cosOuter);
+    light.spotLightInfo.scale = 1.0f / std::max(1.0f / 1024.0f, cosInner - cosOuter);
     light.spotLightInfo.offset = -cosOuter * light.spotLightInfo.scale;
 }
 
-void ILightManager::setIntensity(
-    float intensity, LightManager::Type type, LightInstance& light)
+void ILightManager::setIntensity(float intensity, LightManager::Type type, LightInstance& light)
 {
     switch (type)
     {
@@ -213,10 +203,10 @@ void ILightManager::update(const ICamera& camera)
 
     for (auto& light : lights_)
     {
-        mathfu::mat4 projection = mathfu::mat4::Perspective(
-            light->fov, 1.0f, camera.getNear(), camera.getFar());
-        mathfu::mat4 view = mathfu::mat4::LookAt(
-            light->target, light->position, {0.0f, 1.0f, 0.0f});
+        mathfu::mat4 projection =
+            mathfu::mat4::Perspective(light->fov, 1.0f, camera.getNear(), camera.getFar());
+        mathfu::mat4 view =
+            mathfu::mat4::LookAt(light->target, light->position, {0.0f, 1.0f, 0.0f});
         light->mvp = projection * view;
     }
 
@@ -225,17 +215,11 @@ void ILightManager::update(const ICamera& camera)
     auto* fProgram = programBundle_->getProgram(backend::ShaderStage::Fragment);
 
     vkapi::Shader* vertexShader = manager.findShaderVariantOrCreate(
-        {},
-        backend::ShaderStage::Vertex,
-        vk::PrimitiveTopology::eTriangleList,
-        programBundle_);
+        {}, backend::ShaderStage::Vertex, vk::PrimitiveTopology::eTriangleList, programBundle_);
     vProgram->addShader(vertexShader);
 
     vkapi::Shader* fragShader = manager.findShaderVariantOrCreate(
-        {},
-        backend::ShaderStage::Fragment,
-        vk::PrimitiveTopology::eTriangleList,
-        programBundle_);
+        {}, backend::ShaderStage::Fragment, vk::PrimitiveTopology::eTriangleList, programBundle_);
     fProgram->addShader(fragShader);
 }
 
@@ -248,10 +232,7 @@ void ILightManager::updateSsbo(std::vector<LightInstance*>& lights)
         ILightManager::MaxLightCount);
 
     // clear the buffer so we don't get any invalid values
-    memset(
-        ssboBuffer_,
-        0,
-        sizeof(ILightManager::LightSsbo) * ILightManager::MaxLightCount);
+    memset(ssboBuffer_, 0, sizeof(ILightManager::LightSsbo) * ILightManager::MaxLightCount);
 
     int idx = 0;
     for (const auto* light : lights)
@@ -293,33 +274,31 @@ LightInstance* ILightManager::getLightInstance(IObject* obj)
 {
     ASSERT_FATAL(obj, "Can not retrive light instance, object is null.");
     ASSERT_FATAL(
-        hasObject(*obj),
-        "Object with id %d is not associated with this manager",
-        obj->id());
+        hasObject(*obj), "Object with id %d is not associated with this manager", obj->id());
     return lights_[getObjIndex(*obj).get()].get();
 }
 
 size_t ILightManager::getLightCount() const { return lights_.size(); }
 
-void ILightManager::setIntensityI(float intensity, IObject* obj) 
+void ILightManager::setIntensityI(float intensity, IObject* obj)
 {
     LightInstance* instance = getLightInstance(obj);
     setIntensity(intensity, instance->type, *instance);
 }
 
-void ILightManager::setFalloutI(float fallout, IObject* obj) 
+void ILightManager::setFalloutI(float fallout, IObject* obj)
 {
     LightInstance* instance = getLightInstance(obj);
     setRadius(fallout, *instance);
 }
 
-void ILightManager::setPositionI(const mathfu::vec3& pos, IObject* obj) 
+void ILightManager::setPositionI(const mathfu::vec3& pos, IObject* obj)
 {
     LightInstance* instance = getLightInstance(obj);
     instance->position = pos;
 }
 
-void ILightManager::setTargetI(const mathfu::vec3& target, IObject* obj) 
+void ILightManager::setTargetI(const mathfu::vec3& target, IObject* obj)
 {
     LightInstance* instance = getLightInstance(obj);
     instance->target = target;
@@ -339,17 +318,12 @@ void ILightManager::setFovI(float fov, IObject* obj)
 
 void ILightManager::destroy(const IObject& obj)
 {
-    ASSERT_FATAL(
-        obj.isActive(),
-        "Something went wrong - invalid object handle: not active.");
+    ASSERT_FATAL(obj.isActive(), "Something went wrong - invalid object handle: not active.");
     removeObject(obj);
 }
 
 rg::RenderGraphHandle ILightManager::render(
-    rg::RenderGraph& rGraph,
-    uint32_t width,
-    uint32_t height,
-    vk::Format depthFormat)
+    rg::RenderGraph& rGraph, uint32_t width, uint32_t height, vk::Format depthFormat)
 {
     struct LightPassData
     {
@@ -386,20 +360,15 @@ rg::RenderGraphHandle ILightManager::render(
             texDesc.format = depthFormat;
             data.depth = builder.createResource("lightDepth", texDesc);
 
-            data.light = builder.addWriter(
-                data.light, vk::ImageUsageFlagBits::eColorAttachment);
-            data.depth = builder.addWriter(
-                data.depth, vk::ImageUsageFlagBits::eDepthStencilAttachment);
+            data.light = builder.addWriter(data.light, vk::ImageUsageFlagBits::eColorAttachment);
+            data.depth =
+                builder.addWriter(data.depth, vk::ImageUsageFlagBits::eDepthStencilAttachment);
 
             // inputs into the pass
-            data.position =
-                builder.addReader(position, vk::ImageUsageFlagBits::eSampled);
-            data.colour =
-                builder.addReader(colour, vk::ImageUsageFlagBits::eSampled);
-            data.normal =
-                builder.addReader(normal, vk::ImageUsageFlagBits::eSampled);
-            data.emissive =
-                builder.addReader(emissive, vk::ImageUsageFlagBits::eSampled);
+            data.position = builder.addReader(position, vk::ImageUsageFlagBits::eSampled);
+            data.colour = builder.addReader(colour, vk::ImageUsageFlagBits::eSampled);
+            data.normal = builder.addReader(normal, vk::ImageUsageFlagBits::eSampled);
+            data.emissive = builder.addReader(emissive, vk::ImageUsageFlagBits::eSampled);
             data.pbr = builder.addReader(pbr, vk::ImageUsageFlagBits::eSampled);
 
             blackboard->add("light", data.light);
@@ -428,28 +397,17 @@ rg::RenderGraphHandle ILightManager::render(
                 backend::SamplerAddressMode::ClampToEdge,
                 8.0f);
             vk::Sampler sampler =
-                engine_.driver().getSamplerCache().createSampler(
-                    samplerParams.get());
+                engine_.driver().getSamplerCache().createSampler(samplerParams.get());
             programBundle_->setTexture(
-                resources.getTextureHandle(data.position),
-                SamplerPositionBinding,
-                sampler);
+                resources.getTextureHandle(data.position), SamplerPositionBinding, sampler);
             programBundle_->setTexture(
-                resources.getTextureHandle(data.colour),
-                SamplerColourBinding,
-                sampler);
+                resources.getTextureHandle(data.colour), SamplerColourBinding, sampler);
             programBundle_->setTexture(
-                resources.getTextureHandle(data.normal),
-                SamplerNormalBinding,
-                sampler);
+                resources.getTextureHandle(data.normal), SamplerNormalBinding, sampler);
             programBundle_->setTexture(
-                resources.getTextureHandle(data.pbr),
-                SamplerPbrBinding,
-                sampler);
+                resources.getTextureHandle(data.pbr), SamplerPbrBinding, sampler);
             programBundle_->setTexture(
-                resources.getTextureHandle(data.emissive),
-                SamplerEmissiveBinding,
-                sampler);
+                resources.getTextureHandle(data.emissive), SamplerEmissiveBinding, sampler);
 
             driver.draw(cmdBuffer, *programBundle_);
 
@@ -473,17 +431,17 @@ void ILightManager::create(const CreateInfo& ci, Type type, Object* obj)
 
 void ILightManager::prepare() { prepareI(); }
 
-void ILightManager::setIntensity(float intensity, Object* obj) 
+void ILightManager::setIntensity(float intensity, Object* obj)
 {
     setIntensityI(intensity, reinterpret_cast<IObject*>(obj));
 }
 
-void ILightManager::setFallout(float fallout, Object* obj) 
+void ILightManager::setFallout(float fallout, Object* obj)
 {
     setFalloutI(fallout, reinterpret_cast<IObject*>(obj));
 }
 
-void ILightManager::setPosition(const mathfu::vec3& pos, Object* obj) 
+void ILightManager::setPosition(const mathfu::vec3& pos, Object* obj)
 {
     setPositionI(pos, reinterpret_cast<IObject*>(obj));
 }
@@ -493,12 +451,12 @@ void ILightManager::setTarget(const mathfu::vec3& target, Object* obj)
     setTargetI(target, reinterpret_cast<IObject*>(obj));
 }
 
-void ILightManager::setColour(const mathfu::vec3& col, Object* obj) 
+void ILightManager::setColour(const mathfu::vec3& col, Object* obj)
 {
     setColourI(col, reinterpret_cast<IObject*>(obj));
 }
 
-void ILightManager::setFov(float fov, Object* obj) 
+void ILightManager::setFov(float fov, Object* obj)
 {
     setFovI(fov, reinterpret_cast<IObject*>(obj));
 }

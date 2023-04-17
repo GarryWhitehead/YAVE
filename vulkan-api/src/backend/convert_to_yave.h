@@ -30,13 +30,10 @@
 namespace backend
 {
 
-backend::SamplerFilter
-samplerFilterToYave(yave::ModelMaterial::Sampler::Filter filter);
+backend::SamplerFilter samplerFilterToYave(yave::ModelMaterial::Sampler::Filter filter);
 
-backend::SamplerAddressMode
-samplerWrapModeToYave(yave::ModelMaterial::Sampler::AddressMode addr);
+backend::SamplerAddressMode samplerWrapModeToYave(yave::ModelMaterial::Sampler::AddressMode addr);
 
-backend::PrimitiveTopology
-primitiveTopologyToYave(yave::ModelMesh::Topology topo);
+backend::PrimitiveTopology primitiveTopologyToYave(yave::ModelMesh::Topology topo);
 
-}
+} // namespace backend

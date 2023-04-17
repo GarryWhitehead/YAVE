@@ -63,7 +63,7 @@ public:
     ~PipelineCache();
 
     void init() noexcept;
-    
+
     // Reset the descriptor and pipeline requirements to default values.
     // Should be called before beginning a new binding session.
     void resetKeys() noexcept;
@@ -72,7 +72,7 @@ public:
 
 #pragma clang diagnostic push
 #pragma clang diagnostic warning "-Wpadded"
-    
+
     struct RasterStateBlock
     {
         vk::CullModeFlagBits cullMode;
@@ -115,16 +115,14 @@ public:
         DepthStencilBlock dsBlock;
         BlendFactorBlock blendState;
         vk::RenderPass renderPass;
-        vk::PipelineShaderStageCreateInfo
-            shaders[util::ecast(backend::ShaderStage::Count)];
-        vk::VertexInputAttributeDescription
-            vertAttrDesc[MaxVertexAttributeCount];
+        vk::PipelineShaderStageCreateInfo shaders[util::ecast(backend::ShaderStage::Count)];
+        vk::VertexInputAttributeDescription vertAttrDesc[MaxVertexAttributeCount];
         vk::VertexInputBindingDescription vertBindDesc[MaxVertexAttributeCount];
 
         bool operator==(const PipelineKey& rhs) const noexcept;
     };
 
-     static_assert(
+    static_assert(
         std::is_trivially_copyable<PipelineKey>::value,
         "PipelineKey must be a POD for the hashing to work correctly");
     static_assert(
@@ -155,12 +153,12 @@ public:
         size_t dynamicBufferSizes[MaxUboDynamicBindCount];
         size_t ssboBufferSizes[MaxSsboBindCount];
         DescriptorImage samplers[MaxSamplerBindCount];
-        
+
         bool operator==(const DescriptorKey& rhs) const noexcept;
     };
- 
+
 #pragma clang diagnostic pop
-    
+
     static_assert(
         std::is_trivially_copyable<DescriptorKey>::value,
         "DescriptorKey must be a POD for the hashing to work correctly");
@@ -186,8 +184,7 @@ public:
 
     void setPipelineKeyToDefault() noexcept;
 
-    void
-    bindPipeline(vk::CommandBuffer cmdBuffer, PipelineLayout& pipelineLayout);
+    void bindPipeline(vk::CommandBuffer cmdBuffer, PipelineLayout& pipelineLayout);
 
     void bindShaderModules(ShaderProgramBundle& prog);
 
@@ -218,8 +215,7 @@ public:
 
     void bindScissor(vk::CommandBuffer cmdBuffer, const vk::Rect2D& newScissor);
 
-    void
-    bindViewport(vk::CommandBuffer cmdBuffer, const vk::Viewport& newViewPort);
+    void bindViewport(vk::CommandBuffer cmdBuffer, const vk::Viewport& newViewPort);
 
     void bindSampler(DescriptorImage descImages[MaxSamplerBindCount]);
 
@@ -228,11 +224,9 @@ public:
         PipelineLayout& pipelineLayout,
         const std::vector<uint32_t>& dynamicOffsets = {});
 
-    void createDescriptorSets(
-        PipelineLayout& pipelineLayout, DescriptorSetInfo& descSetInfo);
+    void createDescriptorSets(PipelineLayout& pipelineLayout, DescriptorSetInfo& descSetInfo);
 
-    void allocDescriptorSets(
-        vk::DescriptorSetLayout* descLayouts, vk::DescriptorSet* descSets);
+    void allocDescriptorSets(vk::DescriptorSetLayout* descLayouts, vk::DescriptorSet* descSets);
 
     void createDescriptorPools();
 
@@ -242,14 +236,10 @@ public:
 
     void clear() noexcept;
 
-    using PipelineCacheMap = std::unordered_map<
-        PipelineKey,
-        std::unique_ptr<Pipeline>,
-        PLineHasher>;
-    using DescriptorSetCache = std::unordered_map<
-        DescriptorKey,
-        DescriptorSetInfo,
-        DescriptorHasher>;
+    using PipelineCacheMap =
+        std::unordered_map<PipelineKey, std::unique_ptr<Pipeline>, PLineHasher>;
+    using DescriptorSetCache =
+        std::unordered_map<DescriptorKey, DescriptorSetInfo, DescriptorHasher>;
 
 private:
     VkContext& context_;

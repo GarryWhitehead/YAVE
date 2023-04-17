@@ -22,12 +22,12 @@
 
 #pragma once
 
+#include "backend/enums.h"
 #include "common.h"
 #include "pipeline.h"
 #include "pipeline_cache.h"
 #include "resource_cache.h"
 #include "shader.h"
-#include "backend/enums.h"
 #include "utility/bitset_enum.h"
 #include "utility/compiler.h"
 #include "utility/cstring.h"
@@ -55,13 +55,12 @@ public:
 
     std::string build();
 
-   // void addStageBlock(const std::string& block) { stageBlock_ = block; }
+    // void addStageBlock(const std::string& block) { stageBlock_ = block; }
 
     void addShader(Shader* shader) noexcept { shader_ = shader; }
     Shader* getShader() noexcept { return shader_; }
 
-    void parseMaterialShaderBlock(
-        const std::vector<std::string>& lines, size_t& index);
+    void parseMaterialShaderBlock(const std::vector<std::string>& lines, size_t& index);
 
     void parseShader(const std::vector<std::string>& lines);
 
@@ -155,16 +154,13 @@ public:
 
     void parseMaterialShader(const std::filesystem::path& shaderPath);
 
-    void setTexture(
-        const TextureHandle& handle, uint8_t binding, vk::Sampler sampler);
+    void setTexture(const TextureHandle& handle, uint8_t binding, vk::Sampler sampler);
 
     void setPushBlockData(backend::ShaderStage stage, void* data);
 
-    void setScissor(
-        uint32_t width, uint32_t height, uint32_t xOffset, uint32_t yOffset);
+    void setScissor(uint32_t width, uint32_t height, uint32_t xOffset, uint32_t yOffset);
 
-    void setViewport(
-        uint32_t width, uint32_t height, float minDepth, float maxDepth);
+    void setViewport(uint32_t width, uint32_t height, float minDepth, float maxDepth);
 
     void addTextureSampler(vk::Sampler sampler, uint32_t binding);
 
@@ -183,8 +179,7 @@ public:
     void buildShaders(const std::string& filename) { buildShader(filename); }
 
     template <typename... ShaderArgs>
-    void
-    buildShaders(const std::string& filename, const ShaderArgs&... shaderArgs);
+    void buildShaders(const std::string& filename, const ShaderArgs&... shaderArgs);
 
     // =================== getters ============================
 
@@ -200,8 +195,8 @@ private:
     // The id of this program bundle
     size_t shaderId_;
 
-    std::array<std::unique_ptr<ShaderProgram>, util::ecast(backend::ShaderStage::Count)>
-        programs_ = {nullptr};
+    std::array<std::unique_ptr<ShaderProgram>, util::ecast(backend::ShaderStage::Count)> programs_ =
+        {nullptr};
 
     // Information about the pipeline layout associated with this shader
     // program. This is derived from shader reflecton.
@@ -211,8 +206,7 @@ private:
     std::unique_ptr<PipelineLayout::PushBlockBindParams> pushBlock_[2];
 
     // Index into the resource cache for the texture for each attachment.
-    std::array<TextureHandle, PipelineCache::MaxSamplerBindCount>
-        textureHandles_;
+    std::array<TextureHandle, PipelineCache::MaxSamplerBindCount> textureHandles_;
 
     std::array<vk::Sampler, PipelineCache::MaxSamplerBindCount> samplers_;
 
@@ -240,15 +234,11 @@ public:
     BlendFactorState blendState_;
 
     void addDescriptorBinding(
-        uint32_t size,
-        uint32_t binding,
-        vk::Buffer buffer,
-        vk::DescriptorType type);
+        uint32_t size, uint32_t binding, vk::Buffer buffer, vk::DescriptorType type);
 };
 
 template <typename... ShaderArgs>
-void ShaderProgramBundle::buildShaders(
-    const std::string& filename, const ShaderArgs&... shaderArgs)
+void ShaderProgramBundle::buildShaders(const std::string& filename, const ShaderArgs&... shaderArgs)
 {
     buildShader(filename);
     buildShaders(shaderArgs...);
@@ -270,8 +260,7 @@ public:
 #pragma pack(pop)
 
     static_assert(
-        std::is_pod<CachedKey>::value,
-        "CachedKey must be a POD for the hashing to work correctly");
+        std::is_pod<CachedKey>::value, "CachedKey must be a POD for the hashing to work correctly");
 
 public:
     ProgramManager(VkDriver& driver);
@@ -311,18 +300,13 @@ private:
     {
         bool operator()(const CachedKey& lhs, const CachedKey& rhs) const
         {
-            return lhs.shaderId == rhs.shaderId &&
-                lhs.shaderStage == rhs.shaderStage &&
-                lhs.variantBits == rhs.variantBits &&
-                lhs.topology == rhs.topology;
+            return lhs.shaderId == rhs.shaderId && lhs.shaderStage == rhs.shaderStage &&
+                lhs.variantBits == rhs.variantBits && lhs.topology == rhs.topology;
         }
     };
 
-    using ShaderCacheMap = std::unordered_map<
-        CachedKey,
-        std::unique_ptr<Shader>,
-        CachedHasher,
-        CachedEqual>;
+    using ShaderCacheMap =
+        std::unordered_map<CachedKey, std::unique_ptr<Shader>, CachedHasher, CachedEqual>;
 
 private:
     VkDriver& driver_;

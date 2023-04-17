@@ -28,9 +28,9 @@
 #include "uniform_buffer.h"
 #include "vulkan-api/driver.h"
 #include "vulkan-api/program_manager.h"
+#include "yave/camera.h"
 #include "yave/skybox.h"
 #include "yave/texture.h"
-#include "yave/camera.h"
 
 #include <cstdint>
 
@@ -45,7 +45,7 @@ class IMaterial;
 
 class ISkybox : public Skybox
 {
-public:  
+public:
     ISkybox(IEngine& engine);
 
     void buildI(ICamera& camera);
@@ -65,7 +65,6 @@ public:
     void build(Camera* camera) override;
 
 private:
-
     IEngine& engine_;
 
     IMappedTexture* cubeTexture_;
@@ -74,7 +73,6 @@ private:
 
     IMaterial* material_;
     IObject* skyboxObj_;
-
 };
 
 } // namespace yave

@@ -55,11 +55,8 @@ public:
 
     static std::string samplerTypeToStr(SamplerSet::SamplerType type);
 
-    void pushSampler(
-        const std::string& name,
-        uint8_t set,
-        uint8_t binding,
-        SamplerType type) noexcept;
+    void
+    pushSampler(const std::string& name, uint8_t set, uint8_t binding, SamplerType type) noexcept;
 
     std::string createShaderStr() noexcept;
 

@@ -58,7 +58,7 @@ ObjectHandle ComponentManager::getObjIndex(const IObject& obj)
     return ObjectHandle(iter->second);
 }
 
-bool ComponentManager::hasObject(const IObject& obj) 
+bool ComponentManager::hasObject(const IObject& obj)
 {
     if (objects_.find(obj) == objects_.end())
     {

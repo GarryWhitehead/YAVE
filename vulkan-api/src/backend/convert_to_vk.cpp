@@ -112,7 +112,7 @@ vk::BlendOp blendOpToVk(backend::BlendOp op)
     return output;
 }
 
-vk::SamplerAddressMode samplerAddrModeToVk(SamplerAddressMode mode) 
+vk::SamplerAddressMode samplerAddrModeToVk(SamplerAddressMode mode)
 {
     vk::SamplerAddressMode output;
     switch (mode)
@@ -205,10 +205,10 @@ vk::CompareOp compareOpToVk(CompareOp op)
     return output;
 }
 
-vk::PrimitiveTopology primitiveTopologyToVk(PrimitiveTopology topo) 
+vk::PrimitiveTopology primitiveTopologyToVk(PrimitiveTopology topo)
 {
     vk::PrimitiveTopology output;
-    switch(topo) 
+    switch (topo)
     {
         case PrimitiveTopology::PointList:
             output = vk::PrimitiveTopology::ePointList;
@@ -247,7 +247,7 @@ vk::PrimitiveTopology primitiveTopologyToVk(PrimitiveTopology topo)
     return output;
 }
 
-vk::IndexType indexBufferTypeToVk(backend::IndexBufferType type) 
+vk::IndexType indexBufferTypeToVk(backend::IndexBufferType type)
 {
     vk::IndexType output;
     switch (type)

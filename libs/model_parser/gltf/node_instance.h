@@ -22,10 +22,9 @@
 
 #pragma once
 
-#include <utility/cstring.h>
-
 #include <cgltf.h>
 #include <mathfu/glsl_mappings.h>
+#include <utility/cstring.h>
 
 #include <memory>
 #include <unordered_map>

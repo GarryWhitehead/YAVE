@@ -43,11 +43,9 @@ void PipelineLayout::createDescriptorLayouts(VkContext& context)
         auto& setLayoutBinding = descriptorBindings_[i];
         const vk::DescriptorSetLayoutBinding* bindingData =
             setLayoutBinding.empty() ? nullptr : setLayoutBinding.data();
-        const uint32_t bindingSize = setLayoutBinding.empty()
-            ? 0
-            : static_cast<uint32_t>(setLayoutBinding.size());
-        vk::DescriptorSetLayoutCreateInfo layoutInfo {
-            {}, bindingSize, bindingData};
+        const uint32_t bindingSize =
+            setLayoutBinding.empty() ? 0 : static_cast<uint32_t>(setLayoutBinding.size());
+        vk::DescriptorSetLayoutCreateInfo layoutInfo {{}, bindingSize, bindingData};
         VK_CHECK_RESULT(context.device().createDescriptorSetLayout(
             &layoutInfo, nullptr, &descriptorLayouts_[i]));
     }
@@ -81,8 +79,7 @@ void PipelineLayout::build(VkContext& context)
         static_cast<uint32_t>(pConstants.size()),
         pConstants.data());
 
-    VK_CHECK_RESULT(context.device().createPipelineLayout(
-        &pipelineInfo, nullptr, &layout_));
+    VK_CHECK_RESULT(context.device().createPipelineLayout(&pipelineInfo, nullptr, &layout_));
 }
 
 void PipelineLayout::addPushConstant(backend::ShaderStage type, size_t size)
@@ -93,18 +90,13 @@ void PipelineLayout::addPushConstant(backend::ShaderStage type, size_t size)
 void PipelineLayout::bindPushBlock(
     const vk::CommandBuffer& cmdBuffer, const PushBlockBindParams& pushBlock)
 {
-    cmdBuffer.pushConstants(
-        layout_, pushBlock.stage, 0, pushBlock.size, pushBlock.data);
+    cmdBuffer.pushConstants(layout_, pushBlock.stage, 0, pushBlock.size, pushBlock.data);
 }
 
 void PipelineLayout::addDescriptorLayout(
-    uint8_t set,
-    uint32_t binding,
-    vk::DescriptorType descType,
-    vk::ShaderStageFlags stageFlags)
+    uint8_t set, uint32_t binding, vk::DescriptorType descType, vk::ShaderStageFlags stageFlags)
 {
-    vk::DescriptorSetLayoutBinding descSetLayoutBinding {
-        binding, descType, 1, stageFlags};
+    vk::DescriptorSetLayoutBinding descSetLayoutBinding {binding, descType, 1, stageFlags};
     ASSERT_FATAL(
         set < PipelineCache::MaxDescriptorTypeCount,
         "Set value (%d) is out of bounds - max descriptor set count of %d",
@@ -116,9 +108,7 @@ void PipelineLayout::addDescriptorLayout(
     {
         auto& descSetLayouts = iter->second;
         auto result = std::find_if(
-            descSetLayouts.begin(),
-            descSetLayouts.end(),
-            [&binding](const auto& descSetLayout) {
+            descSetLayouts.begin(), descSetLayouts.end(), [&binding](const auto& descSetLayout) {
                 return binding == descSetLayout.binding;
             });
         if (result != descSetLayouts.end())
@@ -137,7 +127,7 @@ void PipelineLayout::addDescriptorLayout(
 
 // ================== pipeline =======================
 Pipeline::Pipeline(VkContext& context, const Pipeline::Type type)
-: lastUsedFrameStamp_(0), context_(context), type_(type)
+    : lastUsedFrameStamp_(0), context_(context), type_(type)
 {
 }
 
@@ -156,16 +146,13 @@ vk::PipelineBindPoint Pipeline::createBindPoint(Pipeline::Type type)
             bindPoint = vk::PipelineBindPoint::eCompute;
             break;
         default:
-            LOGGER_ERROR(
-                "Unrecognised pipeline type; type id: %i",
-                static_cast<int>(type));
+            LOGGER_ERROR("Unrecognised pipeline type; type id: %i", static_cast<int>(type));
     }
 
     return bindPoint;
 }
 
-void Pipeline::create(
-    const PipelineCache::PipelineKey& key, PipelineLayout& pipelineLayout)
+void Pipeline::create(const PipelineCache::PipelineKey& key, PipelineLayout& pipelineLayout)
 {
     // sort the vertex attribute descriptors so only ones that are used
     // are applied to the pipeline
@@ -180,13 +167,10 @@ void Pipeline::create(
 
     bool hasInputState = inputDesc.size() > 0;
     vk::PipelineVertexInputStateCreateInfo vertexInputState;
-    vertexInputState.vertexAttributeDescriptionCount =
-        static_cast<uint32_t>(inputDesc.size());
-    vertexInputState.pVertexAttributeDescriptions =
-        hasInputState ? inputDesc.data() : nullptr;
+    vertexInputState.vertexAttributeDescriptionCount = static_cast<uint32_t>(inputDesc.size());
+    vertexInputState.pVertexAttributeDescriptions = hasInputState ? inputDesc.data() : nullptr;
     vertexInputState.vertexBindingDescriptionCount = hasInputState ? 1 : 0;
-    vertexInputState.pVertexBindingDescriptions =
-        hasInputState ? key.vertBindDesc : nullptr;
+    vertexInputState.pVertexBindingDescriptions = hasInputState ? key.vertBindDesc : nullptr;
 
     // ============== primitive topology =====================
     vk::PipelineInputAssemblyStateCreateInfo assemblyState;
@@ -225,8 +209,7 @@ void Pipeline::create(
 
     // ============ dynamic states ====================
     vk::PipelineDynamicStateCreateInfo dynamicCreateState;
-    dynamicCreateState.dynamicStateCount =
-        static_cast<uint32_t>(dynamicStates_.size());
+    dynamicCreateState.dynamicStateCount = static_cast<uint32_t>(dynamicStates_.size());
     dynamicCreateState.pDynamicStates = dynamicStates_.data();
 
     // =============== viewport state ====================
@@ -242,15 +225,11 @@ void Pipeline::create(
         RenderTarget::MaxColourAttachCount);
     for (uint8_t i = 0; i < key.rasterState.colourAttachCount; ++i)
     {
-        attachState[i].srcColorBlendFactor =
-            key.blendState.srcColorBlendFactor;
-        attachState[i].dstColorBlendFactor =
-            key.blendState.dstColorBlendFactor;
+        attachState[i].srcColorBlendFactor = key.blendState.srcColorBlendFactor;
+        attachState[i].dstColorBlendFactor = key.blendState.dstColorBlendFactor;
         attachState[i].colorBlendOp = key.blendState.colorBlendOp;
-        attachState[i].srcAlphaBlendFactor =
-            key.blendState.srcAlphaBlendFactor;
-        attachState[i].dstAlphaBlendFactor =
-            key.blendState.dstAlphaBlendFactor;
+        attachState[i].srcAlphaBlendFactor = key.blendState.srcAlphaBlendFactor;
+        attachState[i].dstAlphaBlendFactor = key.blendState.dstAlphaBlendFactor;
         attachState[i].alphaBlendOp = key.blendState.alphaBlendOp;
         attachState[i].colorWriteMask = key.rasterState.colorWriteMask;
         attachState[i].blendEnable = key.blendState.blendEnable;
@@ -260,8 +239,7 @@ void Pipeline::create(
     colourBlendState.pAttachments = attachState.data();
 
     // ================= create the pipeline =======================
-    ASSERT_FATAL(
-        pipelineLayout.get(), "The pipeline layout must be initialised.");
+    ASSERT_FATAL(pipelineLayout.get(), "The pipeline layout must be initialised.");
 
     // we only want to add valid shaders to the pipeline. Because the key states
     // all shaders whether they are required or not, we need to create a
@@ -275,8 +253,7 @@ void Pipeline::create(
             shaders.emplace_back(createInfo);
         }
     }
-    ASSERT_FATAL(
-        !shaders.empty(), "No shaders associated with this pipeline.");
+    ASSERT_FATAL(!shaders.empty(), "No shaders associated with this pipeline.");
 
     vk::GraphicsPipelineCreateInfo createInfo(
         {},
@@ -297,8 +274,8 @@ void Pipeline::create(
         nullptr,
         0);
 
-    VK_CHECK_RESULT(context_.device().createGraphicsPipelines(
-        {}, 1, &createInfo, nullptr, &pipeline_));
+    VK_CHECK_RESULT(
+        context_.device().createGraphicsPipelines({}, 1, &createInfo, nullptr, &pipeline_));
 }
 
 } // namespace vkapi

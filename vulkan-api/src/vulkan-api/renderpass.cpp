@@ -34,12 +34,9 @@ namespace vkapi
 
 // ============== framebuffer ======================
 
-FrameBuffer::FrameBuffer(VkContext& context)
-    : context_(context)
-{
-}
+FrameBuffer::FrameBuffer(VkContext& context) : context_(context) {}
 
-FrameBuffer::~FrameBuffer (){}
+FrameBuffer::~FrameBuffer() {}
 
 void FrameBuffer::create(
     vk::RenderPass renderpass,
@@ -56,11 +53,9 @@ void FrameBuffer::create(
     height_ = height;
 
     // and create the framebuffer.....
-    vk::FramebufferCreateInfo fboInfo {
-        {}, renderpass, count, imageViews, width, height, 1};
+    vk::FramebufferCreateInfo fboInfo {{}, renderpass, count, imageViews, width, height, 1};
 
-    VK_CHECK_RESULT(
-        context_.device().createFramebuffer(&fboInfo, nullptr, &fbo_));
+    VK_CHECK_RESULT(context_.device().createFramebuffer(&fboInfo, nullptr, &fbo_));
 }
 
 const vk::Framebuffer& FrameBuffer::get() const { return fbo_; }
@@ -71,8 +66,7 @@ uint32_t FrameBuffer::getHeight() const { return height_; }
 
 // ================== Renderpass ================================
 
-RenderPass::RenderPass(VkContext& context)
-    : context_(context), hasDepth_(false), depthClear_(1.0f)
+RenderPass::RenderPass(VkContext& context) : context_(context), hasDepth_(false), depthClear_(1.0f)
 {
 }
 
@@ -158,8 +152,7 @@ vk::ImageLayout RenderPass::getAttachmentLayout(vk::Format format)
     return result;
 }
 
-AttachmentHandle
-RenderPass::addAttachment(const RenderPass::Attachment& attachInfo)
+AttachmentHandle RenderPass::addAttachment(const RenderPass::Attachment& attachInfo)
 {
     vk::AttachmentDescription attachDescr;
     attachDescr.format = attachInfo.format;
@@ -171,12 +164,9 @@ RenderPass::addAttachment(const RenderPass::Attachment& attachInfo)
 
     // clear flags
     attachDescr.loadOp = loadFlagsToVk(attachInfo.loadOp); // pre image state
-    attachDescr.storeOp =
-        storeFlagsToVk(attachInfo.storeOp); // post image state
-    attachDescr.stencilLoadOp =
-        loadFlagsToVk(attachInfo.stencilLoadOp); // pre stencil state
-    attachDescr.stencilStoreOp =
-        storeFlagsToVk(attachInfo.stencilStoreOp); // post stencil state
+    attachDescr.storeOp = storeFlagsToVk(attachInfo.storeOp); // post image state
+    attachDescr.stencilLoadOp = loadFlagsToVk(attachInfo.stencilLoadOp); // pre stencil state
+    attachDescr.stencilStoreOp = storeFlagsToVk(attachInfo.stencilStoreOp); // post stencil state
 
     AttachmentHandle handle(static_cast<uint32_t>(attachmentDescrs_.size()));
     attachmentDescrs_.emplace_back(attachDescr);
@@ -194,35 +184,26 @@ void RenderPass::addSubpassDependency(DependencyType dependType)
 
     if (dependType == DependencyType::ColourPass)
     {
-        dependencies_[0].dstStageMask =
-            vk::PipelineStageFlagBits::eColorAttachmentOutput;
+        dependencies_[0].dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
         dependencies_[0].dstAccessMask =
-            vk::AccessFlagBits::eColorAttachmentRead |
-            vk::AccessFlagBits::eColorAttachmentWrite;
+            vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite;
     }
     else if (dependType == DependencyType::DepthStencilPass)
     {
-        dependencies_[0].dstStageMask =
-            vk::PipelineStageFlagBits::eEarlyFragmentTests;
-        dependencies_[0].dstAccessMask =
-            vk::AccessFlagBits::eDepthStencilAttachmentWrite;
+        dependencies_[0].dstStageMask = vk::PipelineStageFlagBits::eEarlyFragmentTests;
+        dependencies_[0].dstAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentWrite;
     }
     else if (dependType == DependencyType::StencilPass)
     {
-        dependencies_[0].dstStageMask =
-            vk::PipelineStageFlagBits::eLateFragmentTests;
-        dependencies_[0].dstAccessMask =
-            vk::AccessFlagBits::eDepthStencilAttachmentWrite;
+        dependencies_[0].dstStageMask = vk::PipelineStageFlagBits::eLateFragmentTests;
+        dependencies_[0].dstAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentWrite;
     }
     else if (dependType == DependencyType::SurfaceKHR)
     {
-        dependencies_[0].srcStageMask =
-            vk::PipelineStageFlagBits::eColorAttachmentOutput;
-        dependencies_[0].dstStageMask =
-            vk::PipelineStageFlagBits::eColorAttachmentOutput;
+        dependencies_[0].srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+        dependencies_[0].dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
         dependencies_[0].srcAccessMask = vk::AccessFlagBits(0);
-        dependencies_[0].dstAccessMask =
-            vk::AccessFlagBits::eColorAttachmentWrite;
+        dependencies_[0].dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
     }
     else
     {
@@ -241,10 +222,8 @@ void RenderPass::addSubpassDependency(DependencyType dependType)
 
     if (dependType == DependencyType::SurfaceKHR)
     {
-        dependencies_[1].srcStageMask =
-            vk::PipelineStageFlagBits::eColorAttachmentOutput;
-        dependencies_[1].dstStageMask =
-            vk::PipelineStageFlagBits::eBottomOfPipe;
+        dependencies_[1].srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+        dependencies_[1].dstStageMask = vk::PipelineStageFlagBits::eBottomOfPipe;
     }
     else
     {
@@ -269,7 +248,7 @@ void RenderPass::prepare()
         }
 
         vk::AttachmentReference ref {
-            static_cast<uint32_t>(count),getAttachmentLayout(descr.format)};
+            static_cast<uint32_t>(count), getAttachmentLayout(descr.format)};
 
         if (isDepth(descr.format) || isStencil(descr.format))
         {
@@ -323,21 +302,16 @@ void RenderPass::prepare()
         static_cast<uint32_t>(dependencies_.size()),
         dependencies_.data());
 
-    VK_CHECK_RESULT(
-        context_.device().createRenderPass(&createInfo, nullptr, &renderpass_));
+    VK_CHECK_RESULT(context_.device().createRenderPass(&createInfo, nullptr, &renderpass_));
 }
 
 const vk::RenderPass& RenderPass::get() const { return renderpass_; }
 
 void RenderPass::setDepthClear(float col) { depthClear_ = col; }
 
-std::vector<vk::AttachmentDescription>& RenderPass::getAttachments()
-{
-    return attachmentDescrs_;
-}
+std::vector<vk::AttachmentDescription>& RenderPass::getAttachments() { return attachmentDescrs_; }
 
-std::vector<vk::PipelineColorBlendAttachmentState>
-RenderPass::getColourAttachs()
+std::vector<vk::PipelineColorBlendAttachmentState> RenderPass::getColourAttachs()
 {
     size_t attachCount = attachmentDescrs_.size();
     ASSERT_LOG(attachCount > 0);
@@ -349,15 +323,13 @@ RenderPass::getColourAttachs()
     for (uint32_t i = 0; i < attachmentDescrs_.size(); ++i)
     {
         // only colour attachments....
-        if (isDepth(attachmentDescrs_[i].format) ||
-            isStencil(attachmentDescrs_[i].format))
+        if (isDepth(attachmentDescrs_[i].format) || isStencil(attachmentDescrs_[i].format))
         {
             continue;
         }
         vk::PipelineColorBlendAttachmentState colour;
-        colour.colorWriteMask = vk::ColorComponentFlagBits::eR |
-            vk::ColorComponentFlagBits::eG | vk::ColorComponentFlagBits::eB |
-            vk::ColorComponentFlagBits::eA;
+        colour.colorWriteMask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
+            vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
         colour.blendEnable = VK_FALSE; //< TODO: need to add blending
         colAttachs.emplace_back(colour);
     }

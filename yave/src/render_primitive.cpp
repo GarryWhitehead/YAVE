@@ -22,14 +22,13 @@
 
 #include "render_primitive.h"
 
-#include "material.h"
+#include "backend/enums.h"
 #include "engine.h"
+#include "material.h"
 #include "utility/assertion.h"
 #include "vertex_buffer.h"
 #include "yave/engine.h"
 #include "yave/render_primitive.h"
-
-#include "backend/enums.h"
 
 #include <spdlog/spdlog.h>
 
@@ -39,16 +38,12 @@ namespace yave
 {
 
 IRenderPrimitive::IRenderPrimitive()
-    : topology_(vk::PrimitiveTopology::eTriangleList),
-      primitiveRestart_(false)
+    : topology_(vk::PrimitiveTopology::eTriangleList), primitiveRestart_(false)
 {
 }
 IRenderPrimitive::~IRenderPrimitive() {}
 
-void IRenderPrimitive::shutDown(vkapi::VkDriver& driver) noexcept 
-{
-
-}
+void IRenderPrimitive::shutDown(vkapi::VkDriver& driver) noexcept {}
 
 vkapi::VDefinitions IRenderPrimitive::createVertexAttributeVariants()
 {
@@ -93,15 +88,9 @@ void IRenderPrimitive::setTopologyI(backend::PrimitiveTopology topo)
     topology_ = backend::primitiveTopologyToVk(topo);
 }
 
-void IRenderPrimitive::setVertexBufferI(IVertexBuffer* vBuffer) noexcept
-{
-    vertBuffer_ = vBuffer;
-}
+void IRenderPrimitive::setVertexBufferI(IVertexBuffer* vBuffer) noexcept { vertBuffer_ = vBuffer; }
 
-void IRenderPrimitive::setIndexBufferI(IIndexBuffer* iBuffer) noexcept
-{
-    indexBuffer_ = iBuffer;
-}
+void IRenderPrimitive::setIndexBufferI(IIndexBuffer* iBuffer) noexcept { indexBuffer_ = iBuffer; }
 
 void IRenderPrimitive::setMaterialI(IMaterial* mat) noexcept { material_ = mat; }
 
@@ -117,10 +106,7 @@ void IRenderPrimitive::addMeshDrawData(size_t indexCount, size_t offset)
 
 void IRenderPrimitive::setTopology(Topology topo) { setTopologyI(topo); }
 
-void IRenderPrimitive::enablePrimitiveRestart() noexcept
-{
-    primitiveRestart_ = true;
-}
+void IRenderPrimitive::enablePrimitiveRestart() noexcept { primitiveRestart_ = true; }
 
 void IRenderPrimitive::setVertexBuffer(VertexBuffer* vBuffer)
 {
@@ -132,7 +118,7 @@ void IRenderPrimitive::setIndexBuffer(IndexBuffer* iBuffer)
     setIndexBufferI(reinterpret_cast<IIndexBuffer*>(iBuffer));
 }
 
-void IRenderPrimitive::setMaterial(Material* mat) 
+void IRenderPrimitive::setMaterial(Material* mat)
 {
     setMaterialI(reinterpret_cast<IMaterial*>(mat));
 }

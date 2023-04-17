@@ -40,8 +40,7 @@ backend::SamplerFilter samplerFilterToYave(yave::ModelMaterial::Sampler::Filter 
     return output;
 }
 
-backend::SamplerAddressMode
-samplerWrapModeToYave(yave::ModelMaterial::Sampler::AddressMode addr)
+backend::SamplerAddressMode samplerWrapModeToYave(yave::ModelMaterial::Sampler::AddressMode addr)
 {
     backend::SamplerAddressMode output = backend::SamplerAddressMode::ClampToEdge;
     switch (addr)
@@ -89,4 +88,4 @@ backend::PrimitiveTopology primitiveTopologyToYave(yave::ModelMesh::Topology top
     return output;
 }
 
-}
+} // namespace backend

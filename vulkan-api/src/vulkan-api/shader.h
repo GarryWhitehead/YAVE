@@ -22,11 +22,11 @@
 
 #pragma once
 
+#include "backend/enums.h"
 #include "buffer.h"
 #include "common.h"
 #include "utility/compiler.h"
 #include "utility/cstring.h"
-#include "backend/enums.h"
 
 #include <shaderc/shaderc.hpp>
 #include <shaderc_util/file_finder.h>
@@ -51,8 +51,7 @@ using VDefinitions = std::unordered_map<std::string, uint8_t>;
 class IncludeInterface : public shaderc::CompileOptions::IncluderInterface
 {
 public:
-    explicit IncludeInterface(const shaderc_util::FileFinder* fileFinder)
-        : fileFinder(*fileFinder)
+    explicit IncludeInterface(const shaderc_util::FileFinder* fileFinder) : fileFinder(*fileFinder)
     {
     }
 
@@ -68,10 +67,7 @@ public:
     void ReleaseInclude(shaderc_include_result* includeResult) override;
 
     // Returns a reference to the member storing the set of included files.
-    const std::unordered_set<std::string>& filePathTrace() const
-    {
-        return includedFiles;
-    }
+    const std::unordered_set<std::string>& filePathTrace() const { return includedFiles; }
 
 private:
     // The full path and content of a source file.
@@ -122,7 +118,6 @@ struct ShaderBinding
 class Shader
 {
 public:
-    
     Shader(VkContext& context, const backend::ShaderStage type);
     ~Shader();
 
@@ -147,8 +142,8 @@ public:
      * @param vecSize the number of each type i.e. vec3
      * @param type From spirv reflection - the type - i.e. float, integer
      */
-    static std::tuple<vk::Format, uint32_t> getVkFormatFromSize(
-        uint32_t width, uint32_t vecSize, const spirv_cross::SPIRType type);
+    static std::tuple<vk::Format, uint32_t>
+    getVkFormatFromSize(uint32_t width, uint32_t vecSize, const spirv_cross::SPIRType type);
 
     /**
      * @brief compiles the specified code into glsl bytecode, and then creates

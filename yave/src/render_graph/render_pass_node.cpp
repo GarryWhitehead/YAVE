@@ -44,9 +44,7 @@ void RenderPassInfo::bake(const RenderGraph& rGraph)
         return;
     }
 
-    std::array<
-        vkapi::RenderTarget::AttachmentInfo,
-        vkapi::RenderTarget::MaxColourAttachCount>
+    std::array<vkapi::RenderTarget::AttachmentInfo, vkapi::RenderTarget::MaxColourAttachCount>
         colourInfo;
     for (uint8_t i = 0; i < colourInfo.size(); ++i)
     {
@@ -55,15 +53,13 @@ void RenderPassInfo::bake(const RenderGraph& rGraph)
             TextureResource* texture = reinterpret_cast<TextureResource*>(
                 rGraph.getResource(desc.attachments.attachArray[i]));
             colourInfo[i].handle = texture->handle();
-            ASSERT_FATAL(
-                texture->handle(),
-                "Invalid handle for colour attchment at index %d.",
-                i);
+            ASSERT_FATAL(texture->handle(), "Invalid handle for colour attchment at index %d.", i);
             // also fill the layer and level from the subresource of the texture
-            
+
             // now we have resolved the image usage - work out what to transition
             // to in the final layout of the renderpass
-            if (texture->imageUsage_ & vk::ImageUsageFlagBits::eSampled || texture->imageUsage_ & vk::ImageUsageFlagBits::eInputAttachment)
+            if (texture->imageUsage_ & vk::ImageUsageFlagBits::eSampled ||
+                texture->imageUsage_ & vk::ImageUsageFlagBits::eInputAttachment)
             {
                 vkBackend.rPassData.finalLayouts[i] = vk::ImageLayout::eShaderReadOnlyOptimal;
             }
@@ -79,16 +75,13 @@ void RenderPassInfo::bake(const RenderGraph& rGraph)
     for (uint8_t i = 0; i < depthStencilInfo.size(); ++i)
     {
         auto& attachment =
-            desc.attachments
-                .attachArray[vkapi::RenderTarget::MaxColourAttachCount + i];
+            desc.attachments.attachArray[vkapi::RenderTarget::MaxColourAttachCount + i];
         if (attachment)
         {
-            TextureResource* texture = reinterpret_cast<TextureResource*>(
-                rGraph.getResource(attachment));
+            TextureResource* texture =
+                reinterpret_cast<TextureResource*>(rGraph.getResource(attachment));
             depthStencilInfo[i].handle = texture->handle();
-            ASSERT_FATAL(
-                texture->handle(),
-                "Invalid handle for depth/stencil attchment.");
+            ASSERT_FATAL(texture->handle(), "Invalid handle for depth/stencil attchment.");
             // also fill the layer and level from the subresource of the texture
         }
     }
@@ -154,8 +147,8 @@ RenderPassNode::RenderPassNode(
 {
 }
 
-RenderGraphHandle RenderPassNode::createRenderTarget(
-    const util::CString& name, const PassDescriptor& desc)
+RenderGraphHandle
+RenderPassNode::createRenderTarget(const util::CString& name, const PassDescriptor& desc)
 {
     RenderPassInfo info;
     info.name = name;
@@ -176,8 +169,8 @@ RenderGraphHandle RenderPassNode::createRenderTarget(
             RenderGraphHandle handle = desc.attachments.attachArray[i];
             for (const auto* edge : readerEdges)
             {
-                ResourceNode* node = reinterpret_cast<ResourceNode*>(
-                    depGraph.getNode(edge->fromId));
+                ResourceNode* node =
+                    reinterpret_cast<ResourceNode*>(depGraph.getNode(edge->fromId));
                 ASSERT_LOG(node);
                 if (node->resourceHandle() == handle)
                 {
@@ -211,7 +204,7 @@ void RenderPassNode::build()
         for (uint8_t i = 0; i < vkapi::RenderTarget::MaxAttachmentCount; ++i)
         {
             auto& attachment = renderPassTarget.desc.attachments.attachArray[i];
-            
+
             rPassData.loadClearFlags[i] = vkapi::LoadClearFlags::DontCare;
             rPassData.storeClearFlags[i] = vkapi::StoreClearFlags::Store;
 
@@ -221,40 +214,32 @@ void RenderPassNode::build()
                 // from the pass setup
                 if (i == vkapi::RenderTarget::DepthIndex - 1)
                 {
-                    rPassData.loadClearFlags[i] =
-                        renderPassTarget.desc.dsLoadClearFlags[0];
-                    rPassData.storeClearFlags[i] =
-                        renderPassTarget.desc.dsStoreClearFlags[0];
+                    rPassData.loadClearFlags[i] = renderPassTarget.desc.dsLoadClearFlags[0];
+                    rPassData.storeClearFlags[i] = renderPassTarget.desc.dsStoreClearFlags[0];
                 }
                 else if (i == vkapi::RenderTarget::StencilIndex - 1)
                 {
-                    rPassData.loadClearFlags[i] =
-                        renderPassTarget.desc.dsLoadClearFlags[1];
-                    rPassData.storeClearFlags[i] =
-                        renderPassTarget.desc.dsStoreClearFlags[1];
+                    rPassData.loadClearFlags[i] = renderPassTarget.desc.dsLoadClearFlags[1];
+                    rPassData.storeClearFlags[i] = renderPassTarget.desc.dsStoreClearFlags[1];
                 }
                 else
                 {
                     // if the pass has no readers then we can clear the store
-                    if (renderPassTarget.writers[i] &&
-                        !renderPassTarget.writers[i]->hasReaders())
+                    if (renderPassTarget.writers[i] && !renderPassTarget.writers[i]->hasReaders())
                     {
-                        rPassData.storeClearFlags[i] =
-                            vkapi::StoreClearFlags::DontCare;
+                        rPassData.storeClearFlags[i] = vkapi::StoreClearFlags::DontCare;
                     }
                     // if the pass has no writers then we can clear the load op
-                    if (!renderPassTarget.readers[i] ||
-                        !renderPassTarget.readers[i]->hasWriters())
+                    if (!renderPassTarget.readers[i] || !renderPassTarget.readers[i]->hasWriters())
                     {
-                        rPassData.loadClearFlags[i] =
-                            vkapi::LoadClearFlags::Clear;
+                        rPassData.loadClearFlags[i] = vkapi::LoadClearFlags::Clear;
                     }
                 }
 
                 // work out the min and max width/height resource size across
                 // all targets
-                TextureResource* texture = reinterpret_cast<TextureResource*>(
-                    rGraph_.getResource(attachment));
+                TextureResource* texture =
+                    reinterpret_cast<TextureResource*>(rGraph_.getResource(attachment));
                 uint32_t textureWidth = texture->descriptor().width;
                 uint32_t textureHeight = texture->descriptor().height;
                 minWidth = std::min(minWidth, textureWidth);
@@ -262,9 +247,8 @@ void RenderPassNode::build()
                 maxWidth = std::max(maxWidth, textureWidth);
                 maxHeight = std::max(maxHeight, textureHeight);
 
-                importedTarget = !importedTarget
-                    ? texture->asImportedRenderTarget()
-                    : importedTarget;
+                importedTarget =
+                    !importedTarget ? texture->asImportedRenderTarget() : importedTarget;
             }
         }
 
@@ -287,26 +271,20 @@ void RenderPassNode::build()
             {
                 if (rPassData.finalLayouts[i] != vk::ImageLayout::eUndefined)
                 {
-                    rPassData.loadClearFlags[i] =
-                        importedTarget->desc.loadClearFlags[i];
-                    rPassData.storeClearFlags[i] =
-                        importedTarget->desc.storeClearFlags[i];
+                    rPassData.loadClearFlags[i] = importedTarget->desc.loadClearFlags[i];
+                    rPassData.storeClearFlags[i] = importedTarget->desc.storeClearFlags[i];
                 }
                 else
                 {
-                    rPassData.loadClearFlags[i] =
-                        vkapi::LoadClearFlags::DontCare;
-                     rPassData.storeClearFlags[i] =
-                            vkapi::StoreClearFlags::DontCare;
+                    rPassData.loadClearFlags[i] = vkapi::LoadClearFlags::DontCare;
+                    rPassData.storeClearFlags[i] = vkapi::StoreClearFlags::DontCare;
                 }
             }
-            
         }
     }
 }
 
-void RenderPassNode::execute(
-    vkapi::VkDriver& driver, const RenderGraphResource& graphResource)
+void RenderPassNode::execute(vkapi::VkDriver& driver, const RenderGraphResource& graphResource)
 {
     for (auto& renderPassTarget : renderPassTargets_)
     {
@@ -325,8 +303,7 @@ RenderPassNode::getRenderTargetBackendInfo(const RenderGraphHandle& handle)
     return info.vkBackend;
 }
 
-const RenderPassInfo&
-RenderPassNode::getRenderTargetInfo(const RenderGraphHandle& handle)
+const RenderPassInfo& RenderPassNode::getRenderTargetInfo(const RenderGraphHandle& handle)
 {
     ASSERT_FATAL(
         handle.getKey() < renderPassTargets_.size(),
@@ -339,19 +316,13 @@ RenderPassNode::getRenderTargetInfo(const RenderGraphHandle& handle)
 
 // ====================== PresentPass Node ====================================
 
-PresentPassNode::PresentPassNode(RenderGraph& rGraph)
-    : PassNodeBase(rGraph, "present")
-{
-}
+PresentPassNode::PresentPassNode(RenderGraph& rGraph) : PassNodeBase(rGraph, "present") {}
 
 PresentPassNode::~PresentPassNode() {}
 
 void PresentPassNode::build() {}
 
-void PresentPassNode::execute(
-    vkapi::VkDriver& driver, const RenderGraphResource& graphResource)
-{
-}
+void PresentPassNode::execute(vkapi::VkDriver& driver, const RenderGraphResource& graphResource) {}
 
 } // namespace rg
 } // namespace yave

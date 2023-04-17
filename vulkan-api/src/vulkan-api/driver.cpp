@@ -97,8 +97,8 @@ bool VkDriver::init(const vk::SurfaceKHR surface)
 
     // create a semaphore for signalling that a image is ready for presentation
     vk::SemaphoreCreateInfo semaphoreCreateInfo;
-    VK_CHECK_RESULT(context().device().createSemaphore(
-        &semaphoreCreateInfo, nullptr, &imageReadySignal_));
+    VK_CHECK_RESULT(
+        context().device().createSemaphore(&semaphoreCreateInfo, nullptr, &imageReadySignal_));
 
     return true;
 }
@@ -116,9 +116,7 @@ RenderTargetHandle VkDriver::createRenderTarget(
     uint32_t height,
     uint8_t samples,
     const util::Colour4& clearCol,
-    const std::array<
-        RenderTarget::AttachmentInfo,
-        RenderTarget::MaxColourAttachCount>& colours,
+    const std::array<RenderTarget::AttachmentInfo, RenderTarget::MaxColourAttachCount>& colours,
     const RenderTarget::AttachmentInfo& depth,
     const RenderTarget::AttachmentInfo& stencil)
 {
@@ -129,8 +127,7 @@ RenderTargetHandle VkDriver::createRenderTarget(
     memcpy(
         &rt.colours,
         colours.data(),
-        sizeof(RenderTarget::AttachmentInfo) *
-            RenderTarget::MaxColourAttachCount);
+        sizeof(RenderTarget::AttachmentInfo) * RenderTarget::MaxColourAttachCount);
 
     RenderTargetHandle handle {static_cast<uint32_t>(renderTargets_.size())};
     renderTargets_.emplace_back(rt);
@@ -142,9 +139,7 @@ RenderTargetHandle VkDriver::createRenderTarget(
 
 VertexBufferHandle VkDriver::addVertexBuffer(const size_t size, void* data)
 {
-    ASSERT_FATAL(
-        data,
-        "Data is nullptr when trying to add vertex buffer to vk backend.");
+    ASSERT_FATAL(data, "Data is nullptr when trying to add vertex buffer to vk backend.");
     VertexBuffer* buffer = new VertexBuffer();
     buffer->create(*this, *context_, vmaAlloc_, *stagingPool_, data, size);
     VertexBufferHandle handle {static_cast<uint32_t>(vertBuffers_.size())};
@@ -152,8 +147,7 @@ VertexBufferHandle VkDriver::addVertexBuffer(const size_t size, void* data)
     return handle;
 }
 
-void VkDriver::mapVertexBuffer(
-    const VertexBufferHandle& handle, size_t count, void* data)
+void VkDriver::mapVertexBuffer(const VertexBufferHandle& handle, size_t count, void* data)
 {
     ASSERT_FATAL(data, "Can not map vertex buffer when data pointer is NULL.");
 
@@ -166,14 +160,12 @@ void VkDriver::mapVertexBuffer(
         addVertexBuffer(count, data);
         return;
     }
-    buffer->mapAndCopyToGpu(
-        *this, *stagingPool_, count, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, data);
+    buffer->mapAndCopyToGpu(*this, *stagingPool_, count, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, data);
 }
 
 IndexBufferHandle VkDriver::addIndexBuffer(const size_t size, void* data)
 {
-    ASSERT_FATAL(
-        data, "Data is nullptr when trying to add index buffer to vk backend.");
+    ASSERT_FATAL(data, "Data is nullptr when trying to add index buffer to vk backend.");
     IndexBuffer* buffer = new IndexBuffer();
     buffer->create(*this, *context_, vmaAlloc_, *stagingPool_, data, size);
     IndexBufferHandle handle {static_cast<uint32_t>(indexBuffers_.size())};
@@ -181,8 +173,7 @@ IndexBufferHandle VkDriver::addIndexBuffer(const size_t size, void* data)
     return handle;
 }
 
-void VkDriver::mapIndexBuffer(
-    const IndexBufferHandle& handle, size_t count, void* data)
+void VkDriver::mapIndexBuffer(const IndexBufferHandle& handle, size_t count, void* data)
 {
     ASSERT_FATAL(data, "Can not map vertex buffer when data pointer is NULL.");
 
@@ -195,12 +186,10 @@ void VkDriver::mapIndexBuffer(
         addIndexBuffer(count, data);
         return;
     }
-    buffer->mapAndCopyToGpu(
-        *this, *stagingPool_, count, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, data);
+    buffer->mapAndCopyToGpu(*this, *stagingPool_, count, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, data);
 }
 
-VertexBuffer*
-VkDriver::getVertexBuffer(const VertexBufferHandle& vbHandle) noexcept
+VertexBuffer* VkDriver::getVertexBuffer(const VertexBufferHandle& vbHandle) noexcept
 {
     ASSERT_FATAL(
         vbHandle.getKey() < vertBuffers_.size(),
@@ -209,8 +198,7 @@ VkDriver::getVertexBuffer(const VertexBufferHandle& vbHandle) noexcept
     return vertBuffers_[vbHandle.getKey()];
 }
 
-IndexBuffer*
-VkDriver::getIndexBuffer(const IndexBufferHandle& ibHandle) noexcept
+IndexBuffer* VkDriver::getIndexBuffer(const IndexBufferHandle& ibHandle) noexcept
 {
     ASSERT_FATAL(
         ibHandle.getKey() < indexBuffers_.size(),
@@ -222,9 +210,7 @@ VkDriver::getIndexBuffer(const IndexBufferHandle& ibHandle) noexcept
 void VkDriver::deleteVertexBuffer(const VertexBufferHandle& handle)
 {
     ASSERT_FATAL(
-        handle.getKey() < vertBuffers_.size(),
-        "Invalid vertex buffer handle: %d",
-        handle.getKey());
+        handle.getKey() < vertBuffers_.size(), "Invalid vertex buffer handle: %d", handle.getKey());
     VertexBuffer* buffer = vertBuffers_[handle.getKey()];
     // We get the vulkan buffer handle so its safe to delete the associated
     // VertexBuffer object.
@@ -238,9 +224,7 @@ void VkDriver::deleteVertexBuffer(const VertexBufferHandle& handle)
 void VkDriver::deleteIndexBuffer(const IndexBufferHandle& handle)
 {
     ASSERT_FATAL(
-        handle.getKey() < indexBuffers_.size(),
-        "Invalid index buffer handle: %d",
-        handle.getKey());
+        handle.getKey() < indexBuffers_.size(), "Invalid index buffer handle: %d", handle.getKey());
     IndexBuffer* buffer = indexBuffers_[handle.getKey()];
     gc.add([buffer, this]() {
         buffer->destroy(vmaAlloc_);
@@ -255,14 +239,9 @@ bool VkDriver::beginFrame(Swapchain& swapchain)
 {
     // get the next image index which will be the framebuffer we draw too
     vk::Result result = context_->device().acquireNextImageKHR(
-        swapchain.get(),
-        std::numeric_limits<uint64_t>::max(),
-        imageReadySignal_,
-        {},
-        &imageIndex_);
+        swapchain.get(), std::numeric_limits<uint64_t>::max(), imageReadySignal_, {}, &imageIndex_);
 
-    if (result == vk::Result::eErrorOutOfDateKHR ||
-        result == vk::Result::eSuboptimalKHR)
+    if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR)
     {
         return false;
     }
@@ -296,9 +275,7 @@ void VkDriver::endFrame(Swapchain& swapchain)
 }
 
 void VkDriver::beginRenderpass(
-    vk::CommandBuffer cmds,
-    const RenderPassData& data,
-    const RenderTargetHandle& rtHandle)
+    vk::CommandBuffer cmds, const RenderPassData& data, const RenderTargetHandle& rtHandle)
 {
     ASSERT_LOG(rtHandle);
     RenderTarget& renderTarget = renderTargets_[rtHandle.getKey()];
@@ -333,8 +310,7 @@ void VkDriver::beginRenderpass(
     rpassKey.dsLoadOp[0] = data.loadClearFlags[RenderTarget::DepthIndex - 1];
     rpassKey.dsStoreOp[0] = data.storeClearFlags[RenderTarget::DepthIndex - 1];
     rpassKey.dsLoadOp[1] = data.loadClearFlags[RenderTarget::StencilIndex - 1];
-    rpassKey.dsStoreOp[1] =
-        data.storeClearFlags[RenderTarget::StencilIndex - 1];
+    rpassKey.dsStoreOp[1] = data.storeClearFlags[RenderTarget::StencilIndex - 1];
 
     RenderPass* rpass = framebufferCache_->findOrCreateRenderPass(rpassKey);
     rpass->lastUsedFrameStamp_ = currentFrame_;
@@ -355,10 +331,7 @@ void VkDriver::beginRenderpass(
             auto tex = colour.handle.getResource();
             ASSERT_LOG(colour.handle);
             fboKey.views[idx] = tex->getImageView()->get();
-            ASSERT_FATAL(
-                fboKey.views[idx],
-                "ImageView for attachment %d is invalid.",
-                idx);
+            ASSERT_FATAL(fboKey.views[idx], "ImageView for attachment %d is invalid.", idx);
             ++count;
         }
     }
@@ -368,8 +341,7 @@ void VkDriver::beginRenderpass(
         fboKey.views[count++] = tex->getImageView()->get();
     }
 
-    FrameBuffer* fbo =
-        framebufferCache_->findOrCreateFrameBuffer(fboKey, count);
+    FrameBuffer* fbo = framebufferCache_->findOrCreateFrameBuffer(fboKey, count);
     fbo->lastUsedFrameStamp_ = currentFrame_;
 
     // sort out the clear values for the pass
@@ -383,8 +355,7 @@ void VkDriver::beginRenderpass(
     {
         if (isDepth(attachments[i].format) || isStencil(attachments[i].format))
         {
-            clearValues[attachments.size() - 1].depthStencil =
-                vk::ClearDepthStencilValue {1.0f, 0};
+            clearValues[attachments.size() - 1].depthStencil = vk::ClearDepthStencilValue {1.0f, 0};
         }
         else
         {
@@ -421,8 +392,7 @@ void VkDriver::beginRenderpass(
 
     vk::Rect2D scissor {
         {static_cast<int32_t>(viewport.x), static_cast<int32_t>(viewport.y)},
-        {static_cast<uint32_t>(viewport.width),
-         static_cast<uint32_t>(viewport.height)}};
+        {static_cast<uint32_t>(viewport.width), static_cast<uint32_t>(viewport.height)}};
     pipelineCache_->bindScissor(cmds, scissor);
 
     // bind the renderpass to the pipeline
@@ -430,10 +400,7 @@ void VkDriver::beginRenderpass(
     pipelineCache_->bindColourAttachCount(rpass->colAttachCount());
 }
 
-void VkDriver::endRenderpass(vk::CommandBuffer& cmdBuffer)
-{
-    cmdBuffer.endRenderPass();
-}
+void VkDriver::endRenderpass(vk::CommandBuffer& cmdBuffer) { cmdBuffer.endRenderPass(); }
 
 Commands& VkDriver::getCommands() noexcept { return *commands_; }
 
@@ -455,16 +422,14 @@ void VkDriver::draw(
     PipelineLayout& plineLayout = programBundle.getPipelineLayout();
 
     // Bind the texture samplers for each shader stage
-    vkapi::PipelineCache::DescriptorImage
-        samplers[vkapi::PipelineCache::MaxSamplerBindCount];
+    vkapi::PipelineCache::DescriptorImage samplers[vkapi::PipelineCache::MaxSamplerBindCount];
     for (int idx = 0; idx < vkapi::PipelineCache::MaxSamplerBindCount; ++idx)
     {
         const vkapi::TextureHandle& handle = programBundle.textureHandles_[idx];
         if (handle)
         {
             ASSERT_FATAL(
-                programBundle.samplers_[idx],
-                "Image sampler has not been set for this material.");
+                programBundle.samplers_[idx], "Image sampler has not been set for this material.");
 
             const auto& tex = handle.getResource();
             vkapi::PipelineCache::DescriptorImage& image = samplers[idx];
@@ -484,8 +449,7 @@ void VkDriver::draw(
         }
         else if (info.type == vk::DescriptorType::eUniformBufferDynamic)
         {
-            pipelineCache_->bindUboDynamic(
-                info.binding, info.buffer, info.size);
+            pipelineCache_->bindUboDynamic(info.binding, info.buffer, info.size);
         }
         else if (info.type == vk::DescriptorType::eStorageBuffer)
         {
@@ -537,13 +501,11 @@ void VkDriver::draw(
 
     // if the width and height are zero then ignore setting the scissor and/or
     // viewport and go with the extents set aupon initiation of the renderpass
-    if (programBundle.scissor_.extent.width != 0 &&
-        programBundle.scissor_.extent.height != 0)
+    if (programBundle.scissor_.extent.width != 0 && programBundle.scissor_.extent.height != 0)
     {
         pipelineCache_->bindScissor(cmdBuffer, programBundle.scissor_);
     }
-    if (programBundle.viewport_.width != 0 &&
-        programBundle.viewport_.height != 0)
+    if (programBundle.viewport_.width != 0 && programBundle.viewport_.height != 0)
     {
         pipelineCache_->bindViewport(cmdBuffer, programBundle.viewport_);
     }
@@ -564,8 +526,7 @@ void VkDriver::draw(
         if (programBundle.pushBlock_[i])
         {
             ASSERT_FATAL(
-                programBundle.pushBlock_[i]->data,
-                "No data has been set for this pushblock.");
+                programBundle.pushBlock_[i]->data, "No data has been set for this pushblock.");
             plineLayout.bindPushBlock(cmdBuffer, *programBundle.pushBlock_[i]);
         }
     }
@@ -579,14 +540,9 @@ void VkDriver::draw(
     }
     if (indexBuffer)
     {
-        cmdBuffer.bindIndexBuffer(
-            indexBuffer, 0, programBundle.renderPrim_.indexBufferType);
+        cmdBuffer.bindIndexBuffer(indexBuffer, 0, programBundle.renderPrim_.indexBufferType);
         cmdBuffer.drawIndexed(
-            programBundle.renderPrim_.indicesCount,
-            1,
-            programBundle.renderPrim_.offset,
-            0,
-            0);
+            programBundle.renderPrim_.indicesCount, 1, programBundle.renderPrim_.offset, 0, 0);
     }
     else
     {
@@ -603,17 +559,13 @@ vk::Format VkDriver::getSupportedDepthFormat() const
     // in order of preference - TODO: allow user to define whether stencil
     // format is required or not
     std::vector<vk::Format> formats = {
-        vk::Format::eD32SfloatS8Uint,
-        vk::Format::eD24UnormS8Uint,
-        vk::Format::eD32Sfloat};
-    vk::FormatFeatureFlags formatFeature =
-        vk::FormatFeatureFlagBits::eDepthStencilAttachment;
+        vk::Format::eD32SfloatS8Uint, vk::Format::eD24UnormS8Uint, vk::Format::eD32Sfloat};
+    vk::FormatFeatureFlags formatFeature = vk::FormatFeatureFlagBits::eDepthStencilAttachment;
 
     vk::Format output;
     for (auto format : formats)
     {
-        vk::FormatProperties properties =
-            context_->physical().getFormatProperties(format);
+        vk::FormatProperties properties = context_->physical().getFormatProperties(format);
         if (formatFeature == (properties.optimalTilingFeatures & formatFeature))
         {
             output = format;
@@ -641,8 +593,8 @@ TextureHandle VkDriver::createTexture2d(
         format, width, height, mipLevels, usageFlags, faceCount, arrayCount);
 }
 
-TextureHandle VkDriver::createTexture2d(
-    vk::Format format, uint32_t width, uint32_t height, vk::Image image)
+TextureHandle
+VkDriver::createTexture2d(vk::Format format, uint32_t width, uint32_t height, vk::Image image)
 {
     return resourceCache_->createTexture2d(format, width, height, image);
 }
@@ -659,10 +611,7 @@ void VkDriver::destroyTexture2D(TextureHandle& handle)
     resourceCache_->deleteTexture(handle, gc);
 }
 
-void VkDriver::destroyBuffer(BufferHandle& handle)
-{
-    resourceCache_->deleteUbo(handle, gc);
-}
+void VkDriver::destroyBuffer(BufferHandle& handle) { resourceCache_->deleteUbo(handle, gc); }
 
 void VkDriver::collectGarbage() noexcept
 {

@@ -72,8 +72,7 @@ public:
     ~GltfModel();
 
     /// atributes
-    static uint8_t*
-    getAttributeData(const cgltf_attribute* attrib, size_t& stride);
+    static uint8_t* getAttributeData(const cgltf_attribute* attrib, size_t& stride);
 
     /**
      * @brief Load a specified gltf file from disk.
@@ -125,7 +124,6 @@ private:
 
 
 public:
- 
     std::vector<std::unique_ptr<NodeInstance>> nodes;
 
     // materials and image paths pulled out of the nodes.
@@ -137,7 +135,6 @@ public:
     // std::vector<AnimInstance> animations;
 
 private:
-
     cgltf_data* gltfData_ = nullptr;
 
     // linearised nodes - with the name updated to store an id

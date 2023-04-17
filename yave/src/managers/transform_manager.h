@@ -45,8 +45,7 @@ class IEngine;
 
 struct TransformInfo
 {
-    static constexpr uint32_t Uninitialised =
-        std::numeric_limits<uint32_t>::max();
+    static constexpr uint32_t Uninitialised = std::numeric_limits<uint32_t>::max();
 
     NodeInfo* root = nullptr;
 
@@ -69,12 +68,10 @@ public:
     ITransformManager(IEngine& engine);
     ~ITransformManager();
 
- 
+
     bool addNodeHierachy(NodeInstance& node, IObject& obj, SkinInstance* skin);
 
-    void addTransformI(
-        const mathfu::mat4& local,
-        IObject* obj);
+    void addTransformI(const mathfu::mat4& local, IObject* obj);
 
     mathfu::mat4 updateMatrix(NodeInfo* node);
 
@@ -88,8 +85,7 @@ public:
 
     // ======================== client API ===========================
 
-    void
-    addModelTransform(const ModelTransform& transform, Object* obj) override;
+    void addModelTransform(const ModelTransform& transform, Object* obj) override;
 
 private:
     // transform data preserved in the node hierachal format

@@ -22,10 +22,9 @@
 
 #include "camera.h"
 
+#include "backend/enums.h"
 #include "utility/maths.h"
 #include "vulkan-api/pipeline_cache.h"
-
-#include "backend/enums.h"
 
 #include <algorithm>
 
@@ -46,22 +45,18 @@ ICamera::ICamera()
 
 ICamera::~ICamera() {}
 
-void ICamera::shutDown(vkapi::VkDriver& driver) noexcept 
-{
-
-}
+void ICamera::shutDown(vkapi::VkDriver& driver) noexcept {}
 
 void ICamera::setProjectionMatrixI(
     float fovy, float aspect, float near, float far, ProjectionType type)
 {
     if (type == ProjectionType::Perspective)
     {
-        projection_ = mathfu::mat4::Perspective(
-            util::maths::radians(fovy), aspect, near, far);
+        projection_ = mathfu::mat4::Perspective(util::maths::radians(fovy), aspect, near, far);
     }
     else
     {
-        // TODO: add ortho 
+        // TODO: add ortho
     }
 
     aspect_ = aspect;
@@ -73,53 +68,27 @@ void ICamera::setProjectionMatrixI(
     projection_(1, 1) *= -1.0f;
 }
 
-mathfu::mat4& ICamera::viewMatrix() 
-{ 
-    return view_; 
-}
+mathfu::mat4& ICamera::viewMatrix() { return view_; }
 
-void ICamera::setViewMatrix(mathfu::mat4& view) 
-{ 
-    view_ = view; 
-}
+void ICamera::setViewMatrix(mathfu::mat4& view) { view_ = view; }
 
-void ICamera::setFovI(float fovy) noexcept 
+void ICamera::setFovI(float fovy) noexcept
 {
-    setProjectionMatrixI(
-        fovy, aspect_, near_, far_, ProjectionType::Perspective);
+    setProjectionMatrixI(fovy, aspect_, near_, far_, ProjectionType::Perspective);
 }
 
-mathfu::vec3 ICamera::position() 
-{ 
-    return -view_.TranslationVector3D(); 
-}
+mathfu::vec3 ICamera::position() { return -view_.TranslationVector3D(); }
 
 size_t ICamera::createUbo(vkapi::VkDriver& driver) noexcept
 {
-    ubo_->pushElement(
-        "mvp", backend::BufferElementType::Mat4, sizeof(mathfu::mat4));
-    ubo_->pushElement(
-        "project",
-        backend::BufferElementType::Mat4,
-        sizeof(mathfu::mat4));
-    ubo_->pushElement(
-        "model",
-        backend::BufferElementType::Mat4,
-        sizeof(mathfu::mat4));
-    ubo_->pushElement(
-        "view",
-        backend::BufferElementType::Mat4,
-        sizeof(mathfu::mat4));
-    ubo_->pushElement(
-        "position",
-        backend::BufferElementType::Float3,
-        sizeof(mathfu::vec3));
-    ubo_->pushElement(
-        "padding", backend::BufferElementType::Float, sizeof(float));
-    ubo_->pushElement(
-        "zNear", backend::BufferElementType::Float, sizeof(float));
-    ubo_->pushElement(
-        "zFar", backend::BufferElementType::Float, sizeof(float));
+    ubo_->pushElement("mvp", backend::BufferElementType::Mat4, sizeof(mathfu::mat4));
+    ubo_->pushElement("project", backend::BufferElementType::Mat4, sizeof(mathfu::mat4));
+    ubo_->pushElement("model", backend::BufferElementType::Mat4, sizeof(mathfu::mat4));
+    ubo_->pushElement("view", backend::BufferElementType::Mat4, sizeof(mathfu::mat4));
+    ubo_->pushElement("position", backend::BufferElementType::Float3, sizeof(mathfu::vec3));
+    ubo_->pushElement("padding", backend::BufferElementType::Float, sizeof(float));
+    ubo_->pushElement("zNear", backend::BufferElementType::Float, sizeof(float));
+    ubo_->pushElement("zFar", backend::BufferElementType::Float, sizeof(float));
     ubo_->createGpuBuffer(driver);
     return ubo_->size();
 }
@@ -144,24 +113,13 @@ UniformBuffer& ICamera::getUbo() noexcept { return *ubo_; }
 Camera::Camera() = default;
 Camera::~Camera() = default;
 
-void ICamera::setProjection(
-    float fovy,
-    float aspect,
-    float near,
-    float far,
-    ProjectionType type)
+void ICamera::setProjection(float fovy, float aspect, float near, float far, ProjectionType type)
 {
     setProjectionMatrixI(fovy, aspect, near, far, type);
 }
 
-void ICamera::setViewMatrix(mathfu::mat4 lookAt) 
-{ 
-    view_ = lookAt; 
-}
+void ICamera::setViewMatrix(mathfu::mat4 lookAt) { view_ = lookAt; }
 
-void ICamera::setFov(float fovy) 
-{ 
-    setFovI(fovy); 
-}
+void ICamera::setFov(float fovy) { setFovI(fovy); }
 
 } // namespace yave

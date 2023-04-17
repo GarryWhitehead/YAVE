@@ -31,17 +31,13 @@
 #ifdef __GNUC__
 #define YAVE_PUBLIC __attribute__((dllexport))
 #else
-#define YAVE_PUBLIC                                                            \
-    __declspec(                                                                \
-        dllexport) // Note: actually gcc seems to also supports this syntax.
+#define YAVE_PUBLIC __declspec(dllexport) // Note: actually gcc seems to also supports this syntax.
 #endif
 #else
 #ifdef __GNUC__
 #define YAVE_PUBLIC __attribute__((dllimport))
 #else
-#define YAVE_PUBLIC                                                            \
-    __declspec(                                                                \
-        dllimport) // Note: actually gcc seems to also supports this syntax.
+#define YAVE_PUBLIC __declspec(dllimport) // Note: actually gcc seems to also supports this syntax.
 #endif
 #endif
 #else

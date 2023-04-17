@@ -22,14 +22,14 @@
 
 #pragma once
 
-#include <backend/enums.h>
 #include <backend/convert_to_vk.h>
+#include <backend/enums.h>
+#include <model_parser/gltf/model_mesh.h>
 #include <vulkan-api/common.h>
 #include <vulkan-api/driver.h>
 #include <vulkan-api/pipeline_cache.h>
 #include <yave/engine.h>
 #include <yave/render_primitive.h>
-#include <model_parser/gltf/model_mesh.h>
 
 namespace yave
 {
@@ -41,7 +41,6 @@ class IIndexBuffer;
 class IRenderPrimitive : public RenderPrimitive
 {
 public:
-
     enum class Variants
     {
         HasSkin,
@@ -76,7 +75,7 @@ public:
     void setVertexBufferI(IVertexBuffer* vBuffer) noexcept;
     void setIndexBufferI(IIndexBuffer* iBuffer) noexcept;
     void setMaterialI(IMaterial* mat) noexcept;
- 
+
     // =================== getters ============================
 
     vk::PrimitiveTopology getTopology() const noexcept { return topology_; }
@@ -99,12 +98,11 @@ public:
     void setMaterial(Material* mat) override;
 
 private:
-   
     vk::PrimitiveTopology topology_;
 
     bool primitiveRestart_;
 
-    // The min and max extents of the primitive 
+    // The min and max extents of the primitive
     Dimensions dims_;
 
     util::BitSetEnum<Variants> variants_;
@@ -114,7 +112,7 @@ private:
 
     // index offsets
     MeshDrawData drawData_;
- 
+
     // the material for this primitive. This isn't owned by the
     // primitive - this is the "property" of the renderable manager.
     IMaterial* material_;

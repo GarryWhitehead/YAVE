@@ -24,9 +24,8 @@
 
 #include "backend/enums.h"
 
-#include <utility/colour.h>
-
 #include <model_parser/gltf/model_material.h>
+#include <utility/colour.h>
 
 #include <string>
 
@@ -39,8 +38,7 @@ class Engine;
 class Material
 {
 public:
-
-     enum class ImageType
+    enum class ImageType
     {
         BaseColour,
         Normal,
@@ -80,7 +78,7 @@ public:
     };
 
     ~Material();
-    
+
     virtual void addPushConstantParam(
         const std::string& elementName,
         backend::BufferElementType type,
@@ -105,29 +103,22 @@ public:
         backend::ShaderStage stage,
         T& value)
     {
-        addPushConstantParam(
-            elementName, type, stage, sizeof(T), (void*)&value);
+        addPushConstantParam(elementName, type, stage, sizeof(T), (void*)&value);
     }
 
     virtual void updatePushConstantParam(
-        const std::string& elementName,
-        backend::ShaderStage stage,
-        void* value) = 0;
+        const std::string& elementName, backend::ShaderStage stage, void* value) = 0;
 
     template <typename T>
-    void updatePushConstantParam(
-        const std::string& elementName,
-        backend::ShaderStage stage,
-        T* value)
+    void
+    updatePushConstantParam(const std::string& elementName, backend::ShaderStage stage, T* value)
     {
         updatePushConstantParam(elementName, stage, (void*)value);
     }
 
     template <typename T>
-    void updatePushConstantParam(
-        const std::string& elementName,
-        backend::ShaderStage stage,
-        T& value)
+    void
+    updatePushConstantParam(const std::string& elementName, backend::ShaderStage stage, T& value)
     {
         updatePushConstantParam(elementName, stage, (void*)&value);
     }
@@ -139,39 +130,28 @@ public:
         void* value) = 0;
 
     template <typename T>
-    void addUboParam(
-        const std::string& elementName,
-        backend::BufferElementType type,
-        T* value = nullptr)
+    void
+    addUboParam(const std::string& elementName, backend::BufferElementType type, T* value = nullptr)
     {
         addUboParam(elementName, type, sizeof(T), (void*)value);
     }
 
     template <typename T>
-    void addUboParam(
-        const std::string& elementName,
-        backend::BufferElementType type,
-        T& value)
+    void addUboParam(const std::string& elementName, backend::BufferElementType type, T& value)
     {
         addUboParam(elementName, type, sizeof(T), (void*)&value);
     }
 
-    virtual void updateUboParam(
-    const std::string& elementName,
-    void* value) = 0;
+    virtual void updateUboParam(const std::string& elementName, void* value) = 0;
 
     template <typename T>
-    void updateUboParam(
-        const std::string& elementName,
-        T* value)
+    void updateUboParam(const std::string& elementName, T* value)
     {
         updateUboParam(elementName, (void*)value);
     }
 
     template <typename T>
-    void updateUboParam(
-        const std::string& elementName,
-        T& value)
+    void updateUboParam(const std::string& elementName, T& value)
     {
         updateUboParam(elementName, (void*)&value);
     }
@@ -204,16 +184,12 @@ public:
 
     virtual void setBlendFactor(backend::BlendFactorPresets preset) = 0;
 
-    virtual void setScissor(
-        uint32_t width,
-        uint32_t height,
-        uint32_t xOffset,
-        uint32_t yOffset) = 0;
+    virtual void
+    setScissor(uint32_t width, uint32_t height, uint32_t xOffset, uint32_t yOffset) = 0;
 
-    virtual void setViewport(
-        uint32_t width, uint32_t height, float minDepth, float maxDepth) = 0;
+    virtual void setViewport(uint32_t width, uint32_t height, float minDepth, float maxDepth) = 0;
 
-   virtual void addTexture(
+    virtual void addTexture(
         Engine* engine,
         void* imageBuffer,
         uint32_t width,
@@ -222,14 +198,11 @@ public:
         ImageType type,
         const TextureSampler& sampler) = 0;
 
-    virtual void addTexture(
-       Engine* engine,
-       Texture* texture,
-       ImageType type,
-       const TextureSampler& sampler) = 0;
+    virtual void
+    addTexture(Engine* engine, Texture* texture, ImageType type, const TextureSampler& sampler) = 0;
 
 protected:
     Material();
 };
 
-}
+} // namespace yave

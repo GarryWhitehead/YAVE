@@ -85,18 +85,15 @@ void ColourPass::render(
             blackboard->add("pbr", data.pbr);
             blackboard->add("gbufferDepth", data.depth);
 
-            data.position = builder.addWriter(
-                data.position, vk::ImageUsageFlagBits::eColorAttachment);
-            data.colour = builder.addWriter(
-                data.colour, vk::ImageUsageFlagBits::eColorAttachment);
-            data.normal = builder.addWriter(
-                data.normal, vk::ImageUsageFlagBits::eColorAttachment);
-            data.pbr = builder.addWriter(
-                data.pbr, vk::ImageUsageFlagBits::eColorAttachment);
-            data.emissive = builder.addWriter(
-                data.emissive, vk::ImageUsageFlagBits::eColorAttachment);
-            data.depth = builder.addWriter(
-                data.depth, vk::ImageUsageFlagBits::eDepthStencilAttachment);
+            data.position =
+                builder.addWriter(data.position, vk::ImageUsageFlagBits::eColorAttachment);
+            data.colour = builder.addWriter(data.colour, vk::ImageUsageFlagBits::eColorAttachment);
+            data.normal = builder.addWriter(data.normal, vk::ImageUsageFlagBits::eColorAttachment);
+            data.pbr = builder.addWriter(data.pbr, vk::ImageUsageFlagBits::eColorAttachment);
+            data.emissive =
+                builder.addWriter(data.emissive, vk::ImageUsageFlagBits::eColorAttachment);
+            data.depth =
+                builder.addWriter(data.depth, vk::ImageUsageFlagBits::eDepthStencilAttachment);
 
             builder.addSideEffect();
 
@@ -147,8 +144,7 @@ void ColourPass::drawCallback(
     IVertexBuffer* vBuffer = prim->getVertexBuffer();
     IIndexBuffer* iBuffer = prim->getIndexBuffer();
 
-    bool hasSkin =
-        prim->getVariantBits().testBit(IRenderPrimitive::Variants::HasSkin);
+    bool hasSkin = prim->getVariantBits().testBit(IRenderPrimitive::Variants::HasSkin);
 
     std::vector<uint32_t> dynamicOffsets = {renderData->getMeshDynamicOffset()};
     ASSERT_FATAL(

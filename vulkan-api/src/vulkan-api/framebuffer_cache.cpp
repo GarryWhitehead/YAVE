@@ -48,23 +48,19 @@ bool FramebufferCache::RPassKey::operator==(const RPassKey& rhs) const noexcept
     {
         return false;
     }
-    if (memcmp(
-            loadOp,
-            rhs.loadOp,
-            sizeof(LoadClearFlags) * RenderTarget::MaxColourAttachCount) != 0)
+    if (memcmp(loadOp, rhs.loadOp, sizeof(LoadClearFlags) * RenderTarget::MaxColourAttachCount) !=
+        0)
     {
         return false;
     }
     if (memcmp(
-            storeOp,
-            rhs.storeOp,
-            sizeof(StoreClearFlags) * RenderTarget::MaxColourAttachCount) != 0)
+            storeOp, rhs.storeOp, sizeof(StoreClearFlags) * RenderTarget::MaxColourAttachCount) !=
+        0)
     {
         return false;
     }
-    if (depth != rhs.depth || dsStoreOp[0] != rhs.dsStoreOp[0] ||
-        dsLoadOp[0] != rhs.dsLoadOp[0] || dsStoreOp[1] != rhs.dsStoreOp[1] ||
-        dsLoadOp[1] != rhs.dsLoadOp[1])
+    if (depth != rhs.depth || dsStoreOp[0] != rhs.dsStoreOp[0] || dsLoadOp[0] != rhs.dsLoadOp[0] ||
+        dsStoreOp[1] != rhs.dsStoreOp[1] || dsLoadOp[1] != rhs.dsLoadOp[1])
     {
         return false;
     }
@@ -77,11 +73,8 @@ bool FramebufferCache::FboKey::operator==(const FboKey& rhs) const noexcept
     {
         return false;
     }
-    if (width != rhs.width || 
-        height != rhs.height || 
-        renderpass == rhs.renderpass || 
-        samples != rhs.samples || 
-        layer != rhs.layer)
+    if (width != rhs.width || height != rhs.height || renderpass == rhs.renderpass ||
+        samples != rhs.samples || layer != rhs.layer)
     {
         return false;
     }
@@ -131,8 +124,7 @@ RenderPass* FramebufferCache::findOrCreateRenderPass(const RPassKey& key)
     return rpass;
 }
 
-FrameBuffer*
-FramebufferCache::findOrCreateFrameBuffer(FboKey& key, uint32_t count)
+FrameBuffer* FramebufferCache::findOrCreateFrameBuffer(FboKey& key, uint32_t count)
 {
     auto iter = frameBuffers_.find(key);
     if (iter != frameBuffers_.end())
@@ -146,12 +138,13 @@ FramebufferCache::findOrCreateFrameBuffer(FboKey& key, uint32_t count)
     return fbo;
 }
 
-void FramebufferCache::cleanCache(uint64_t currentFrame) noexcept 
-{ 
+void FramebufferCache::cleanCache(uint64_t currentFrame) noexcept
+{
     for (auto iter = frameBuffers_.begin(); iter != frameBuffers_.end();)
     {
         vk::Framebuffer fb = iter->second->get();
-        uint32_t framesUntilCollection = iter->second->lastUsedFrameStamp_ + FrameBuffer::LifetimeFrameCount;
+        uint32_t framesUntilCollection =
+            iter->second->lastUsedFrameStamp_ + FrameBuffer::LifetimeFrameCount;
         if (fb && framesUntilCollection < currentFrame)
         {
             context_.device().destroy(fb);
@@ -166,7 +159,8 @@ void FramebufferCache::cleanCache(uint64_t currentFrame) noexcept
     for (auto iter = renderPasses_.begin(); iter != renderPasses_.end();)
     {
         vk::RenderPass rpass = iter->second->get();
-        uint8_t framesUntilCollection = iter->second->lastUsedFrameStamp_ + RenderPass::LifetimeFrameCount;
+        uint8_t framesUntilCollection =
+            iter->second->lastUsedFrameStamp_ + RenderPass::LifetimeFrameCount;
         if (rpass && framesUntilCollection < currentFrame)
         {
             context_.device().destroy(rpass);
@@ -180,7 +174,7 @@ void FramebufferCache::cleanCache(uint64_t currentFrame) noexcept
     }
 }
 
-void FramebufferCache::clear() noexcept 
+void FramebufferCache::clear() noexcept
 {
     for (const auto& [key, info] : frameBuffers_)
     {

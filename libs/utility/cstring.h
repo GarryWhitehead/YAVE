@@ -23,9 +23,9 @@
 #pragma once
 
 #include <cstddef>
-#include <cstring>
-#include <cstdio>
 #include <cstdint>
+#include <cstdio>
+#include <cstring>
 #include <type_traits>
 #include <vector>
 

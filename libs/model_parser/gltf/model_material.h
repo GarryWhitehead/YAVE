@@ -22,11 +22,10 @@
 
 #pragma once
 
-#include <utility/cstring.h>
-#include <utility/colour.h>
-
 #include <cgltf.h>
 #include <mathfu/glsl_mappings.h>
+#include <utility/colour.h>
+#include <utility/cstring.h>
 
 #include <cassert>
 #include <cstdint>
@@ -63,8 +62,7 @@ public:
 
     std::filesystem::path getTextureUri(cgltf_texture_view& view);
 
-    bool
-    create(cgltf_material& mat, GltfExtension& extensions);
+    bool create(cgltf_material& mat, GltfExtension& extensions);
 
     static float convertToAlpha(const cgltf_alpha_mode mode);
     static std::string textureTypeToStr(TextureType type);

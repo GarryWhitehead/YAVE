@@ -30,10 +30,7 @@ namespace yave
 IIndexBuffer::IIndexBuffer() : bufferType_(backend::IndexBufferType::Uint32) {}
 IIndexBuffer::~IIndexBuffer() = default;
 
-void IIndexBuffer::shutDown(vkapi::VkDriver& driver)
-{
-    driver.deleteIndexBuffer(ihandle_);
-}
+void IIndexBuffer::shutDown(vkapi::VkDriver& driver) { driver.deleteIndexBuffer(ihandle_); }
 
 void IIndexBuffer::buildI(
     vkapi::VkDriver& driver,
@@ -41,10 +38,9 @@ void IIndexBuffer::buildI(
     void* indicesData,
     backend::IndexBufferType type)
 {
-    uint32_t byteSize = type == backend::IndexBufferType::Uint16
-        ? sizeof(uint16_t)
-        : sizeof(uint32_t);
-    
+    uint32_t byteSize =
+        type == backend::IndexBufferType::Uint16 ? sizeof(uint16_t) : sizeof(uint32_t);
+
     if (ihandle_)
     {
         driver.mapIndexBuffer(ihandle_, indicesCount * byteSize, indicesData);
@@ -53,8 +49,7 @@ void IIndexBuffer::buildI(
     indicesCount_ = indicesCount;
     bufferType_ = type;
 
-    ihandle_ =
-        driver.addIndexBuffer(indicesCount * byteSize, indicesData);
+    ihandle_ = driver.addIndexBuffer(indicesCount * byteSize, indicesData);
 }
 
 vkapi::IndexBuffer* IIndexBuffer::getGpuBuffer(vkapi::VkDriver& driver) noexcept
@@ -68,16 +63,9 @@ IndexBuffer::IndexBuffer() {}
 IndexBuffer::~IndexBuffer() {}
 
 void IIndexBuffer::build(
-    Engine* engine,
-    uint32_t indicesCount,
-    void* indicesData,
-    backend::IndexBufferType type)
+    Engine* engine, uint32_t indicesCount, void* indicesData, backend::IndexBufferType type)
 {
-    buildI(
-        reinterpret_cast<IEngine*>(engine)->driver(),
-        indicesCount,
-        indicesData,
-        type);
+    buildI(reinterpret_cast<IEngine*>(engine)->driver(), indicesCount, indicesData, type);
 }
 
-}
+} // namespace yave

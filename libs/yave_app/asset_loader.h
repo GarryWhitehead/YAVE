@@ -22,9 +22,9 @@
 
 #pragma once
 
-#include <backend/enums.h>
-
 #include "utility/cstring.h"
+
+#include <backend/enums.h>
 
 #include <filesystem>
 
@@ -36,7 +36,6 @@ class Texture;
 class AssetLoader
 {
 public:
-
     static constexpr int MaxFaceCount = 6;
     static constexpr int MaxMipLevelCount = 12;
 
@@ -75,19 +74,15 @@ public:
      * @brief filename absolute path to desired image file
      * @return Whther the image was successfully mapped into the buffer
      */
-    Texture* loadFromFile(
-        const std::filesystem::path& filePath, backend::TextureFormat format);
+    Texture* loadFromFile(const std::filesystem::path& filePath, backend::TextureFormat format);
 
-    Texture* parseImageFile(
-        const std::filesystem::path& filePath, backend::TextureFormat format);
+    Texture* parseImageFile(const std::filesystem::path& filePath, backend::TextureFormat format);
 
-    Texture* parseKtxFile(
-        const std::filesystem::path& filePath, backend::TextureFormat format);
+    Texture* parseKtxFile(const std::filesystem::path& filePath, backend::TextureFormat format);
 
     void setAssetFolder(const std::filesystem::path& assetPath);
 
 private:
-
     Engine* engine_;
 
     std::filesystem::path assetFolder_;

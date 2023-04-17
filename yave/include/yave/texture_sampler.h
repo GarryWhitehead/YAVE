@@ -30,18 +30,12 @@ namespace yave
 class TextureSampler
 {
 public:
-
     TextureSampler() = default;
 
-	TextureSampler(backend::SamplerFilter min, backend::SamplerFilter mag)
-    {
-        params_ = {min, mag};
-    }
+    TextureSampler(backend::SamplerFilter min, backend::SamplerFilter mag) { params_ = {min, mag}; }
 
     TextureSampler(
-        backend::SamplerFilter min,
-        backend::SamplerFilter mag,
-        backend::SamplerAddressMode addr)
+        backend::SamplerFilter min, backend::SamplerFilter mag, backend::SamplerAddressMode addr)
     {
         params_ = {min, mag, addr, addr, addr};
     }
@@ -63,7 +57,7 @@ public:
         backend::SamplerFilter min,
         backend::SamplerFilter mag,
         backend::SamplerAddressMode addrU,
-        backend::SamplerAddressMode addrV, 
+        backend::SamplerAddressMode addrV,
         backend::SamplerAddressMode addrW)
     {
         params_ = {min, mag, addrU, addrV, addrW};
@@ -83,8 +77,7 @@ public:
     backend::TextureSamplerParams get() const noexcept { return params_; }
 
 private:
-
-	backend::TextureSamplerParams params_;
+    backend::TextureSamplerParams params_;
 };
 
-}
+} // namespace yave

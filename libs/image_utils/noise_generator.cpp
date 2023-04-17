@@ -35,13 +35,9 @@ NoiseGenerator::NoiseGenerator(uint32_t noiseWidth, uint32_t noiseHeight)
     generateNoise(noiseBuffer_, noiseWidth, noiseHeight);
 }
 
-NoiseGenerator::~NoiseGenerator() 
-{ 
-    delete noiseBuffer_; 
-} 
+NoiseGenerator::~NoiseGenerator() { delete noiseBuffer_; }
 
-void NoiseGenerator::generateNoise(
-    double* noiseBuffer, uint32_t noiseWidth, uint32_t noiseHeight)
+void NoiseGenerator::generateNoise(double* noiseBuffer, uint32_t noiseWidth, uint32_t noiseHeight)
 {
     for (uint32_t y = 0; y < noiseHeight; y++)
     {
@@ -53,11 +49,7 @@ void NoiseGenerator::generateNoise(
 }
 
 double NoiseGenerator::smoothNoise(
-    double x,
-    double y,
-    double* noiseBuffer,
-    uint32_t noiseWidth,
-    uint32_t noiseHeight)
+    double x, double y, double* noiseBuffer, uint32_t noiseWidth, uint32_t noiseHeight)
 {
     // get fractional part of x and y
     double fractX = x - static_cast<int>(x);
@@ -82,10 +74,7 @@ double NoiseGenerator::smoothNoise(
 }
 
 uint8_t* NoiseGenerator::generateImage(
-    uint32_t imageWidth,
-    uint32_t imageHeight,
-    uint32_t noiseWidth,
-    uint32_t noiseHeight)
+    uint32_t imageWidth, uint32_t imageHeight, uint32_t noiseWidth, uint32_t noiseHeight)
 {
     uint8_t* imageBuffer = new uint8_t[imageWidth * imageHeight * 4];
 
@@ -93,13 +82,11 @@ uint8_t* NoiseGenerator::generateImage(
     {
         for (uint32_t x = 0; x < imageWidth; x++)
         {
-            util::Colour4 colour {static_cast<float>(
-                256 * smoothNoise(x, y, noiseBuffer_, noiseWidth, noiseHeight))};
+            util::Colour4 colour {
+                static_cast<float>(256 * smoothNoise(x, y, noiseBuffer_, noiseWidth, noiseHeight))};
             imageBuffer[y * imageWidth + x] = static_cast<uint8_t>(colour.r());
-            imageBuffer[2 * (y * imageWidth + x)] =
-                static_cast<uint8_t>(colour.g());
-            imageBuffer[3 * (y * imageWidth + x)] =
-                static_cast<uint8_t>(colour.b());
+            imageBuffer[2 * (y * imageWidth + x)] = static_cast<uint8_t>(colour.g());
+            imageBuffer[3 * (y * imageWidth + x)] = static_cast<uint8_t>(colour.b());
             imageBuffer[4 * (y * imageWidth + x)] = 1;
         }
     }
@@ -107,4 +94,4 @@ uint8_t* NoiseGenerator::generateImage(
 }
 
 
-}
+} // namespace yave

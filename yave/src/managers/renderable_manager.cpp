@@ -60,9 +60,7 @@ void IRenderableManager::buildI(
 {
     for (const auto& prim : renderable->primitives_)
     {
-        ASSERT_FATAL(
-            prim->getMaterial(),
-            "Material must be initialised for a render primitive.");
+        ASSERT_FATAL(prim->getMaterial(), "Material must be initialised for a render primitive.");
         prim->getMaterial()->build(engine_, *renderable, prim, matShader);
     }
 
@@ -100,10 +98,7 @@ IRenderable* IRenderableManager::getMesh(const IObject& obj)
     return &renderables_[handle.get()];
 }
 
-void IRenderableManager::destroyI(const IObject& obj) 
-{ 
-    removeObject(obj); 
-}
+void IRenderableManager::destroyI(const IObject& obj) { removeObject(obj); }
 
 // ==================== client api ========================
 
@@ -128,9 +123,9 @@ Material* IRenderableManager::createMaterial() noexcept
     return reinterpret_cast<Material*>(createMaterialI());
 }
 
-void IRenderableManager::destroy(const Object* obj) 
+void IRenderableManager::destroy(const Object* obj)
 {
-    destroyI(*(reinterpret_cast<const IObject*>(obj))); 
+    destroyI(*(reinterpret_cast<const IObject*>(obj)));
 }
 
 } // namespace yave

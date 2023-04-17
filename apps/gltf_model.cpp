@@ -46,8 +46,8 @@
 
 #include <memory>
 
-yave::Object*
-GltfModelApp::buildModel(const yave::GltfModel& model, yave::Engine* engine, yave::AssetLoader& loader)
+yave::Object* GltfModelApp::buildModel(
+    const yave::GltfModel& model, yave::Engine* engine, yave::AssetLoader& loader)
 {
     auto* rendManager = engine->getRenderManager();
     auto* renderable = engine->createRenderable();
@@ -97,10 +97,9 @@ GltfModelApp::buildModel(const yave::GltfModel& model, yave::Engine* engine, yav
         // load the textures and upload to the gpu
         for (const auto& info : material->textures)
         {
-            yave::Texture* tex = loader.loadFromFile(
-                info.texturePath, backend::TextureFormat::RGBA8);
-            mat->addTexture(
-                engine, tex, mat->convertImageType(info.type), sampler);
+            yave::Texture* tex =
+                loader.loadFromFile(info.texturePath, backend::TextureFormat::RGBA8);
+            mat->addTexture(engine, tex, mat->convertImageType(info.type), sampler);
         }
 
         yave::VertexBuffer* vBuffer = engine->createVertexBuffer();
@@ -108,40 +107,32 @@ GltfModelApp::buildModel(const yave::GltfModel& model, yave::Engine* engine, yav
         yave::RenderPrimitive* prim = engine->createRenderPrimitive();
 
         vBuffer->addAttribute(
-            yave::VertexBuffer::BindingType::Position,
-            backend::BufferElementType::Float3);
+            yave::VertexBuffer::BindingType::Position, backend::BufferElementType::Float3);
 
         auto meshVariants = mesh->variantBits_;
         if (meshVariants.testBit(yave::ModelMesh::Variant::HasUv))
         {
             vBuffer->addAttribute(
-                yave::VertexBuffer::BindingType::Uv,
-                backend::BufferElementType::Float2);
+                yave::VertexBuffer::BindingType::Uv, backend::BufferElementType::Float2);
         }
         if (meshVariants.testBit(yave::ModelMesh::Variant::HasNormal))
         {
             vBuffer->addAttribute(
-                yave::VertexBuffer::BindingType::Normal,
-                backend::BufferElementType::Float3);
+                yave::VertexBuffer::BindingType::Normal, backend::BufferElementType::Float3);
         }
         if (meshVariants.testBit(yave::ModelMesh::Variant::HasWeight))
         {
             vBuffer->addAttribute(
-                yave::VertexBuffer::BindingType::Weight,
-                backend::BufferElementType::Float4);
+                yave::VertexBuffer::BindingType::Weight, backend::BufferElementType::Float4);
         }
         if (meshVariants.testBit(yave::ModelMesh::Variant::HasJoint))
         {
             vBuffer->addAttribute(
-                yave::VertexBuffer::BindingType::Bones,
-                backend::BufferElementType::Float4);
+                yave::VertexBuffer::BindingType::Bones, backend::BufferElementType::Float4);
         }
         vBuffer->build(engine, mesh->vertices_.size, mesh->vertices_.data);
         iBuffer->build(
-            engine,
-            mesh->indices_.size(),
-            mesh->indices_.data(),
-            backend::IndexBufferType::Uint32);
+            engine, mesh->indices_.size(), mesh->indices_.data(), backend::IndexBufferType::Uint32);
         prim->setVertexBuffer(vBuffer);
         prim->setIndexBuffer(iBuffer);
 
@@ -159,16 +150,13 @@ GltfModelApp::buildModel(const yave::GltfModel& model, yave::Engine* engine, yav
     return obj;
 }
 
-void GltfModelApp::addLighting(
-    yave::LightManager* lightManager, yave::Engine* engine)
+void GltfModelApp::addLighting(yave::LightManager* lightManager, yave::Engine* engine)
 {
     dirLightObj = engine->createObject();
-    lightManager->create(
-        dirLightParams, yave::LightManager::Type::Directional, dirLightObj);
+    lightManager->create(dirLightParams, yave::LightManager::Type::Directional, dirLightObj);
 
     spotLightObj = engine->createObject();
-    lightManager->create(
-        spotLightParams, yave::LightManager::Type::Spot, spotLightObj);
+    lightManager->create(spotLightParams, yave::LightManager::Type::Spot, spotLightObj);
 
     lightManager->prepare();
 }
@@ -184,12 +172,10 @@ void GltfModelApp::uiCallback(yave::Engine* engine)
         {
             ImGui::Indent();
             ImGui::Checkbox("Display##dirlight", &showDirLight);
-            ImGui::SliderFloat(
-                "fov##dirlight", &dirLightParams.fov, 0.1f, 90.0f);
+            ImGui::SliderFloat("fov##dirlight", &dirLightParams.fov, 0.1f, 90.0f);
             ImGui::SliderFloat("Intensity##dirlight", &dirLightParams.intensity, 1.0f, 1000.0f);
             ImGui::ColorEdit3("Colour##dirlight", &dirLightParams.colour.x);
-            ImGui::SliderFloat3(
-                "Position##dirlight", &dirLightParams.position.x, 0.0f, 50.0f);
+            ImGui::SliderFloat3("Position##dirlight", &dirLightParams.position.x, 0.0f, 50.0f);
             ImGui::Unindent();
         }
 
@@ -198,11 +184,9 @@ void GltfModelApp::uiCallback(yave::Engine* engine)
             ImGui::Indent();
             ImGui::Checkbox("Display##spotlight", &showSpotLight);
             ImGui::SliderFloat("fov##spotlight", &spotLightParams.fov, 0.1f, 90.0f);
-            ImGui::SliderFloat(
-                "Intensity##spotlight", &spotLightParams.intensity, 1.0f, 1000.0f);
+            ImGui::SliderFloat("Intensity##spotlight", &spotLightParams.intensity, 1.0f, 1000.0f);
             ImGui::ColorEdit3("Colour##spotlight", &spotLightParams.colour.x);
-            ImGui::SliderFloat3(
-                "Position##spotlight", &spotLightParams.position.x, 0.0f, 50.0f);
+            ImGui::SliderFloat3("Position##spotlight", &spotLightParams.position.x, 0.0f, 50.0f);
             ImGui::Unindent();
         }
     }
@@ -231,9 +215,9 @@ int main()
 
     // create the skybox
     yave::AssetLoader loader(engine);
-    loader.setAssetFolder(YAVE_ASSETS_DIRECTORY); 
-    yave::Texture* skyboxTexture = loader.loadFromFile(
-        "textures/uffizi_rgba16f_cube.ktx", backend::TextureFormat::RGBA16);
+    loader.setAssetFolder(YAVE_ASSETS_DIRECTORY);
+    yave::Texture* skyboxTexture =
+        loader.loadFromFile("textures/uffizi_rgba16f_cube.ktx", backend::TextureFormat::RGBA16);
     if (!skyboxTexture)
     {
         exit(1);

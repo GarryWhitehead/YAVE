@@ -44,13 +44,10 @@ public:
     const RenderGraphHandle& get(const std::string& name) const;
 
     void remove(const std::string& name);
-    
+
     void reset() noexcept;
-    
-    const RenderGraphHandle& operator[](std::string& name) const
-    {
-        return get(name);
-    }
+
+    const RenderGraphHandle& operator[](std::string& name) const { return get(name); }
 
 private:
     std::unordered_map<std::string, RenderGraphHandle> blackboard_;

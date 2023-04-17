@@ -25,8 +25,8 @@
 #include <cassert>
 #include <cstdlib>
 #include <string>
-#include <vector>
 #include <utility>
+#include <vector>
 
 namespace util
 {
@@ -61,19 +61,12 @@ CString& CString::operator=(const CString& rhs)
     return *this;
 }
 
-bool CString::operator==(const CString& rhs) const noexcept
-{
-    return rhs.compare(*this);
-}
+bool CString::operator==(const CString& rhs) const noexcept { return rhs.compare(*this); }
 
-bool CString::operator!=(const CString& rhs) const noexcept
-{
-    return !rhs.compare(*this);
-}
+bool CString::operator!=(const CString& rhs) const noexcept { return !rhs.compare(*this); }
 
 CString::CString(CString&& rhs) noexcept
-    : buffer(std::exchange(rhs.buffer, nullptr)),
-      length(std::exchange(rhs.length, 0))
+    : buffer(std::exchange(rhs.buffer, nullptr)), length(std::exchange(rhs.length, 0))
 {
 }
 

@@ -61,8 +61,7 @@ public:
      */
     Info getRenderPassInfo(const RenderGraphHandle& handle) const noexcept;
 
-    vkapi::TextureHandle
-    getTextureHandle(const RenderGraphHandle& handle) const noexcept;
+    vkapi::TextureHandle getTextureHandle(const RenderGraphHandle& handle) const noexcept;
 
 private:
     RenderGraph& rGraph_;

@@ -45,20 +45,14 @@
 namespace yave
 {
 
-IScene::IScene(IEngine& engine)
-    : engine_(engine), camera_(nullptr), skybox_(nullptr)
+IScene::IScene(IEngine& engine) : engine_(engine), camera_(nullptr), skybox_(nullptr)
 {
     vkapi::VkDriver& driver = engine_.driver();
 
     transUbo_ = std::make_unique<UniformBuffer>(
-        vkapi::PipelineCache::UboDynamicSetValue,
-        0,
-        "TransformUbo",
-        "mesh_ubo");
-    transUbo_->pushElement(
-        "modelMatrix", backend::BufferElementType::Mat4, sizeof(mathfu::mat4));
-    transUbo_->createGpuBuffer(
-        driver, ModelBufferInitialSize * transUbo_->size());
+        vkapi::PipelineCache::UboDynamicSetValue, 0, "TransformUbo", "mesh_ubo");
+    transUbo_->pushElement("modelMatrix", backend::BufferElementType::Mat4, sizeof(mathfu::mat4));
+    transUbo_->createGpuBuffer(driver, ModelBufferInitialSize * transUbo_->size());
 
     skinUbo_ = std::make_unique<UniformBuffer>(
         vkapi::PipelineCache::UboDynamicSetValue, 1, "skinUbo", "skin_ubo");
@@ -68,23 +62,17 @@ IScene::IScene(IEngine& engine)
         sizeof(mathfu::mat4),
         nullptr,
         ITransformManager::MaxBoneCount);
-    skinUbo_->pushElement(
-        "jointCount", backend::BufferElementType::Float, sizeof(float));
-    skinUbo_->createGpuBuffer(
-        driver, ModelBufferInitialSize * skinUbo_->size());
+    skinUbo_->pushElement("jointCount", backend::BufferElementType::Float, sizeof(float));
+    skinUbo_->createGpuBuffer(driver, ModelBufferInitialSize * skinUbo_->size());
 }
 
 IScene::~IScene() {}
 
-void IScene::shutDown(vkapi::VkDriver& driver) noexcept 
-{
-
-}
+void IScene::shutDown(vkapi::VkDriver& driver) noexcept {}
 
 void IScene::setSkyboxI(ISkybox* skybox) noexcept
 {
-    ASSERT_FATAL(
-        camera_, "The camera must be set before declaring the skybox.");
+    ASSERT_FATAL(camera_, "The camera must be set before declaring the skybox.");
     skybox_ = skybox;
 }
 
@@ -140,8 +128,7 @@ bool IScene::update()
         ObjectHandle rHandle = rendManager->getObjIndex(*object);
         if (rHandle.valid())
         {
-            VisibleCandidate candidate = {
-                buildRendCandidate(object.get(), worldTransform) };
+            VisibleCandidate candidate = {buildRendCandidate(object.get(), worldTransform)};
             candRenderableObjs_.emplace_back(candidate);
         }
 
@@ -200,8 +187,8 @@ bool IScene::update()
             queueInfo.renderableHandle = this;
             queueInfo.renderFunc = ColourPass::drawCallback;
             // TODO: screen layer and depth is ignored at present
-            queueInfo.sortingKey = RenderQueue::createSortKey(
-                0, mat->getViewLayer(), mat->getPipelineId());
+            queueInfo.sortingKey =
+                RenderQueue::createSortKey(0, mat->getViewLayer(), mat->getPipelineId());
             queueRend.emplace_back(queueInfo);
         }
     }
@@ -212,16 +199,14 @@ bool IScene::update()
     updateCameraBuffer();
 
     // we also update the transforms every frame though could have a dirty flag
-    updateTransformBuffer(
-        candRenderableObjs_, staticModelCount, skinnedModelCount);
+    updateTransformBuffer(candRenderableObjs_, staticModelCount, skinnedModelCount);
 
     lightManager->updateSsbo(candLightObjs);
 
     return true;
 }
 
-IScene::VisibleCandidate
-IScene::buildRendCandidate(IObject* obj, const mathfu::mat4& worldMatrix)
+IScene::VisibleCandidate IScene::buildRendCandidate(IObject* obj, const mathfu::mat4& worldMatrix)
 {
     auto* transManager = engine_.getTransformManagerI();
     auto* rendManager = engine_.getRenderableManagerI();
@@ -232,8 +217,7 @@ IScene::buildRendCandidate(IObject* obj, const mathfu::mat4& worldMatrix)
 
     // if this renderable is void from the visibility checks,
     // then return early.
-    if (candidate.renderable->getVisibility().testBit(
-            IRenderable::Visible::Ignore))
+    if (candidate.renderable->getVisibility().testBit(IRenderable::Visible::Ignore))
     {
         return candidate;
     }
@@ -245,8 +229,7 @@ IScene::buildRendCandidate(IObject* obj, const mathfu::mat4& worldMatrix)
     AABBox box {
         candidate.renderable->getRenderPrimitive()->getDimensions().min,
         candidate.renderable->getRenderPrimitive()->getDimensions().max};
-    candidate.worldAABB =
-        AABBox::calculateRigidTransform(box, candidate.worldTransform);
+    candidate.worldAABB = AABBox::calculateRigidTransform(box, candidate.worldTransform);
     return candidate;
 }
 
@@ -254,25 +237,21 @@ void IScene::getVisibleRenderables(
     Frustum& frustum, std::vector<IScene::VisibleCandidate>& renderables)
 {
     tbb::parallel_for(
-        tbb::blocked_range<size_t>(0, renderables.size()),
-        [&](tbb::blocked_range<size_t> range) {
+        tbb::blocked_range<size_t>(0, renderables.size()), [&](tbb::blocked_range<size_t> range) {
             for (size_t idx = range.begin(); idx < range.end(); ++idx)
             {
                 if (frustum.checkIntersection(renderables[idx].worldAABB))
                 {
-                    renderables[idx].renderable->getVisibility() |=
-                        IRenderable::Visible::Render;
+                    renderables[idx].renderable->getVisibility() |= IRenderable::Visible::Render;
                 }
             }
         });
 }
 
-void IScene::getVisibleLights(
-    Frustum& frustum, std::vector<LightInstance*>& lights)
+void IScene::getVisibleLights(Frustum& frustum, std::vector<LightInstance*>& lights)
 {
     tbb::parallel_for(
-        tbb::blocked_range<size_t>(0, lights.size()),
-        [&](tbb::blocked_range<size_t> range) {
+        tbb::blocked_range<size_t>(0, lights.size()), [&](tbb::blocked_range<size_t> range) {
             for (size_t idx = range.begin(); idx < range.end(); ++idx)
             {
                 // no visibility checks to be done on directional lights
@@ -285,8 +264,7 @@ void IScene::getVisibleLights(
                 // check whether this light is with the frustum boundaries
                 lights[idx]->isVisible = false;
                 if (frustum.checkSphereIntersect(
-                        lights[idx]->position,
-                        lights[idx]->spotLightInfo.radius))
+                        lights[idx]->position, lights[idx]->spotLightInfo.radius))
                 {
                     lights[idx]->isVisible = true;
                 }
@@ -317,10 +295,9 @@ void IScene::updateTransformBuffer(
 
     if (staticModelCount > 0)
     {
-        transPtr = static_cast<uint8_t*>(util::align_alloc(
-            staticDynAlign * staticModelCount, staticDynAlign));
-        ASSERT_FATAL(
-            transPtr, "Unable to allocate aligned memory for transform ubo");
+        transPtr = static_cast<uint8_t*>(
+            util::align_alloc(staticDynAlign * staticModelCount, staticDynAlign));
+        ASSERT_FATAL(transPtr, "Unable to allocate aligned memory for transform ubo");
     }
     if (skinnedModelCount > 0)
     {
@@ -353,17 +330,13 @@ void IScene::updateTransformBuffer(
         if (!transInfo->jointMatrices.empty())
         {
             size_t skinOffset = skinDynAlign * skinnedCount++;
-            uint8_t* currSkinPtr =
-                (uint8_t*)((uint64_t)skinPtr + (skinDynAlign * skinnedCount++));
+            uint8_t* currSkinPtr = (uint8_t*)((uint64_t)skinPtr + (skinDynAlign * skinnedCount++));
 
             // rather than throw an error, clamp the joint if it exceeds the max
             uint32_t jointCount = std::min(
                 ITransformManager::MaxBoneCount,
                 static_cast<uint32_t>(transInfo->jointMatrices.size()));
-            memcpy(
-                currSkinPtr,
-                transInfo->jointMatrices.data(),
-                jointCount * sizeof(mathfu::mat4));
+            memcpy(currSkinPtr, transInfo->jointMatrices.data(), jointCount * sizeof(mathfu::mat4));
 
             rend->setSkinDynamicOffset(static_cast<uint32_t>(skinOffset));
         }
@@ -390,19 +363,10 @@ void IScene::updateTransformBuffer(
 Scene::Scene() {}
 Scene::~Scene() {}
 
-void IScene::setSkybox(Skybox* skybox)
-{
-    setSkyboxI(reinterpret_cast<ISkybox*>(skybox));
-}
+void IScene::setSkybox(Skybox* skybox) { setSkyboxI(reinterpret_cast<ISkybox*>(skybox)); }
 
-void IScene::setCamera(Camera* cam)
-{
-    setCameraI(reinterpret_cast<ICamera*>(cam));
-}
+void IScene::setCamera(Camera* cam) { setCameraI(reinterpret_cast<ICamera*>(cam)); }
 
-Camera* IScene::getCurrentCamera()
-{
-    return reinterpret_cast<Camera*>(&(getCurrentCameraI()));
-}
+Camera* IScene::getCurrentCamera() { return reinterpret_cast<Camera*>(&(getCurrentCameraI())); }
 
 } // namespace yave

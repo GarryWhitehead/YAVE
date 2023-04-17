@@ -144,10 +144,7 @@ public:
      * @brief Compares the bitset of one enum to another and returns true if
      * they are the same
      */
-    bool operator==(const BitSetEnum& other) const
-    {
-        return bitset == other.bitset;
-    }
+    bool operator==(const BitSetEnum& other) const { return bitset == other.bitset; }
 
     /**
      * @brief Returns the bitset as a uint64_t
@@ -200,8 +197,7 @@ private:
  * into a BitSetEnum.
  */
 template <typename T>
-std::enable_if_t<std::is_enum<T>::value, BitSetEnum<T>>
-operator|(const T& lhs, const T& rhs)
+std::enable_if_t<std::is_enum<T>::value, BitSetEnum<T>> operator|(const T& lhs, const T& rhs)
 {
     BitSetEnum<T> bs;
     bs |= lhs;

@@ -124,7 +124,7 @@ public:
 
         // ============ vulakn backend ==========================
         // set by calling **update**
-        size_t indexPrimitiveOffset = 0; 
+        size_t indexPrimitiveOffset = 0;
     };
 
     ModelMesh();
@@ -174,7 +174,6 @@ public:
     util::BitSetEnum<Variant> variantBits_;
 
 private:
-
 };
 
 } // namespace yave

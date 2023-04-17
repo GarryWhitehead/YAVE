@@ -29,13 +29,6 @@ jobs:
       uses: hendrikmuhs/ccache-action@v1.2
       with:
           key: ${{ github.job }}-${{ matrix.os }} 
-
-    - name: Install Doxygen
-      run:   |
-             if [ "$RUNNER_OS" == "Linux" ]; then
-                sudo apt-get update && sudo apt-get install -y --no-install-recommends doxygen graphviz
-             fi
-      shell: bash    
              
     - name: Conan install dependencies
       working-directory: ${{github.workspace}}

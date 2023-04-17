@@ -24,8 +24,8 @@
 
 #include "common.h"
 
-#include <vector>
 #include <unordered_set>
+#include <vector>
 
 namespace vkapi
 {
@@ -76,20 +76,17 @@ private:
 class Buffer
 {
 public:
-
     Buffer();
     virtual ~Buffer() = default;
 
-    void prepare(
-        VmaAllocator& vmaAlloc, vk::DeviceSize size, VkBufferUsageFlags usage);
+    void prepare(VmaAllocator& vmaAlloc, vk::DeviceSize size, VkBufferUsageFlags usage);
 
     void destroy(VmaAllocator& vmaAlloc);
 
     void mapToStage(void* data, size_t size, StagingPool::StageInfo* stage);
-    void mapToGpuBuffer(void* data, size_t dataSize); 
+    void mapToGpuBuffer(void* data, size_t dataSize);
 
-    void createBuffer(
-        VmaAllocator& vmaAlloc, VkBufferUsageFlags usage, VkDeviceSize size);
+    void createBuffer(VmaAllocator& vmaAlloc, VkBufferUsageFlags usage, VkDeviceSize size);
 
     void copyStagedToGpu(
         VkDriver& driver,
@@ -105,14 +102,13 @@ public:
         void* data);
 
     vk::Buffer get();
-  
+
     uint64_t getSize() const;
     uint64_t getOffset() const;
 
     friend class ResourceCache;
 
 protected:
-
     VmaAllocationInfo allocInfo_;
     VmaAllocation mem_;
     VkDeviceSize size_;
@@ -124,7 +120,6 @@ protected:
 class VertexBuffer : public Buffer
 {
 public:
-
     VertexBuffer() = default;
 
     void create(
@@ -134,14 +129,12 @@ public:
         StagingPool& pool,
         void* data,
         const VkDeviceSize size);
-
 };
 
 
 class IndexBuffer : public Buffer
 {
 public:
-
     IndexBuffer() = default;
 
     void create(
@@ -151,7 +144,6 @@ public:
         StagingPool& pool,
         void* data,
         const VkDeviceSize size);
-
 };
 
 } // namespace vkapi

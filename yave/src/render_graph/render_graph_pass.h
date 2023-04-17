@@ -62,10 +62,8 @@ struct PassDescriptor
     PassAttachmentUnion attachments;
     util::Colour4 clearColour {0.0f, 0.0f, 0.0f, 1.0f};
     uint8_t samples = 1;
-    std::array<vkapi::LoadClearFlags, 2> dsLoadClearFlags = {
-        vkapi::LoadClearFlags::DontCare};
-    std::array<vkapi::StoreClearFlags, 2> dsStoreClearFlags = {
-        vkapi::StoreClearFlags::DontCare};
+    std::array<vkapi::LoadClearFlags, 2> dsLoadClearFlags = {vkapi::LoadClearFlags::DontCare};
+    std::array<vkapi::StoreClearFlags, 2> dsStoreClearFlags = {vkapi::StoreClearFlags::DontCare};
 
     struct VkBackend
     {
@@ -82,8 +80,7 @@ public:
     void setNode(RenderPassNode* node) { node_ = node; }
     RenderPassNode const* node() { return node_; }
 
-    virtual void
-    execute(vkapi::VkDriver& driver, const RenderGraphResource& resource) = 0;
+    virtual void execute(vkapi::VkDriver& driver, const RenderGraphResource& resource) = 0;
 
 protected:
     RenderPassNode* node_;
@@ -95,8 +92,7 @@ class RenderGraphPass : public RenderGraphPassBase
 public:
     RenderGraphPass(ExecuteFunc&& execute) : execute_(std::move(execute)) {}
 
-    void execute(
-        vkapi::VkDriver& driver, const RenderGraphResource& resource) override
+    void execute(vkapi::VkDriver& driver, const RenderGraphResource& resource) override
     {
         execute_(driver, data_, resource);
     }

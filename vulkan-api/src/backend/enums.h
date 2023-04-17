@@ -26,8 +26,8 @@
 #include "utility/murmurhash.h"
 #include "vulkan/vulkan.hpp"
 
-#include <type_traits>
 #include <cstring>
+#include <type_traits>
 
 namespace backend
 {
@@ -182,7 +182,7 @@ struct TextureSamplerParams
     CompareOp compareOp = CompareOp::Never;
     uint32_t mipLevels = 1;
 
-    bool operator==(const TextureSamplerParams& rhs) const noexcept 
+    bool operator==(const TextureSamplerParams& rhs) const noexcept
     {
         return memcmp(this, &rhs, sizeof(TextureSamplerParams)) == 0;
     }

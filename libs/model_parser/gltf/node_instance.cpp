@@ -110,10 +110,7 @@ NodeInfo* NodeInstance::findNode(util::CString id, NodeInfo* node)
     return result;
 }
 
-NodeInfo* NodeInstance::getNode(util::CString id)
-{
-    return findNode(id, rootNode_.get());
-}
+NodeInfo* NodeInstance::getNode(util::CString id) { return findNode(id, rootNode_.get()); }
 
 bool NodeInstance::prepareNodeHierachy(
     cgltf_node* node,
@@ -149,13 +146,7 @@ bool NodeInstance::prepareNodeHierachy(
     for (cgltf_node* const* child = node->children; child < childEnd; ++child)
     {
         NodeInfo* childNode = new NodeInfo();
-        if (!prepareNodeHierachy(
-                node,
-                childNode,
-                newNode,
-                newNode->nodeTransform,
-                model,
-                nodeIdx))
+        if (!prepareNodeHierachy(node, childNode, newNode, newNode->nodeTransform, model, nodeIdx))
         {
             return false;
         }
@@ -180,29 +171,21 @@ void NodeInstance::prepareTranslation(cgltf_node* node, NodeInfo* newNode)
 
         if (node->has_translation)
         {
-            translation = mathfu::vec3 {
-                node->translation[0],
-                node->translation[1],
-                node->translation[2]};
+            translation =
+                mathfu::vec3 {node->translation[0], node->translation[1], node->translation[2]};
         }
         if (node->has_rotation)
         {
             rot = mathfu::quat {
-                node->rotation[0],
-                node->rotation[1],
-                node->rotation[2],
-                node->rotation[3]};
+                node->rotation[0], node->rotation[1], node->rotation[2], node->rotation[3]};
         }
         if (node->has_scale)
         {
-            scale =
-                mathfu::vec3 {node->scale[0], node->scale[1], node->scale[2]};
+            scale = mathfu::vec3 {node->scale[0], node->scale[1], node->scale[2]};
         }
 
-        newNode->nodeTransform =
-            mathfu::mat4::FromTranslationVector(translation) *
-            rot.ToMatrix4() *
-            mathfu::mat4::FromScaleVector(scale);
+        newNode->nodeTransform = mathfu::mat4::FromTranslationVector(translation) *
+            rot.ToMatrix4() * mathfu::mat4::FromScaleVector(scale);
     }
 }
 
@@ -212,8 +195,7 @@ bool NodeInstance::prepare(cgltf_node* node, GltfModel& model)
     mathfu::mat4 transform;
     rootNode_ = std::make_unique<NodeInfo>();
 
-    if (!prepareNodeHierachy(
-           node, rootNode_.get(), nullptr, transform, model, nodeId))
+    if (!prepareNodeHierachy(node, rootNode_.get(), nullptr, transform, model, nodeId))
     {
         return false;
     }

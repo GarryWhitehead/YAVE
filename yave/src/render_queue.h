@@ -42,9 +42,9 @@ struct SortKey
     {
         struct
         {
-            // 
+            //
             uint64_t screenLayer : 4;
-            uint64_t viewLayer : 4; 
+            uint64_t viewLayer : 4;
             // a hash derived from the pipeline key
             uint64_t pipelineId : 32;
             uint64_t depth : 24;
@@ -57,8 +57,7 @@ struct SortKey
     float depth = 0.0f; // for transparency;
 };
 
-using RenderQueueFunc =
-    void (*)(IEngine&, IScene&, const vk::CommandBuffer&, void*, void*);
+using RenderQueueFunc = void (*)(IEngine&, IScene&, const vk::CommandBuffer&, void*, void*);
 
 /**
  * @brief All the information required to render the item to a cmd buffer. This
@@ -83,7 +82,6 @@ struct RenderableQueueInfo
 class RenderQueue
 {
 public:
-
     static constexpr int MaxViewLayerCount = 6;
 
     // the type of queue to use when drawing. Only "Colour" supported at the moment.
@@ -104,11 +102,9 @@ public:
 
     void resetAll();
 
-    void pushRenderables(
-        std::vector<RenderableQueueInfo>& newRenderables, const Type type);
+    void pushRenderables(std::vector<RenderableQueueInfo>& newRenderables, const Type type);
 
-    static SortKey
-    createSortKey(uint8_t screenLayer, uint8_t viewLayer, size_t pipelineId);
+    static SortKey createSortKey(uint8_t screenLayer, uint8_t viewLayer, size_t pipelineId);
 
     void sortQueue(const Type type);
 
@@ -122,19 +118,15 @@ public:
         size_t startIdx,
         size_t endIdx);
 
-    void render(
-        IEngine& engine,
-        IScene& scene,
-        const vk::CommandBuffer& cmd,
-        RenderQueue::Type type);
+    void
+    render(IEngine& engine, IScene& scene, const vk::CommandBuffer& cmd, RenderQueue::Type type);
 
     /**
      * @brief Returns all renderables in the specified queue
      * @param part Specifies whether the queue should be sorted before fetching
      * @return A vector containing the renderables in the specified range
      */
-    const std::vector<RenderableQueueInfo>&
-    queue(const RenderQueue::Type type) const noexcept;
+    const std::vector<RenderableQueueInfo>& queue(const RenderQueue::Type type) const noexcept;
 
 private:
     // ordered by queue type

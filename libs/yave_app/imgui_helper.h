@@ -22,10 +22,9 @@
 
 #pragma once
 
-#include <yave/texture_sampler.h>
-
 #include <imgui.h>
 #include <mathfu/glsl_mappings.h>
+#include <yave/texture_sampler.h>
 
 #include <filesystem>
 #include <vector>
@@ -46,49 +45,43 @@ class RenderPrimitive;
 class ImGuiHelper
 {
 public:
-
-	ImGuiHelper(Engine* engine, std::filesystem::path& fontPath);
+    ImGuiHelper(Engine* engine, std::filesystem::path& fontPath);
     ~ImGuiHelper();
 
-	void beginFrame(Application& app) noexcept;
+    void beginFrame(Application& app) noexcept;
 
-	void createBuffers(size_t reqBufferCount);
+    void createBuffers(size_t reqBufferCount);
 
-	void updateDrawCommands(ImDrawData* drawData, const ImGuiIO& io);
+    void updateDrawCommands(ImDrawData* drawData, const ImGuiIO& io);
 
-	void setDisplaySize(
-            float winWidth,
-            float winHeight,
-            float scaleX,
-            float scaleY);
+    void setDisplaySize(float winWidth, float winHeight, float scaleX, float scaleY);
 
 private:
-
-	struct PushConstant
+    struct PushConstant
     {
-		mathfu::vec2 scale;
+        mathfu::vec2 scale;
         mathfu::vec2 translate;
-	};
+    };
 
-	ImGuiContext* context_;
-    
-	Engine* engine_;
+    ImGuiContext* context_;
 
-	Object* rendObj_;
+    Engine* engine_;
+
+    Object* rendObj_;
     Renderable* renderable_;
 
-	struct RenderParams
+    struct RenderParams
     {
-		Material* material;
+        Material* material;
         RenderPrimitive* prim;
     };
 
-	std::vector<RenderParams> renderParams_;
-	std::vector<VertexBuffer*> vBuffers_;
+    std::vector<RenderParams> renderParams_;
+    std::vector<VertexBuffer*> vBuffers_;
     std::vector<IndexBuffer*> iBuffers_;
 
-	Texture* texture_;
+    Texture* texture_;
     TextureSampler sampler_;
 };
 
-} // namespace utils
+} // namespace yave

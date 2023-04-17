@@ -46,8 +46,7 @@ vk::ImageAspectFlags ImageView::getImageAspect(vk::Format format)
         // depth/stencil image formats
         case vk::Format::eD32SfloatS8Uint:
         case vk::Format::eD24UnormS8Uint:
-            aspect = vk::ImageAspectFlagBits::eDepth |
-                vk::ImageAspectFlagBits::eStencil;
+            aspect = vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil;
             break;
             // depth only formats
         case vk::Format::eD32Sfloat:
@@ -61,8 +60,7 @@ vk::ImageAspectFlags ImageView::getImageAspect(vk::Format format)
     return aspect;
 }
 
-vk::ImageViewType
-ImageView::getTextureType(uint32_t faceCount, uint32_t arrayCount)
+vk::ImageViewType ImageView::getTextureType(uint32_t faceCount, uint32_t arrayCount)
 {
     if (arrayCount > 1 && faceCount == 1)
     {
@@ -146,7 +144,7 @@ Image::Image(
 
 Image::~Image() {}
 
-void Image::destroy() noexcept 
+void Image::destroy() noexcept
 {
     context_.device().freeMemory(imageMem_);
     context_.device().destroyImage(image_, nullptr);
@@ -156,8 +154,7 @@ vk::Filter Image::getFilterType(const vk::Format& format)
 {
     vk::Filter filter;
 
-    if (format == vk::Format::eD32SfloatS8Uint ||
-        format == vk::Format::eD24UnormS8Uint ||
+    if (format == vk::Format::eD32SfloatS8Uint || format == vk::Format::eD24UnormS8Uint ||
         format == vk::Format::eD32Sfloat || format == vk::Format::eD16Unorm)
     {
         filter = vk::Filter::eNearest;
@@ -175,7 +172,7 @@ void Image::create(const VmaAllocator& vmaAlloc, vk::ImageUsageFlags usageFlags)
 
     vk::ImageCreateInfo imageInfo = {
         {},
-        vk::ImageType::e2D,     // TODO: support 3d images
+        vk::ImageType::e2D, // TODO: support 3d images
         tex_.format,
         {tex_.width, tex_.height, 1},
         tex_.mipLevels,
@@ -201,11 +198,10 @@ void Image::create(const VmaAllocator& vmaAlloc, vk::ImageUsageFlags usageFlags)
     device_.getImageMemoryRequirements(image_, &memReq);
     vk::MemoryAllocateInfo allocInfo = {
         memReq.size,
-        context_.selectMemoryType(
-            memReq.memoryTypeBits, vk::MemoryPropertyFlagBits::eDeviceLocal)};
+        context_.selectMemoryType(memReq.memoryTypeBits, vk::MemoryPropertyFlagBits::eDeviceLocal)};
 
     VK_CHECK_RESULT(device_.allocateMemory(&allocInfo, nullptr, &imageMem_));
-    
+
     // and bind the image to the allocated memory.
     device_.bindImageMemory(image_, imageMem_, 0);
 }
@@ -294,21 +290,18 @@ void Image::transition(
         &memoryBarrier);
 }
 
-void Image::generateMipMap(
-    const Image& image, const vk::CommandBuffer& cmdBuffer)
+void Image::generateMipMap(const Image& image, const vk::CommandBuffer& cmdBuffer)
 {
     const TextureContext& tex = image.context();
 
     for (uint8_t i = 1; i < tex.mipLevels; ++i)
     {
         // source
-        vk::ImageSubresourceLayers src(
-            vk::ImageAspectFlagBits::eColor, i - 1, 0, 1);
+        vk::ImageSubresourceLayers src(vk::ImageAspectFlagBits::eColor, i - 1, 0, 1);
         vk::Offset3D srcOffset(tex.width >> (i - 1), tex.height >> (i - 1), 1);
 
         // destination
-        vk::ImageSubresourceLayers dst(
-            vk::ImageAspectFlagBits::eColor, i, 0, 1);
+        vk::ImageSubresourceLayers dst(vk::ImageAspectFlagBits::eColor, i, 0, 1);
         vk::Offset3D dstOffset(tex.width >> i, tex.height >> i, 1);
 
         vk::ImageBlit imageBlit;
@@ -319,11 +312,7 @@ void Image::generateMipMap(
 
         // create image barrier - transition image to transfer
         transition(
-            image,
-            vk::ImageLayout::eUndefined,
-            vk::ImageLayout::eTransferDstOptimal,
-            cmdBuffer,
-            i);
+            image, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, cmdBuffer, i);
 
         // blit the image
         cmdBuffer.blitImage(
@@ -373,15 +362,9 @@ void Image::blit(const Image& srcImage, const Image& dstImage, Commands& cmds)
     imageBlit.dstOffsets[1] = dstOffset;
 
     transition(
-        srcImage,
-        vk::ImageLayout::eUndefined,
-        vk::ImageLayout::eTransferDstOptimal,
-        cmdBuffer);
+        srcImage, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, cmdBuffer);
     transition(
-        dstImage,
-        vk::ImageLayout::eUndefined,
-        vk::ImageLayout::eTransferSrcOptimal,
-        cmdBuffer);
+        dstImage, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferSrcOptimal, cmdBuffer);
 
     // blit the image
     vk::Filter filter = getFilterType(tex.format);

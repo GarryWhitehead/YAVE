@@ -49,7 +49,6 @@ class ISkybox;
 class IScene : public Scene
 {
 public:
-
     static constexpr int ModelBufferInitialSize = 20;
 
     /**
@@ -71,15 +70,12 @@ public:
 
     void shutDown(vkapi::VkDriver& driver) noexcept;
 
-    VisibleCandidate
-    buildRendCandidate(IObject* obj, const mathfu::mat4& worldMatrix);
+    VisibleCandidate buildRendCandidate(IObject* obj, const mathfu::mat4& worldMatrix);
 
-    void getVisibleRenderables(
-        Frustum& frustum, std::vector<IScene::VisibleCandidate>& renderables);
+    void
+    getVisibleRenderables(Frustum& frustum, std::vector<IScene::VisibleCandidate>& renderables);
 
-    void getVisibleLights(
-        Frustum& frustum,
-        std::vector<LightInstance*>& candLightObjs);
+    void getVisibleLights(Frustum& frustum, std::vector<LightInstance*>& candLightObjs);
 
     void updateTransformBuffer(
         const std::vector<IScene::VisibleCandidate>& candObjects,

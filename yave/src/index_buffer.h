@@ -22,11 +22,10 @@
 
 #pragma once
 
-#include <cstdint>
-
 #include "vulkan-api/driver.h"
-
 #include "yave/index_buffer.h"
+
+#include <cstdint>
 
 namespace yave
 {
@@ -54,11 +53,9 @@ public:
 
     // =============== client api virtual =======================
 
-    void build(
-        Engine* engine,
-        uint32_t indicesCount,
-        void* indicesData,
-        backend::IndexBufferType type) override;
+    void
+    build(Engine* engine, uint32_t indicesCount, void* indicesData, backend::IndexBufferType type)
+        override;
 
 private:
     vkapi::IndexBufferHandle ihandle_;
@@ -66,4 +63,4 @@ private:
     uint64_t indicesCount_;
 };
 
-}
+} // namespace yave
