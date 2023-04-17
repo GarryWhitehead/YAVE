@@ -15,8 +15,6 @@ layout(constant_id = 2) const int LightTypeDir = 2;
 // viable ights in the storage buffer.
 layout(constant_id = 3) const int BufferEndSignal = 255;
 
-layout(constant_id = 4) const int MaxLightCount = 250;
-
 void main()
 {
     vec3 inPos = texture(PositionSampler, inUv).rgb;
@@ -56,7 +54,7 @@ void main()
     // apply additional lighting contribution to specular
     vec3 colour = baseColour;
 
-    for (int idx = 0; idx < MaxLightCount; idx++)
+    for (int idx = 0; idx < 2000; idx++)
     {
         LightParams params = light_ssbo.params[idx];
         if (params.lightType == BufferEndSignal)
