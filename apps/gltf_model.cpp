@@ -216,7 +216,7 @@ int main()
 
     // create irradiance/specular maps
     yave::Ibl ibl(engine, YAVE_ASSETS_DIRECTORY);
-    if(!ibl.loadEqirectImage("hdr/monoLake.hdr"))
+    if(!ibl.loadEqirectImage("sky.hdr"))
     {
         exit(1);
     }

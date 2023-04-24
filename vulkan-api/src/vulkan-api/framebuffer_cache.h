@@ -61,6 +61,7 @@ public:
         vk::Format depth;
         uint32_t samples;
         bool multiView;
+        uint8_t padding[3];
 
         bool operator==(const RPassKey& rhs) const noexcept;
     };

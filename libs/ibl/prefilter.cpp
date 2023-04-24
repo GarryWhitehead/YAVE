@@ -84,9 +84,10 @@ Texture* PreFilter::eqirectToCubemap(Texture* hdrImage)
         backend::SamplerAddressMode::ClampToEdge);
     mat->addTexture(engine_, hdrImage, Material::ImageType::BaseColour, sampler);
     
-    mathfu::mat4* faceViews = CubeMap::createFaceViews();
+    std::array<mathfu::mat4, 6> faceViews;
+    CubeMap::createFaceViews(faceViews);
     mat->addUboArrayParam(
-        "faceViews", backend::BufferElementType::Mat4, 6, backend::ShaderStage::Vertex, faceViews);
+        "faceViews", backend::BufferElementType::Mat4, 6, backend::ShaderStage::Vertex, faceViews.data());
     camera_->setProjection(2.0f / M_PI, 1.0f, 1.0f, 512.0f);
 
     prim->setVertexBuffer(vBuffer);

@@ -134,14 +134,6 @@ public:
         return cp;
     }
 
-    friend BitSetEnum operator|(const T& lhs, const T& rhs) 
-    { 
-        BitSetEnum result(*this);
-        result |= lhs;
-        result |= rhs;
-        return result;
-    }
-
     /**
      * @brief Returns true if any of the bits are set in the enum
      */

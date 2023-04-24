@@ -25,9 +25,9 @@
 namespace yave
 {
 
-mathfu::mat4* CubeMap::createFaceViews() noexcept
+void CubeMap::createFaceViews(std::array<mathfu::mat4, 6>& faceViews) noexcept
 {
-    mathfu::mat4 viewMatrices[] = {
+    faceViews = {
         // X_POSITIVE
         mathfu::mat4::LookAt(
             mathfu::vec3(1.0f, 0.0f, 0.0f),
@@ -59,6 +59,5 @@ mathfu::mat4* CubeMap::createFaceViews() noexcept
             mathfu::vec3(0.0f, 0.0f, 0.0f),
             mathfu::vec3(0.0f, -1.0f, 0.0f))};
 
-    return viewMatrices;
 }
 }

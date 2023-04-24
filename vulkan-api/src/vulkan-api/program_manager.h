@@ -266,6 +266,7 @@ public:
         uint32_t shaderId;
         uint32_t shaderStage;
         uint32_t topology;
+        uint8_t padding[4];
     };
 
     static_assert(

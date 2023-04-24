@@ -133,15 +133,15 @@ public:
 
     template <typename T>
     void
-    addUboParam(const std::string& elementName, backend::BufferElementType type, T* value = nullptr)
+    addUboParam(const std::string& elementName, backend::BufferElementType type, backend::ShaderStage stage, T* value = nullptr)
     {
-        addUboParam(elementName, type, sizeof(T), 1, (void*)value);
+        addUboParam(elementName, type, sizeof(T), 1, stage, (void*)value);
     }
 
     template <typename T>
-    void addUboParam(const std::string& elementName, backend::BufferElementType type, T& value)
+    void addUboParam(const std::string& elementName, backend::BufferElementType type, backend::ShaderStage stage, T& value)
     {
-        addUboParam(elementName, type, sizeof(T), 1, (void*)&value);
+        addUboParam(elementName, type, sizeof(T), 1, stage, (void*)&value);
     }
 
     template <typename T>

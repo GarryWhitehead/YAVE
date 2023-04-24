@@ -129,14 +129,13 @@ void* BufferBase::getBlockData() noexcept
     uint32_t offset = 0;
     for (const auto& element : elements_)
     {
-        size_t size = element.size * element.arraySize;
         // its OK to have null element values - i.e.
         // padding elements are usually not defined.
         if (element.value)
         {
-            memcpy(bufferData_ + offset, element.value, size);
+            memcpy(bufferData_ + offset, element.value, element.size);
         }
-        offset += size;
+        offset += element.size;
     }
     return (void*)bufferData_;
 }

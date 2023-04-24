@@ -48,7 +48,7 @@ struct CubeMap
     };
     // clang-format on
 
-    static mathfu::mat4* createFaceViews() noexcept;
+    static void createFaceViews(std::array<mathfu::mat4, 6>& faceViews) noexcept;
 };
 
 } // namespace yave
