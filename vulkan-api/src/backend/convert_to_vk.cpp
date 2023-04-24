@@ -305,11 +305,37 @@ vk::Format textureFormatToVk(backend::TextureFormat type)
             output = vk::Format::eR16G16B16A16Sfloat;
             break;
         case backend::TextureFormat::RGBA32:
-            output = vk::Format::eR32G32B32A32Uint;
+            output = vk::Format::eR32G32B32A32Sfloat;
             break;
     }
     return output;
 }
 
+vk::ImageUsageFlags imageUsageToVk(uint32_t usageFlags)
+{
+    vk::ImageUsageFlags output;
+        if (usageFlags & ImageUsage::Sampled)
+        {
+            output |= vk::ImageUsageFlagBits::eSampled;
+        }
+        if (usageFlags & ImageUsage::Storage)
+        {
+            output |= vk::ImageUsageFlagBits::eStorage;
+        }
+        if (usageFlags & ImageUsage::ColourAttach)
+        {
+            output |= vk::ImageUsageFlagBits::eColorAttachment;
+        }
+        if (usageFlags & ImageUsage::DepthAttach)
+        {
+            output |= vk::ImageUsageFlagBits::eDepthStencilAttachment;
+        }
+        if (usageFlags & ImageUsage::InputAttach)
+        {
+            output |= vk::ImageUsageFlagBits::eInputAttachment;
+        }
+    
+    return output;
+}
 
 } // namespace backend

@@ -56,7 +56,7 @@ public:
 
     virtual vkapi::SwapchainHandle createSwapchain(Window* win) = 0;
 
-    virtual Renderer* createRenderer(const vkapi::SwapchainHandle& handle, Scene* scene) = 0;
+    virtual Renderer* createRenderer() = 0;
 
     virtual VertexBuffer* createVertexBuffer() = 0;
 
@@ -75,8 +75,6 @@ public:
     virtual TransformManager* getTransformManager() = 0;
 
     virtual LightManager* getLightManager() = 0;
-
-    virtual Object* createObject() = 0;
 
     virtual Texture* createTexture() = 0;
 

@@ -27,6 +27,7 @@
 #include "yave/material.h"
 #include "yave/object.h"
 #include "yave_app/app.h"
+#include "yave/scene.h"
 
 class PrimitiveApp : public yave::Application
 {
@@ -43,6 +44,7 @@ public:
     void buildPrimitive(
         yave::Engine* engine,
         PrimitiveType type,
+        yave::Scene* scene,
         const mathfu::vec3& position,
         const mathfu::vec3& scale = {1.0f, 1.0f, 1.0f},
         const mathfu::quat& rotation = {1.0f, 0.0f, 0.0f, 0.0f});

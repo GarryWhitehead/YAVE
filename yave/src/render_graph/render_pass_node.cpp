@@ -91,6 +91,7 @@ void RenderPassInfo::bake(const RenderGraph& rGraph)
         name,
         vkBackend.rPassData.width,
         vkBackend.rPassData.height,
+        false,
         desc.samples,
         desc.clearColour,
         colourInfo,

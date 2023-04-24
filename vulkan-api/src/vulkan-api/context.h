@@ -41,6 +41,7 @@ public:
         bool hasPhysicalDeviceProps2 = false;
         bool hasExternalCapabilities = false;
         bool hasDebugUtils = false;
+        bool hasMultiView = false;
     };
 
     struct QueueInfo
@@ -60,8 +61,6 @@ public:
         std::vector<const char*>& extensions,
         uint32_t extCount,
         std::vector<vk::ExtensionProperties>& extensionProps);
-
-    vk::PhysicalDeviceFeatures prepareFeatures();
 
     /**
      * @brief Creates a new abstract instance of vulkan

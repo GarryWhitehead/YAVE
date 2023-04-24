@@ -92,13 +92,17 @@ Window::Window(Application& app, const char* title, uint32_t width, uint32_t hei
     cameraView_->setPosition({0.0f, 0.0f, -8.0f});
     camera_ = app.engine_->createCamera();
 
+    // create a scene for our application
+    app.scene_ = app.engine_->createScene();
+    app.engine_->setCurrentScene(app.scene_);
+ 
     updateCameraForWindow();
 
     if (showUI_)
     {
         std::filesystem::path fontPath =
             std::string(YAVE_ASSETS_DIRECTORY) / std::filesystem::path("fonts/Roboto-Regular.ttf");
-        app.imgui_ = std::make_unique<ImGuiHelper>(app.engine_, fontPath);
+        app.imgui_ = std::make_unique<ImGuiHelper>(app.engine_, app.scene_, fontPath);
 
         ImGuiIO& io = ImGui::GetIO();
         io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;

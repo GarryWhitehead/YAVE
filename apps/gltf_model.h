@@ -42,10 +42,13 @@ public:
 
     GltfModelApp(const yave::AppParams& params, bool showUI) : yave::Application(params, showUI) {}
 
-    yave::Object*
-    buildModel(const yave::GltfModel& model, yave::Engine* engine, yave::AssetLoader& loader);
+    yave::Object* buildModel(
+        const yave::GltfModel& model,
+        yave::Engine* engine,
+        yave::Scene* scene,
+        yave::AssetLoader& loader);
 
-    void addLighting(yave::LightManager* lightManager, yave::Engine* engine);
+    void addLighting(yave::LightManager* lightManager, yave::Scene* scene);
 
     void uiCallback(yave::Engine* engine) override;
 

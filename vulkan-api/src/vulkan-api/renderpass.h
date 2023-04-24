@@ -63,6 +63,7 @@ struct RenderTarget
     std::array<AttachmentInfo, MaxColourAttachCount> colours;
     util::Colour4 clearCol {0.0f};
     uint8_t samples = 1;
+    bool multiView = false;
 };
 
 using RenderTargetHandle = util::Handle<RenderTarget>;
@@ -131,7 +132,7 @@ public:
 
     // Create the renderpass based on the above definitions and create the
     // framebuffer
-    void prepare();
+    void prepare(bool multiView);
 
     // ====================== the getter and setters
     // =================================
@@ -182,7 +183,8 @@ struct RenderPassData
         vkapi::LoadClearFlags::DontCare};
     std::array<vkapi::StoreClearFlags, RenderTarget::MaxAttachmentCount> storeClearFlags = {
         vkapi::StoreClearFlags::DontCare};
-    std::array<vk::ImageLayout, RenderTarget::MaxAttachmentCount> finalLayouts = {};
+    std::array<vk::ImageLayout, RenderTarget::MaxAttachmentCount> finalLayouts = {
+        vk::ImageLayout::eShaderReadOnlyOptimal};
     util::Colour4 clearCol;
     uint32_t width = 0;
     uint32_t height = 0;
@@ -201,7 +203,8 @@ public:
         vk::ImageView* imageViews,
         uint32_t count,
         uint32_t width,
-        uint32_t height);
+        uint32_t height,
+        uint8_t layers);
 
     const vk::Framebuffer& get() const;
 

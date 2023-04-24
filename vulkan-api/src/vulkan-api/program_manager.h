@@ -171,6 +171,9 @@ public:
         uint32_t indicesOffset,
         VkBool32 primRestart = VK_FALSE);
 
+    // used when no indices are to be used for the draw
+    void addRenderPrimitive(vk::PrimitiveTopology topo, uint32_t vertexCount, VkBool32 primRestart);
+
     // Used when no index buffer is to be bound.
     void addRenderPrimitive(uint32_t count);
 
@@ -234,7 +237,10 @@ public:
     BlendFactorState blendState_;
 
     void addDescriptorBinding(
-        uint32_t size, uint32_t binding, vk::Buffer buffer, vk::DescriptorType type);
+        uint32_t size,
+        uint32_t binding,
+        vk::Buffer buffer,
+        vk::DescriptorType type);
 };
 
 template <typename... ShaderArgs>
@@ -244,55 +250,30 @@ void ShaderProgramBundle::buildShaders(const std::string& filename, const Shader
     buildShaders(shaderArgs...);
 }
 
-
 class ProgramManager
 {
-public:
-#pragma pack(push, 1)
 
-    struct YAVE_PACKED CachedKey
+public:
+   
+    // =============== cached shader hasher ======================
+
+#pragma clang diagnostic push
+#pragma clang diagnostic warning "-Wpadded"
+
+    struct CachedKey
     {
+        uint64_t variantBits;
         uint32_t shaderId;
         uint32_t shaderStage;
-        uint64_t variantBits;
         uint32_t topology;
     };
-#pragma pack(pop)
 
     static_assert(
         std::is_pod<CachedKey>::value, "CachedKey must be a POD for the hashing to work correctly");
 
-public:
-    ProgramManager(VkDriver& driver);
-    ~ProgramManager();
-
-    std::string parseShaderBlock(std::vector<std::string> lines, size_t& index);
-
-    std::vector<std::pair<backend::ShaderStage, std::string>>
-    parseShaderFile(const std::filesystem::path& shaderPath);
-
-    ShaderProgramBundle* createProgramBundle();
-
-    ShaderProgram* findShaderVariantOrCreate(const util::CString& filename);
-
-    Shader* findShaderVariantOrCreate(
-        const VDefinitions& variants,
-        backend::ShaderStage type,
-        vk::PrimitiveTopology topo,
-        ShaderProgramBundle* bundle,
-        uint64_t variantBits = 0);
-
-    Shader* compileShader(
-        const std::string& shaderCode,
-        const backend::ShaderStage& type,
-        const VDefinitions& variants,
-        const CachedKey& key);
+#pragma clang diagnostic pop
 
 private:
-    Shader* findCachedShaderVariant(const CachedKey& key);
-
-private:
-    // =============== cached shader hasher ======================
 
     using CachedHasher = util::Murmur3Hasher<CachedKey>;
 
@@ -307,6 +288,28 @@ private:
 
     using ShaderCacheMap =
         std::unordered_map<CachedKey, std::unique_ptr<Shader>, CachedHasher, CachedEqual>;
+
+public:
+
+    ProgramManager(VkDriver& driver);
+    ~ProgramManager();
+
+    ShaderProgramBundle* createProgramBundle();
+
+    Shader* findShaderVariantOrCreate(
+        const VDefinitions& variants,
+        backend::ShaderStage type,
+        vk::PrimitiveTopology topo,
+        ShaderProgramBundle* bundle,
+        uint64_t variantBits = 0);
+
+    Shader* compileShader(
+        const std::string& shaderCode,
+        const backend::ShaderStage& type,
+        const VDefinitions& variants,
+        const CachedKey& key);
+
+    Shader* findCachedShaderVariant(const CachedKey& key);
 
 private:
     VkDriver& driver_;

@@ -29,22 +29,35 @@ namespace yave
 class Texture
 {
 public:
-    struct Descriptor
+
+    using TextureFormat = backend::TextureFormat;
+    using ImageUsage = backend::ImageUsage;
+
+    struct Params
     {
         void* buffer = nullptr;
-        uint32_t bufferSize = 0;
+        size_t bufferSize = 0;
         uint32_t width = 0;
         uint32_t height = 0;
+        TextureFormat format = TextureFormat::Undefined;
+        uint32_t usageFlags = 0;
         uint32_t levels = 1;
         uint32_t faces = 1;
-        backend::TextureFormat format;
     };
 
     virtual ~Texture();
 
-    virtual void setTexture(const Descriptor& desc, size_t* offsets = nullptr) noexcept = 0;
+    virtual void setTexture(const Params& params, size_t* offsets = nullptr) noexcept = 0;
 
-    virtual Descriptor getTextureDescriptor() noexcept = 0;
+    virtual void setEmptyTexture(
+        uint32_t width,
+        uint32_t height,
+        TextureFormat format,
+        uint32_t usageFlags,
+        uint32_t levels = 1,
+        uint32_t faces = 1) noexcept = 0;
+
+    virtual Params getTextureParams() noexcept = 0;
 
 protected:
     Texture();

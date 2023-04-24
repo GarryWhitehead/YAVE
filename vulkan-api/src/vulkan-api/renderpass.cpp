@@ -43,7 +43,8 @@ void FrameBuffer::create(
     vk::ImageView* imageViews,
     uint32_t count,
     uint32_t width,
-    uint32_t height)
+    uint32_t height,
+    uint8_t layers)
 {
     ASSERT_LOG(width > 0);
     ASSERT_LOG(height > 0);
@@ -53,7 +54,7 @@ void FrameBuffer::create(
     height_ = height;
 
     // and create the framebuffer.....
-    vk::FramebufferCreateInfo fboInfo {{}, renderpass, count, imageViews, width, height, 1};
+    vk::FramebufferCreateInfo fboInfo {{}, renderpass, count, imageViews, width, height, layers};
 
     VK_CHECK_RESULT(context_.device().createFramebuffer(&fboInfo, nullptr, &fbo_));
 }
@@ -234,7 +235,7 @@ void RenderPass::addSubpassDependency(DependencyType dependType)
     }
 }
 
-void RenderPass::prepare()
+void RenderPass::prepare(bool multiView)
 {
     // create the attachment references
     bool surfacePass = false;
@@ -284,14 +285,9 @@ void RenderPass::prepare()
         static_cast<uint32_t>(colourAttachRefs_.size()),
         colourAttachRefs_.data(),
         nullptr,
-        nullptr,
+        hasDepth_ ? &depthAttachDescr_ : nullptr,
         0,
         nullptr};
-
-    if (hasDepth_)
-    {
-        subpassDescr.pDepthStencilAttachment = &depthAttachDescr_;
-    }
 
     vk::RenderPassCreateInfo createInfo(
         {},
@@ -301,6 +297,28 @@ void RenderPass::prepare()
         &subpassDescr,
         static_cast<uint32_t>(dependencies_.size()),
         dependencies_.data());
+
+    vk::RenderPassMultiviewCreateInfo mvCreateInfo;
+    std::vector<uint32_t> viewMasks(attachmentDescrs_.size());
+    std::vector<uint32_t> correlationMasks(attachmentDescrs_.size());
+    if (multiView)
+    {
+        // Note: at present only multi view rendering to cube maps
+        // is supported.
+        for (size_t i = 0; i < attachmentDescrs_.size(); ++i)
+        {
+            viewMasks[i] = 0b00111111;
+            correlationMasks[i] = viewMasks[i];
+        }
+        mvCreateInfo = {
+            static_cast<uint32_t>(viewMasks.size()),
+            viewMasks.data(),
+            0,
+            nullptr,
+            static_cast<uint32_t>(correlationMasks.size()),
+            correlationMasks.data()};
+        createInfo.pNext = &mvCreateInfo;
+    }
 
     VK_CHECK_RESULT(context_.device().createRenderPass(&createInfo, nullptr, &renderpass_));
 }

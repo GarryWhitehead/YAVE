@@ -149,6 +149,8 @@ void BufferBase::pushElement(
     uint32_t arraySize,
     const std::string& structName) noexcept
 {
+    uint32_t byteSize = size * arraySize;
+
     // if an element of the same name is already associated with the
     // buffer, as long as the value type is identical, this is not considered
     // an error, instead only the new value (if stated) will be updated.
@@ -166,9 +168,9 @@ void BufferBase::pushElement(
         {
             if (!iter->value)
             {
-                iter->value = new uint8_t[size];
+                iter->value = new uint8_t[byteSize];
             }
-            memcpy(iter->value, value, size);
+            memcpy(iter->value, value, byteSize);
         }
         return;
     }
@@ -176,11 +178,11 @@ void BufferBase::pushElement(
     uint8_t* newValue = nullptr;
     if (value)
     {
-        newValue = new uint8_t[size];
-        memcpy(newValue, value, size);
+        newValue = new uint8_t[byteSize];
+        memcpy(newValue, value, byteSize);
     }
-    elements_.push_back({name, type, size, newValue, arraySize, structName});
-    accumSize_ += size;
+    elements_.push_back({name, type, byteSize, newValue, arraySize, structName});
+    accumSize_ += byteSize;
 }
 
 void BufferBase::updateElement(const std::string& name, void* data) noexcept
@@ -210,7 +212,7 @@ size_t BufferBase::getOffset(const std::string& name)
         {
             return offset;
         }
-        offset += element.size * element.arraySize;
+        offset += element.size;
     }
     SPDLOG_ERROR(
         "Invalid offset call: Uniform buffer name {} not found in elements "

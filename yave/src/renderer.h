@@ -27,6 +27,7 @@
 #include "vulkan-api/program_manager.h"
 #include "vulkan-api/swapchain.h"
 #include "yave/renderer.h"
+#include "yave/scene.h"
 
 #include <array>
 
@@ -50,11 +51,15 @@ public:
 
     void renderI(vkapi::VkDriver& driver, IScene& scene);
 
+    // draws into a single render target
+    void renderSingleSceneI(vkapi::VkDriver& driver, IScene& scene, const RenderTarget& rTarget);
+
     // ================ client api =====================
 
     void beginFrame() override;
     void endFrame() override;
     void render(Engine* engine, Scene* scene) override;
+    void renderSingleScene(Engine* engine, Scene* scene, const RenderTarget& rTarget) override;
 
 private:
     IEngine* engine_;

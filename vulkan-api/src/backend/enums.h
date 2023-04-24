@@ -154,13 +154,23 @@ enum class TextureFormat
     RGB32,
     RGBA8,
     RGBA16,
-    RGBA32
+    RGBA32,
+    Undefined
 };
 
 enum class IndexBufferType
 {
     Uint32,
     Uint16
+};
+
+enum ImageUsage
+{
+    Sampled      = 1 << 0,
+    Storage      = 1 << 1,
+    ColourAttach = 1 << 2,
+    DepthAttach  = 1 << 3,
+    InputAttach  = 1 << 4
 };
 
 // objects used by the public api but held here for easier

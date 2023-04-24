@@ -22,32 +22,29 @@
 
 #pragma once
 
-#include "enums.h"
-#include "vulkan/vulkan.hpp"
+#include <filesystem>
 
-#include <utility/bitset_enum.h>
-
-namespace backend
+namespace yave
 {
+class Engine;
+class Texture;
 
-vk::BlendFactor blendFactorToVk(BlendFactor factor);
+class Ibl
+{
+public:
 
-vk::BlendOp blendOpToVk(BlendOp op);
+	Ibl(Engine* engine, const std::filesystem::path& assetPath = "");
+    ~Ibl();
 
-vk::SamplerAddressMode samplerAddrModeToVk(SamplerAddressMode mode);
+	bool loadEqirectImage(const std::filesystem::path& path);
 
-vk::Filter samplerFilterToVk(SamplerFilter filter);
+private:
 
-vk::CullModeFlagBits cullModeToVk(CullMode mode);
+	Engine* engine_;
 
-vk::CompareOp compareOpToVk(CompareOp op);
+	Texture* cubeMap_;
 
-vk::PrimitiveTopology primitiveTopologyToVk(PrimitiveTopology topo);
+	std::filesystem::path assetPath_;
+};
 
-vk::IndexType indexBufferTypeToVk(IndexBufferType type);
-
-vk::Format textureFormatToVk(TextureFormat type);
-
-vk::ImageUsageFlags imageUsageToVk(uint32_t usageFlags);
-
-} // namespace backend
+} // namespace yave

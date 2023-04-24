@@ -22,32 +22,33 @@
 
 #pragma once
 
-#include "enums.h"
-#include "vulkan/vulkan.hpp"
+#include <mathfu/glsl_mappings.h>
 
-#include <utility/bitset_enum.h>
+#include <array>
 
-namespace backend
+namespace yave
 {
 
-vk::BlendFactor blendFactorToVk(BlendFactor factor);
+struct CubeMap
+{
+    // cube vertices
+    static constexpr std::array<float, 24> Vertices {-1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f,  1.0f,  1.0f,
+                                          1.0f,  -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, -1.0f, 1.0f,
+                                          -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f,  -1.0f};
 
-vk::BlendOp blendOpToVk(BlendOp op);
+    // cube indices
+    // clang-format off
+    static constexpr std::array<uint32_t, 36> Indices {
+        0, 1, 2, 2, 3, 0,       // front
+        1, 5, 6, 6, 2, 1,       // right side
+        7, 6, 5, 5, 4, 7,       // left side
+        4, 0, 3, 3, 7, 4,       // bottom
+        4, 5, 1, 1, 0, 4,       // back
+        3, 2, 6, 6, 7, 3        // top
+    };
+    // clang-format on
 
-vk::SamplerAddressMode samplerAddrModeToVk(SamplerAddressMode mode);
+    static mathfu::mat4* createFaceViews() noexcept;
+};
 
-vk::Filter samplerFilterToVk(SamplerFilter filter);
-
-vk::CullModeFlagBits cullModeToVk(CullMode mode);
-
-vk::CompareOp compareOpToVk(CompareOp op);
-
-vk::PrimitiveTopology primitiveTopologyToVk(PrimitiveTopology topo);
-
-vk::IndexType indexBufferTypeToVk(IndexBufferType type);
-
-vk::Format textureFormatToVk(TextureFormat type);
-
-vk::ImageUsageFlags imageUsageToVk(uint32_t usageFlags);
-
-} // namespace backend
+} // namespace yave

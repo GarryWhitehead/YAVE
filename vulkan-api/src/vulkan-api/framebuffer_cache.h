@@ -60,6 +60,7 @@ public:
         StoreClearFlags dsStoreOp[2];
         vk::Format depth;
         uint32_t samples;
+        bool multiView;
 
         bool operator==(const RPassKey& rhs) const noexcept;
     };

@@ -42,17 +42,23 @@
 namespace yave
 {
 
-IMaterial::IMaterial(IEngine& engine) : doubleSided_(false), pipelineId_(0), viewLayer_(0x2)
+IMaterial::IMaterial(IEngine& engine)
+    : doubleSided_(false), pipelineId_(0), viewLayer_(0x2)
 {
     pushBlock_[util::ecast(backend::ShaderStage::Vertex)] =
         std::make_unique<PushBlock>("VertexPushBlock", "push_params");
     pushBlock_[util::ecast(backend::ShaderStage::Fragment)] =
         std::make_unique<PushBlock>("FragmentPushBlock", "push_params");
 
-    ubo_ = std::make_unique<UniformBuffer>(
-        vkapi::PipelineCache::UboSetValue, 4, "MaterialUbo", "material_ubo");
+    ubos_[0] = std::make_unique<UniformBuffer>(
+        vkapi::PipelineCache::UboSetValue, VertexUboBindPoint, "VertMaterialUbo", "ubo");
+    ubos_[1] = std::make_unique<UniformBuffer>(
+        vkapi::PipelineCache::UboSetValue, FragmentUboBindPoint, "FragMaterialUbo", "material_ubo");
 
     programBundle_ = engine.driver().progManager().createProgramBundle();
+
+    // default workflow is to use gbuffers for rendering.
+    variantBits_.setBit(Variants::EnableGBufferPipeline);
 }
 
 IMaterial::~IMaterial() {}
@@ -164,6 +170,10 @@ vkapi::VDefinitions IMaterial::createVariants(util::BitSetEnum<IMaterial::Varian
     {
         map.emplace("HAS_ROUGHNESS_FACTOR", 1);
     }
+    if (bits.testBit(Variants::EnableGBufferPipeline))
+    {
+        map.emplace("USE_GBUFFER_OUTPUT", 1);
+    }
     return map;
 }
 
@@ -213,7 +223,6 @@ void IMaterial::addImageTexture(
 
     setSamplerParamI(imageTypeToStr(type), binding, samplerType);
 
-    // keep reference to the mapped texture.
     programBundle_->setTexture(
         texture->getBackendHandle(), binding, driver.getSamplerCache().createSampler(params));
 }
@@ -242,16 +251,16 @@ void IMaterial::build(
     auto* fProgram = programBundle_->getProgram(backend::ShaderStage::Fragment);
 
     // default ubo buffers - camera and mesh transform
-    addBuffer(&scene->getCurrentCameraI().getUbo(), backend::ShaderStage::Vertex);
+    addBuffer(&scene->getCurrentCameraI()->getUbo(), backend::ShaderStage::Vertex);
     addBuffer(&scene->getTransUbo(), backend::ShaderStage::Vertex);
 
-    for (const auto& [type, buffer] : buffers_)
+    for (const auto& [stage, buffer] : buffers_)
     {
-        if (type == backend::ShaderStage::Vertex)
+        if (stage == backend::ShaderStage::Vertex)
         {
             vProgram->addAttributeBlock(buffer->createShaderStr());
         }
-        else if (type == backend::ShaderStage::Fragment)
+        else if (stage == backend::ShaderStage::Fragment)
         {
             fProgram->addAttributeBlock(buffer->createShaderStr());
         }
@@ -265,12 +274,18 @@ void IMaterial::build(
 
     // add the custom material ubo - we create the device buffer here so
     // its no longer possible to change to outlay of the ubo
-    if (!ubo_->empty())
+    for (int i = 0; i < 2; ++i)
     {
-        ubo_->createGpuBuffer(driver);
-        auto uboParams = ubo_->getBufferParams(driver);
-        programBundle_->addDescriptorBinding(
-            uboParams.size, uboParams.binding, uboParams.buffer, uboParams.type);
+        if (!ubos_[i]->empty())
+        {
+            ubos_[i]->createGpuBuffer(driver);
+            auto uboParams = ubos_[i]->getBufferParams(driver);
+            programBundle_->addDescriptorBinding(
+                uboParams.size,
+                uboParams.binding,
+                uboParams.buffer,
+                uboParams.type);
+        }
     }
 
     PushBlock* vPushBlock = pushBlock_[util::ecast(backend::ShaderStage::Vertex)].get();
@@ -278,28 +293,47 @@ void IMaterial::build(
 
     vProgram->addAttributeBlock(vPushBlock->createShaderStr());
     fProgram->addAttributeBlock(fPushBlock->createShaderStr());
-    fProgram->addAttributeBlock(ubo_->createShaderStr());
+    vProgram->addAttributeBlock(ubos_[0]->createShaderStr());
+    fProgram->addAttributeBlock(ubos_[1]->createShaderStr());
     fProgram->addAttributeBlock(samplerSet_.createShaderStr());
 
     // add the render primitive, with sub meshes (not properly implemented yet)
     const auto& drawData = prim->getDrawData();
-    programBundle_->addRenderPrimitive(
-        prim->getTopology(),
-        backend::indexBufferTypeToVk(prim->getIndexBuffer()->getBufferType()),
-        drawData.indexCount,
-        drawData.indexPrimitiveOffset,
-        prim->getPrimRestartState());
+    if (prim->getIndexBuffer())
+    {
+        programBundle_->addRenderPrimitive(
+            prim->getTopology(),
+            backend::indexBufferTypeToVk(prim->getIndexBuffer()->getBufferType()),
+            drawData.indexCount,
+            drawData.indexPrimitiveOffset,
+            prim->getPrimRestartState());
+    }
+    else
+    {
+        programBundle_->addRenderPrimitive(
+            prim->getTopology(),
+            drawData.vertexCount,
+            prim->getPrimRestartState());
+    }
 
     // create the veretx shader (renderable)
     // variants for the vertex - in/out attributes - these are also
     // used on the fragment shader.
-    vkapi::VDefinitions vertexVariants = prim->createVertexAttributeVariants();
+    vkapi::VDefinitions vertexVariants;
+    if (prim->getVertexBuffer())
+    {
+        vertexVariants = prim->createVertexAttributeVariants();
+    }
 
     vkapi::Shader* vertexShader = manager.findShaderVariantOrCreate(
         vertexVariants, backend::ShaderStage::Vertex, prim->getTopology(), programBundle_);
     vProgram->addShader(vertexShader);
 
     // create the fragment shader (material)
+    if (!renderable.useGBuffer())
+    {
+        variantBits_.resetBit(Variants::EnableGBufferPipeline);
+    }
     vkapi::VDefinitions fragVariants = IMaterial::createVariants(variantBits_);
     fragVariants.insert(vertexVariants.begin(), vertexVariants.end());
 
@@ -329,12 +363,32 @@ void IMaterial::update(IEngine& engine) noexcept
         programBundle_->setPushBlockData(backend::ShaderStage::Fragment, data);
     }
 
-    // update the ubo
-    if (!ubo_->empty())
+    // update the ubos
+    for (int i = 0; i < 2; ++i)
     {
-        ubo_->createGpuBuffer(engine.driver());
-        ubo_->mapGpuBuffer(engine.driver(), ubo_->getBlockData());
+        if (!ubos_[i]->empty())
+        {
+            ubos_[i]->createGpuBuffer(engine.driver());
+            ubos_[i]->mapGpuBuffer(engine.driver(), ubos_[i]->getBlockData());
+        }
     }
+}
+
+void IMaterial::updateUboParamI(const std::string& name, backend::ShaderStage stage, void* value)
+{
+    ubos_[util::ecast(stage)]->updateElement(name, value);
+}
+
+void IMaterial::addUboParamI(
+    const std::string& elementName,
+    backend::BufferElementType type,
+    size_t size,
+    size_t arrayCount,
+    backend::ShaderStage stage,
+    void* value)
+{
+    ubos_[util::ecast(stage)]->pushElement(
+        elementName, type, static_cast<uint32_t>(size), (void*)value, arrayCount);
 }
 
 void IMaterial::setDoubleSidedStateI(bool state)
@@ -443,7 +497,7 @@ void IMaterial::addTexture(
 
     IEngine* iengine = reinterpret_cast<IEngine*>(engine);
     IMappedTexture* tex = iengine->createMappedTextureI();
-    tex->setTextureI(imageBuffer, width, height, 1, 1, format);
+    tex->setTextureI(imageBuffer, width, height, 1, 1, format, backend::ImageUsage::Sampled);
     addTexture(engine, tex, type, sampler);
 }
 
@@ -453,9 +507,10 @@ void IMaterial::updatePushConstantParam(
     updatePushConstantParamI(elementName, stage, value);
 }
 
-void IMaterial::updateUboParam(const std::string& elementName, void* value)
+void IMaterial::updateUboParam(
+    const std::string& elementName, backend::ShaderStage stage, void* value)
 {
-    updateUboParamI(elementName, value);
+    updateUboParamI(elementName, stage, value);
 }
 
 void IMaterial::addPushConstantParam(
@@ -469,55 +524,97 @@ void IMaterial::addPushConstantParam(
 }
 
 void IMaterial::addUboParam(
-    const std::string& elementName, backend::BufferElementType type, size_t size, void* value)
+    const std::string& elementName,
+    backend::BufferElementType type,
+    size_t size,
+    size_t arrayCount,
+    backend::ShaderStage stage,
+    void* value)
 {
-    addUboParamI(elementName, type, size, value);
+    addUboParamI(elementName, type, size, arrayCount, stage, value);
 }
 
 void IMaterial::setColourBaseFactor(const util::Colour4& col) noexcept
 {
     addUboParam(
-        "baseColourFactor", backend::BufferElementType::Float4, sizeof(mathfu::vec4), (void*)&col);
+        "baseColourFactor",
+        backend::BufferElementType::Float4,
+        sizeof(mathfu::vec4),
+        1,
+        backend::ShaderStage::Fragment,
+        (void*)&col);
     addVariant(IMaterial::Variants::HasBaseColourFactor);
 }
 
 void IMaterial::setAlphaMask(float alphaMask) noexcept
 {
-    addUboParam("alphaMask", backend::BufferElementType::Float, sizeof(float), (void*)&alphaMask);
+    addUboParam(
+        "alphaMask",
+        backend::BufferElementType::Float,
+        sizeof(float),
+        1,
+        backend::ShaderStage::Fragment,
+        (void*)&alphaMask);
     addVariant(IMaterial::Variants::HasAlphaMask);
 }
 
 void IMaterial::setAlphaMaskCutOff(float cutOff) noexcept
 {
     addUboParam(
-        "alphaMaskCutOff", backend::BufferElementType::Float, sizeof(float), (void*)&cutOff);
+        "alphaMaskCutOff",
+        backend::BufferElementType::Float,
+        sizeof(float),
+        1,
+        backend::ShaderStage::Fragment,
+        (void*)&cutOff);
     addVariant(IMaterial::Variants::HasAlphaMaskCutOff);
 }
 
 void IMaterial::setMetallicFactor(float metallic) noexcept
 {
-    addUboParam("metallicFactor", backend::BufferElementType::Float, sizeof(float), &metallic);
+    addUboParam(
+        "metallicFactor",
+        backend::BufferElementType::Float,
+        sizeof(float),
+        1,
+        backend::ShaderStage::Fragment,
+        &metallic);
     addVariant(IMaterial::Variants::HasMetallicFactor);
 }
 
 void IMaterial::setRoughnessFactor(float roughness) noexcept
 {
     addUboParam(
-        "roughnessFactor", backend::BufferElementType::Float, sizeof(float), (void*)&roughness);
+        "roughnessFactor",
+        backend::BufferElementType::Float,
+        sizeof(float),
+        1,
+        backend::ShaderStage::Fragment,
+        (void*)&roughness);
     addVariant(IMaterial::Variants::HasRoughnessFactor);
 }
 
 void IMaterial::setDiffuseFactor(const util::Colour4& diffuse) noexcept
 {
     addUboParam(
-        "diffuseFactor", backend::BufferElementType::Float4, sizeof(mathfu::vec4), (void*)&diffuse);
+        "diffuseFactor",
+        backend::BufferElementType::Float4,
+        sizeof(mathfu::vec4),
+        1,
+        backend::ShaderStage::Fragment,
+        (void*)&diffuse);
     addVariant(IMaterial::Variants::HasDiffuseFactor);
 }
 
 void IMaterial::setSpecularFactor(const util::Colour4& spec) noexcept
 {
     addUboParam(
-        "specularFactor", backend::BufferElementType::Float4, sizeof(mathfu::vec4), (void*)&spec);
+        "specularFactor",
+        backend::BufferElementType::Float4,
+        sizeof(mathfu::vec4),
+        1,
+        backend::ShaderStage::Fragment,
+        (void*)&spec);
     addVariant(IMaterial::Variants::HasSpecularFactor);
 }
 
@@ -527,6 +624,8 @@ void IMaterial::setEmissiveFactor(const util::Colour4& emissive) noexcept
         "emissiveFactor",
         backend::BufferElementType::Float4,
         sizeof(mathfu::vec4),
+        1,
+        backend::ShaderStage::Fragment,
         (void*)&emissive);
     addVariant(IMaterial::Variants::HasEmissiveFactor);
 }

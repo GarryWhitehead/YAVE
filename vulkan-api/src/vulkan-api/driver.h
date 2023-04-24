@@ -106,6 +106,7 @@ public:
         const ::util::CString& name,
         uint32_t width,
         uint32_t height,
+        bool multiView,
         uint8_t samples,
         const util::Colour4& clearCol,
         const std::array<RenderTarget::AttachmentInfo, vkapi::RenderTarget::MaxColourAttachCount>&

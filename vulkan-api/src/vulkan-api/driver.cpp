@@ -81,7 +81,7 @@ bool VkDriver::init(const vk::SurfaceKHR surface)
 
     // set up the memory allocator
     VmaAllocatorCreateInfo createInfo = {};
-    createInfo.vulkanApiVersion = VK_API_VERSION_1_3;
+    createInfo.vulkanApiVersion = VK_API_VERSION_1_2;
     createInfo.physicalDevice = context_->physical();
     createInfo.device = context_->device();
     createInfo.instance = context_->instance();
@@ -111,9 +111,10 @@ void VkDriver::shutdown()
 
 
 RenderTargetHandle VkDriver::createRenderTarget(
-    const ::util::CString& name,
+    const util::CString& name,
     uint32_t width,
     uint32_t height,
+    bool multiView,
     uint8_t samples,
     const util::Colour4& clearCol,
     const std::array<RenderTarget::AttachmentInfo, RenderTarget::MaxColourAttachCount>& colours,
@@ -124,6 +125,7 @@ RenderTargetHandle VkDriver::createRenderTarget(
     rt.depth = depth;
     rt.stencil = stencil;
     rt.clearCol = clearCol;
+    rt.multiView = multiView;
     memcpy(
         &rt.colours,
         colours.data(),
@@ -277,34 +279,36 @@ void VkDriver::endFrame(Swapchain& swapchain)
 void VkDriver::beginRenderpass(
     vk::CommandBuffer cmds, const RenderPassData& data, const RenderTargetHandle& rtHandle)
 {
-    ASSERT_LOG(rtHandle);
+    ASSERT_FATAL(rtHandle, "Invalid render target handle.");
+
     RenderTarget& renderTarget = renderTargets_[rtHandle.getKey()];
     RenderTarget::AttachmentInfo depth = renderTarget.depth;
 
     // find a renderpass from the cache or create a new one.
     FramebufferCache::RPassKey rpassKey;
+    rpassKey.depth = vk::Format::eUndefined;
     if (depth.handle)
     {
         auto depthTexture = depth.handle.getResource();
         rpassKey.depth = depthTexture->context().format;
     }
     rpassKey.samples = renderTarget.samples;
+    rpassKey.multiView = renderTarget.multiView;
 
+    int colourCount = 0;
     for (int i = 0; i < RenderTarget::MaxColourAttachCount; ++i)
     {
         RenderTarget::AttachmentInfo colour = renderTarget.colours[i];
+        rpassKey.colourFormats[i] = vk::Format::eUndefined;
         if (colour.handle)
         {
-            auto tex = colour.handle.getResource();
+            Texture* tex = colour.handle.getResource();
             rpassKey.colourFormats[i] = tex->context().format;
             ASSERT_LOG(data.finalLayouts[i] != vk::ImageLayout::eUndefined);
             rpassKey.finalLayout[i] = data.finalLayouts[i];
             rpassKey.loadOp[i] = data.loadClearFlags[i];
             rpassKey.storeOp[i] = data.storeClearFlags[i];
-        }
-        else
-        {
-            rpassKey.colourFormats[i] = vk::Format::eUndefined;
+            ++colourCount;
         }
     }
     rpassKey.dsLoadOp[0] = data.loadClearFlags[RenderTarget::DepthIndex - 1];
@@ -321,6 +325,7 @@ void VkDriver::beginRenderpass(
     fboKey.width = data.width;
     fboKey.height = data.height;
     fboKey.samples = rpassKey.samples;
+    fboKey.layer = 1;
 
     int count = 0;
     for (int idx = 0; idx < RenderTarget::MaxColourAttachCount; ++idx)
@@ -328,8 +333,7 @@ void VkDriver::beginRenderpass(
         RenderTarget::AttachmentInfo colour = renderTarget.colours[idx];
         if (colour.handle)
         {
-            auto tex = colour.handle.getResource();
-            ASSERT_LOG(colour.handle);
+            vkapi::Texture* tex = colour.handle.getResource();
             fboKey.views[idx] = tex->getImageView()->get();
             ASSERT_FATAL(fboKey.views[idx], "ImageView for attachment %d is invalid.", idx);
             ++count;
@@ -403,7 +407,6 @@ void VkDriver::beginRenderpass(
 void VkDriver::endRenderpass(vk::CommandBuffer& cmdBuffer) { cmdBuffer.endRenderPass(); }
 
 Commands& VkDriver::getCommands() noexcept { return *commands_; }
-
 
 void VkDriver::draw(
     vk::CommandBuffer cmdBuffer,

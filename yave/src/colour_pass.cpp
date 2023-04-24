@@ -98,8 +98,8 @@ void ColourPass::render(
             builder.addSideEffect();
 
             rg::PassDescriptor passDesc;
-            passDesc.attachments.attach.colour[0] = data.position;
-            passDesc.attachments.attach.colour[1] = data.colour;
+            passDesc.attachments.attach.colour[0] = data.colour;
+            passDesc.attachments.attach.colour[1] = data.position;
             passDesc.attachments.attach.colour[2] = data.normal;
             passDesc.attachments.attach.colour[3] = data.emissive;
             passDesc.attachments.attach.colour[4] = data.pbr;
@@ -155,13 +155,18 @@ void ColourPass::drawCallback(
         dynamicOffsets.emplace_back(renderData->getSkinDynamicOffset());
     }
 
+    vk::Buffer vertexBuffer = vBuffer ? vBuffer->getGpuBuffer(driver)->get() : nullptr;
+    vk::Buffer indexBuffer = iBuffer ? iBuffer->getGpuBuffer(driver)->get() : nullptr;
+    vk::VertexInputAttributeDescription* attrDesc = vBuffer ? vBuffer->getInputAttr() : nullptr;
+    vk::VertexInputBindingDescription* bindDesc = vBuffer ? vBuffer->getInputBind() : nullptr;
+
     driver.draw(
         cmdBuffer,
         *programBundle,
-        vBuffer->getGpuBuffer(driver)->get(),
-        iBuffer->getGpuBuffer(driver)->get(),
-        vBuffer->getInputAttr(),
-        vBuffer->getInputBind(),
+        vertexBuffer,
+        indexBuffer,
+        attrDesc,
+        bindDesc,
         dynamicOffsets);
 }
 

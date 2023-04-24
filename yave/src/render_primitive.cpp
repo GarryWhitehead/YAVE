@@ -38,7 +38,11 @@ namespace yave
 {
 
 IRenderPrimitive::IRenderPrimitive()
-    : topology_(vk::PrimitiveTopology::eTriangleList), primitiveRestart_(false)
+    : topology_(vk::PrimitiveTopology::eTriangleList),
+      primitiveRestart_(false),
+      vertBuffer_(nullptr),
+      indexBuffer_(nullptr),
+      material_(nullptr)
 {
 }
 IRenderPrimitive::~IRenderPrimitive() {}
@@ -50,10 +54,10 @@ vkapi::VDefinitions IRenderPrimitive::createVertexAttributeVariants()
     vkapi::VDefinitions map;
     auto bits = vertBuffer_->getAtrributeBits();
 
-    ASSERT_FATAL(
-        bits.testBit(VertexBuffer::BindingType::Position),
-        "It is essential that the position vertex input attribute is set.");
-
+    if (bits.testBit(VertexBuffer::BindingType::Position))
+    {
+        map.emplace("HAS_POS_ATTR_INPUT", 1);
+    }
     if (bits.testBit(VertexBuffer::BindingType::Normal))
     {
         map.emplace("HAS_NORMAL_ATTR_INPUT", 1);
@@ -77,10 +81,12 @@ vkapi::VDefinitions IRenderPrimitive::createVertexAttributeVariants()
     return map;
 }
 
-void IRenderPrimitive::addMeshDrawDataI(size_t indexCount, size_t offset)
+void IRenderPrimitive::addMeshDrawDataI(size_t indexCount, size_t offset, size_t vertexCount)
 {
-    ASSERT_LOG(indexCount > 0);
-    drawData_ = {indexCount, offset};
+    ASSERT_FATAL(
+        (indexCount > 0 && !vertexCount) || (vertexCount > 0 && !indexCount),
+        "Either index count or vertex count can be non-zero values, not both");
+    drawData_ = {indexCount, offset, vertexCount};
 }
 
 void IRenderPrimitive::setTopologyI(backend::PrimitiveTopology topo)
@@ -99,9 +105,9 @@ void IRenderPrimitive::setMaterialI(IMaterial* mat) noexcept { material_ = mat; 
 RenderPrimitive::RenderPrimitive() {}
 RenderPrimitive::~RenderPrimitive() {}
 
-void IRenderPrimitive::addMeshDrawData(size_t indexCount, size_t offset)
+void IRenderPrimitive::addMeshDrawData(size_t indexCount, size_t offset, size_t vertexCount)
 {
-    addMeshDrawDataI(indexCount, offset);
+    addMeshDrawDataI(indexCount, offset, vertexCount);
 }
 
 void IRenderPrimitive::setTopology(Topology topo) { setTopologyI(topo); }

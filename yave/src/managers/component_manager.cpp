@@ -32,7 +32,7 @@ ObjectHandle ComponentManager::addObject(const IObject& obj) noexcept
 {
     uint64_t retIdx = 0;
 
-    // if theres no free slots, then create a new one
+    // if there is no free slots, then create a new one
     if (freeSlots_.empty())
     {
         objects_.emplace(obj, index_);

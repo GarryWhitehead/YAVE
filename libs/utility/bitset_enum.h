@@ -131,8 +131,15 @@ public:
     {
         BitSetEnum cp(*this);
         cp.bitset.flip();
-
         return cp;
+    }
+
+    friend BitSetEnum operator|(const T& lhs, const T& rhs) 
+    { 
+        BitSetEnum result(*this);
+        result |= lhs;
+        result |= rhs;
+        return result;
     }
 
     /**

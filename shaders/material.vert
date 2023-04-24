@@ -1,4 +1,6 @@
+#if defined(HAS_POS_ATTR_INPUT)
 layout(location = 0) in vec3 inPos;
+#endif
 #if defined(HAS_UV_ATTR_INPUT)
 layout(location = 1) in vec2 inUv;
 #endif
@@ -22,7 +24,11 @@ layout(location = 1) out vec3 outNormal;
 #if defined(HAS_COLOUR_ATTR_INPUT)
 layout(location = 2) out vec4 outColour;
 #endif
+
+// It is a fundamental requirement that positional data
+// is passed to the fragment shader.
 layout(location = 3) out vec3 outPos;
+
 
 #define MAX_BONES 250
 
@@ -35,9 +41,11 @@ void main()
     boneTransform += skin_ubo.bones[int(inBoneId.w)] * inWeights.w;
 
     mat4 normalTransform = mesh_ubo.modelMatrix * boneTransform;
-#else
+#elif defined(HAS_POS_ATTR_INPUT)
     mat4 normalTransform = mesh_ubo.modelMatrix;
     vec4 pos = normalTransform * vec4(inPos, 1.0);
+#else
+    vec4 pos = vec4(0.0);
 #endif
 
 #if defined(HAS_NORMAL_ATTR_INPUT)

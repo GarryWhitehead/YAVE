@@ -52,7 +52,8 @@ public:
         uint32_t height,
         uint32_t levels,
         uint32_t faces,
-        backend::TextureFormat type,
+        TextureFormat type,
+        uint32_t usageFlags,
         size_t* offsets = nullptr);
 
     void setTextureI(
@@ -61,7 +62,8 @@ public:
         uint32_t height,
         uint32_t levels,
         uint32_t faces,
-        backend::TextureFormat type,
+        TextureFormat type,
+        uint32_t usageFlags,
         size_t* offsets = nullptr);
 
     static uint32_t totalTextureSize(
@@ -89,9 +91,17 @@ public:
 
     // ================== client api ===================
 
-    void setTexture(const Descriptor& desc, size_t* offsets) noexcept override;
+    void setTexture(const Params& params, size_t* offsets) noexcept override;
 
-    Descriptor getTextureDescriptor() noexcept override;
+    void setEmptyTexture(
+        uint32_t width,
+        uint32_t height,
+        TextureFormat format,
+        uint32_t usageFlags,
+        uint32_t levels,
+        uint32_t faces) noexcept override;
+
+    Params getTextureParams() noexcept override;
 
 private:
     IEngine& engine_;

@@ -27,6 +27,7 @@ namespace yave
 {
 class Skybox;
 class Camera;
+class Object;
 
 class Scene
 {
@@ -38,6 +39,8 @@ public:
     virtual void setCamera(Camera* camera) = 0;
 
     virtual Camera* getCurrentCamera() = 0;
+
+    virtual Object* createObject() = 0;
 
 protected:
     Scene();

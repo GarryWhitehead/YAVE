@@ -46,7 +46,7 @@ class IMaterial;
 class ISkybox : public Skybox
 {
 public:
-    ISkybox(IEngine& engine);
+    ISkybox(IEngine& engine, IScene& scene);
 
     void buildI(ICamera& camera);
 

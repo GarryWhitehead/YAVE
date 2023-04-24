@@ -22,32 +22,37 @@
 
 #pragma once
 
-#include "enums.h"
-#include "vulkan/vulkan.hpp"
+#include <mathfu/glsl_mappings.h>
 
-#include <utility/bitset_enum.h>
-
-namespace backend
+namespace yave
 {
+class Engine;
+class Texture;
+class Scene;
+class Renderer;
+class Camera;
+class VertexBuffer;
+class IndexBuffer;
 
-vk::BlendFactor blendFactorToVk(BlendFactor factor);
+class PreFilter
+{
+public:
 
-vk::BlendOp blendOpToVk(BlendOp op);
+	PreFilter(Engine* engine);
+    ~PreFilter();
 
-vk::SamplerAddressMode samplerAddrModeToVk(SamplerAddressMode mode);
+	Texture* eqirectToCubemap(Texture* image); 
 
-vk::Filter samplerFilterToVk(SamplerFilter filter);
+private:
 
-vk::CullModeFlagBits cullModeToVk(CullMode mode);
+	Engine* engine_;
 
-vk::CompareOp compareOpToVk(CompareOp op);
+	Scene* scene_;
+    Renderer* renderer_;
+    Camera* camera_;
 
-vk::PrimitiveTopology primitiveTopologyToVk(PrimitiveTopology topo);
+	VertexBuffer* vBuffer;
+    IndexBuffer* iBuffer;
+};
 
-vk::IndexType indexBufferTypeToVk(IndexBufferType type);
-
-vk::Format textureFormatToVk(TextureFormat type);
-
-vk::ImageUsageFlags imageUsageToVk(uint32_t usageFlags);
-
-} // namespace backend
+}
