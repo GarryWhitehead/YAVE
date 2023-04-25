@@ -62,8 +62,9 @@ struct PassDescriptor
     PassAttachmentUnion attachments;
     util::Colour4 clearColour {0.0f, 0.0f, 0.0f, 1.0f};
     uint8_t samples = 1;
-    std::array<vkapi::LoadClearFlags, 2> dsLoadClearFlags = {vkapi::LoadClearFlags::DontCare};
-    std::array<vkapi::StoreClearFlags, 2> dsStoreClearFlags = {vkapi::StoreClearFlags::DontCare};
+    std::array<backend::LoadClearFlags, 2> dsLoadClearFlags = {backend::LoadClearFlags::DontCare};
+    std::array<backend::StoreClearFlags, 2> dsStoreClearFlags = {
+        backend::StoreClearFlags::DontCare};
 
     struct VkBackend
     {

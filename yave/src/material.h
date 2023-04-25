@@ -55,7 +55,6 @@ using MaterialHandle = util::Handle<IMaterial>;
 class IMaterial : public Material
 {
 public:
-
     constexpr static int VertexUboBindPoint = 4;
     constexpr static int FragmentUboBindPoint = 4;
 
@@ -91,8 +90,7 @@ public:
     IMaterial(IMaterial&&) = default;
     IMaterial& operator=(IMaterial&&) = default;
 
-    static vkapi::VDefinitions
-    createVariants(util::BitSetEnum<IMaterial::Variants>& bits);
+    static vkapi::VDefinitions createVariants(util::BitSetEnum<IMaterial::Variants>& bits);
 
     void addVariant(const Material::ImageType type);
     void addVariant(Variants variant);

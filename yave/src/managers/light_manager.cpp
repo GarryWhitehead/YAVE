@@ -382,7 +382,7 @@ rg::RenderGraphHandle ILightManager::render(
             rg::PassDescriptor desc;
             desc.attachments.attach.colour[0] = data.light;
             desc.attachments.attach.depth = {data.depth};
-            desc.dsLoadClearFlags = {vkapi::LoadClearFlags::Clear};
+            desc.dsLoadClearFlags = {backend::LoadClearFlags::Clear};
             data.rt = builder.createRenderTarget("lightRT", desc);
         },
         [=](::vkapi::VkDriver& driver,

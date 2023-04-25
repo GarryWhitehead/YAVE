@@ -42,8 +42,7 @@
 namespace yave
 {
 
-IMaterial::IMaterial(IEngine& engine)
-    : doubleSided_(false), pipelineId_(0), viewLayer_(0x2)
+IMaterial::IMaterial(IEngine& engine) : doubleSided_(false), pipelineId_(0), viewLayer_(0x2)
 {
     pushBlock_[util::ecast(backend::ShaderStage::Vertex)] =
         std::make_unique<PushBlock>("VertexPushBlock", "push_params");
@@ -281,10 +280,7 @@ void IMaterial::build(
             ubos_[i]->createGpuBuffer(driver);
             auto uboParams = ubos_[i]->getBufferParams(driver);
             programBundle_->addDescriptorBinding(
-                uboParams.size,
-                uboParams.binding,
-                uboParams.buffer,
-                uboParams.type);
+                uboParams.size, uboParams.binding, uboParams.buffer, uboParams.type);
         }
     }
 
@@ -311,9 +307,7 @@ void IMaterial::build(
     else
     {
         programBundle_->addRenderPrimitive(
-            prim->getTopology(),
-            drawData.vertexCount,
-            prim->getPrimRestartState());
+            prim->getTopology(), drawData.vertexCount, prim->getPrimRestartState());
     }
 
     // create the veretx shader (renderable)

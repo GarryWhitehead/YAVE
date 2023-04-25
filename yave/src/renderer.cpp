@@ -24,12 +24,12 @@
 
 #include "colour_pass.h"
 #include "engine.h"
+#include "mapped_texture.h"
 #include "render_graph/resources.h"
 #include "scene.h"
 #include "skybox.h"
-#include "mapped_texture.h"
-#include "vulkan-api/renderpass.h"
 #include "utility/cstring.h"
+#include "vulkan-api/renderpass.h"
 
 #include <algorithm>
 
@@ -103,7 +103,7 @@ void IRenderer::endFrameI() noexcept
     engine_->driver().endFrame(*swapchain);
 }
 
-void IRenderer::renderSingleSceneI(vkapi::VkDriver& driver, IScene& scene, const RenderTarget& rTarget)
+void IRenderer::renderSingleSceneI(vkapi::VkDriver& driver, IScene& scene, RenderTarget& rTarget)
 {
     ILightManager* lm = engine_->getLightManagerI();
 
@@ -115,12 +115,23 @@ void IRenderer::renderSingleSceneI(vkapi::VkDriver& driver, IScene& scene, const
     data.width = rTarget.getWidth();
     data.height = rTarget.getHeight();
 
+    memcpy(
+        data.loadClearFlags.data(),
+        rTarget.getLoadFlags(),
+        sizeof(backend::LoadClearFlags) * vkapi::RenderTarget::MaxAttachmentCount);
+    memcpy(
+        data.storeClearFlags.data(),
+        rTarget.getStoreFlags(),
+        sizeof(backend::StoreClearFlags) * vkapi::RenderTarget::MaxAttachmentCount);
+
     lm->prepare();
     scene.update();
 
     driver.beginRenderpass(cmdBuffer, data, rTarget.getHandle());
     queue.render(*engine_, scene, cmdBuffer, RenderQueue::Type::Colour);
     driver.endRenderpass(cmdBuffer);
+
+    cmds.flush();
 }
 
 void IRenderer::renderI(vkapi::VkDriver& driver, IScene& scene)
@@ -147,8 +158,8 @@ void IRenderer::renderI(vkapi::VkDriver& driver, IScene& scene)
     desc.usage = vk::ImageUsageFlagBits::eColorAttachment;
 
     // store/clear flags for final colour attachment.
-    desc.storeClearFlags[0] = vkapi::StoreClearFlags::Store;
-    desc.loadClearFlags[0] = vkapi::LoadClearFlags::Clear;
+    desc.storeClearFlags[0] = backend::StoreClearFlags::Store;
+    desc.loadClearFlags[0] = backend::LoadClearFlags::Clear;
     desc.finalLayouts[0] = vk::ImageLayout::ePresentSrcKHR;
 
     // should be definable via the client api
@@ -196,13 +207,13 @@ void IRenderer::render(Engine* engine, Scene* scene)
     renderI(reinterpret_cast<IEngine*>(engine)->driver(), *(reinterpret_cast<IScene*>(scene)));
 };
 
-void IRenderer::renderSingleScene(Engine* engine, Scene* scene, const RenderTarget& rTarget)
+void IRenderer::renderSingleScene(Engine* engine, Scene* scene, RenderTarget& rTarget)
 {
     renderSingleSceneI(
         reinterpret_cast<IEngine*>(engine)->driver(), *(reinterpret_cast<IScene*>(scene)), rTarget);
 }
 
-void RenderTarget::setColourTexture(Texture* tex, uint8_t attachIdx) 
+void RenderTarget::setColourTexture(Texture* tex, uint8_t attachIdx)
 {
     ASSERT_FATAL(
         attachIdx < MaxAttachCount,
@@ -210,7 +221,7 @@ void RenderTarget::setColourTexture(Texture* tex, uint8_t attachIdx)
         attachIdx,
         MaxAttachCount);
     ASSERT_FATAL(tex, "The target resource must be valid.");
-    attachments_[attachIdx].texture = tex; 
+    attachments_[attachIdx].texture = tex;
 }
 
 void RenderTarget::setDepthTexture(Texture* tex)
@@ -219,7 +230,7 @@ void RenderTarget::setDepthTexture(Texture* tex)
     attachments_[DepthAttachIdx].texture = tex;
 }
 
-void RenderTarget::setMipLevel(uint8_t level, uint8_t attachIdx) 
+void RenderTarget::setMipLevel(uint8_t level, uint8_t attachIdx)
 {
     ASSERT_FATAL(
         attachIdx < MaxAttachCount,
@@ -229,7 +240,7 @@ void RenderTarget::setMipLevel(uint8_t level, uint8_t attachIdx)
     attachments_[attachIdx].mipLevel = level;
 }
 
-void RenderTarget::setLayer(uint8_t layer, uint8_t attachIdx) 
+void RenderTarget::setLayer(uint8_t layer, uint8_t attachIdx)
 {
     ASSERT_FATAL(
         attachIdx < MaxAttachCount,
@@ -239,8 +250,28 @@ void RenderTarget::setLayer(uint8_t layer, uint8_t attachIdx)
     attachments_[attachIdx].layer = layer;
 }
 
-void RenderTarget::build(Engine* engine, const util::CString& name, bool multiView) 
-{ 
+void RenderTarget::setLoadFlags(backend::LoadClearFlags flags, uint8_t attachIdx)
+{
+    ASSERT_FATAL(
+        attachIdx < MaxAttachCount,
+        "Attachment index of %d is greater than the max allowed value %d",
+        attachIdx,
+        MaxAttachCount);
+    loadFlags_[attachIdx] = flags;
+}
+
+void RenderTarget::setStoreFlags(backend::StoreClearFlags flags, uint8_t attachIdx)
+{
+    ASSERT_FATAL(
+        attachIdx < MaxAttachCount,
+        "Attachment index of %d is greater than the max allowed value %d",
+        attachIdx,
+        MaxAttachCount);
+    storeFlags_[attachIdx] = flags;
+}
+
+void RenderTarget::build(Engine* engine, const util::CString& name, bool multiView)
+{
     ASSERT_FATAL(
         attachments_[0].texture || attachments_[DepthAttachIdx].texture,
         "Render target must contain either a valid colour or depth attachment.");
@@ -251,7 +282,7 @@ void RenderTarget::build(Engine* engine, const util::CString& name, bool multiVi
     // convert attachment information to vulkan api format
     vkapi::RenderTarget vkRt;
     vkRt.samples = samples_;
-    
+
     uint32_t minWidth = std::numeric_limits<uint32_t>::max();
     uint32_t minHeight = std::numeric_limits<uint32_t>::max();
     uint32_t maxWidth = 0;
@@ -262,9 +293,14 @@ void RenderTarget::build(Engine* engine, const util::CString& name, bool multiVi
         if (attachments_[i].texture)
         {
             IMappedTexture* mT = reinterpret_cast<IMappedTexture*>(attachments_[i].texture);
+            ASSERT_FATAL(
+                multiView && mT->isCubeMap(),
+                "Only cubemap textures are supported for multiview rendering.");
+
             vkRt.colours[i].handle = mT->getBackendHandle();
             vkRt.colours[i].level = attachments_[i].mipLevel;
             vkRt.colours[i].layer = attachments_[i].layer;
+
             uint32_t width = mT->getWidth();
             uint32_t height = mT->getHeight();
             minWidth = std::min(minWidth, width);
@@ -278,11 +314,12 @@ void RenderTarget::build(Engine* engine, const util::CString& name, bool multiVi
 
     if (attachments_[DepthAttachIdx].texture)
     {
-        IMappedTexture* dT = reinterpret_cast<IMappedTexture*>(attachments_[DepthAttachIdx].texture);
+        IMappedTexture* dT =
+            reinterpret_cast<IMappedTexture*>(attachments_[DepthAttachIdx].texture);
         vkRt.depth.handle = dT->getBackendHandle();
         vkRt.depth.level = attachments_[DepthAttachIdx].mipLevel;
     }
-    
+
     handle_ = driver.createRenderTarget(
         name, minWidth, minHeight, multiView, samples_, clearCol_, vkRt.colours, vkRt.depth, {});
 }

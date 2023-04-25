@@ -237,10 +237,7 @@ public:
     BlendFactorState blendState_;
 
     void addDescriptorBinding(
-        uint32_t size,
-        uint32_t binding,
-        vk::Buffer buffer,
-        vk::DescriptorType type);
+        uint32_t size, uint32_t binding, vk::Buffer buffer, vk::DescriptorType type);
 };
 
 template <typename... ShaderArgs>
@@ -252,9 +249,7 @@ void ShaderProgramBundle::buildShaders(const std::string& filename, const Shader
 
 class ProgramManager
 {
-
 public:
-   
     // =============== cached shader hasher ======================
 
 #pragma clang diagnostic push
@@ -275,7 +270,6 @@ public:
 #pragma clang diagnostic pop
 
 private:
-
     using CachedHasher = util::Murmur3Hasher<CachedKey>;
 
     struct CachedEqual
@@ -291,7 +285,6 @@ private:
         std::unordered_map<CachedKey, std::unique_ptr<Shader>, CachedHasher, CachedEqual>;
 
 public:
-
     ProgramManager(VkDriver& driver);
     ~ProgramManager();
 

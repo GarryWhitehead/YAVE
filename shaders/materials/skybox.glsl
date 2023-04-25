@@ -16,9 +16,7 @@ void materialVertex(vec4 pos)
 
 void materialFragment()
 {
-    outColour = vec4(
-        textureLod(BaseColourSampler, inPos.xyz, material_ubo.blurFactor).rgb,
-        1.0);
+    outColour = texture(BaseColourSampler, inPos.xyz);
 
     // we donte zero for the emissive texture alpha channel as this tells the
     // lighting shader to skip applying lighting to the skybox

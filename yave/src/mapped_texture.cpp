@@ -22,8 +22,8 @@
 
 #include "mapped_texture.h"
 
-#include "backend/enums.h"
 #include "backend/convert_to_yave.h"
+#include "backend/enums.h"
 #include "engine.h"
 #include "utility/assertion.h"
 #include "utility/logger.h"
@@ -160,9 +160,6 @@ void IMappedTexture::setEmptyTexture(
     setTextureI(buffer, bufferSize, width, height, levels, faces, format, usageFlags, nullptr);
 }
 
-Texture::Params IMappedTexture::getTextureParams() noexcept
-{
-    return {buffer_, width_, height_};
-}
+Texture::Params IMappedTexture::getTextureParams() noexcept { return {buffer_, width_, height_}; }
 
 } // namespace yave

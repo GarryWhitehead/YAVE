@@ -32,19 +32,19 @@ class Texture;
 class Ibl
 {
 public:
-
-	Ibl(Engine* engine, const std::filesystem::path& assetPath = "");
+    Ibl(Engine* engine, const std::filesystem::path& assetPath = "");
     ~Ibl();
 
-	bool loadEqirectImage(const std::filesystem::path& path);
+    bool loadEqirectImage(const std::filesystem::path& path);
+
+    Texture* getCubeMap() noexcept { return cubeMap_; }
 
 private:
+    Engine* engine_;
 
-	Engine* engine_;
+    Texture* cubeMap_;
 
-	Texture* cubeMap_;
-
-	std::filesystem::path assetPath_;
+    std::filesystem::path assetPath_;
 };
 
 } // namespace yave

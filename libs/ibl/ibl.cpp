@@ -21,13 +21,13 @@
  */
 
 #include "ibl.h"
+
 #include "prefilter.h"
 
+#include <spdlog/spdlog.h>
+#include <stb_image.h>
 #include <yave/engine.h>
 #include <yave/texture.h>
-
-#include <stb_image.h>
-#include <spdlog/spdlog.h>
 
 namespace yave
 {
@@ -40,19 +40,13 @@ Ibl::Ibl(Engine* engine, const std::filesystem::path& assetPath)
 Ibl::~Ibl() {}
 
 bool Ibl::loadEqirectImage(const std::filesystem::path& path)
-{ 
-	std::filesystem::path imagePath = path;
+{
+    std::filesystem::path imagePath = path;
     if (!assetPath_.empty())
     {
         imagePath = assetPath_.c_str() / imagePath;
     }
     auto platformPath = imagePath.make_preferred();
-
-    if (!stbi_is_hdr(platformPath.string().c_str()))
-    {
-        SPDLOG_ERROR("Imge must be in the hdr format for ibl.");
-        return false;
-    }
 
     int width, height, comp;
     float* data = stbi_loadf(platformPath.string().c_str(), &width, &height, &comp, 3);
@@ -62,10 +56,13 @@ bool Ibl::loadEqirectImage(const std::filesystem::path& path)
         return false;
     }
 
-    ASSERT_FATAL(
-        comp == 3,
-        "Image must contain 3 channels (rgb). This image contains: %d",
-        comp);
+    if (!stbi_is_hdr(platformPath.string().c_str()))
+    {
+        SPDLOG_ERROR("Imge must be in the hdr format for ibl.");
+        return false;
+    }
+
+    ASSERT_FATAL(comp == 3, "Image must contain 3 channels (rgb). This image contains: %d", comp);
 
     // We don't really want to work with RGB as this format isn't supported widely
     // by graphic card vendors so add an extra channel if we only have three.
@@ -98,8 +95,7 @@ bool Ibl::loadEqirectImage(const std::filesystem::path& path)
         static_cast<uint32_t>(width),
         static_cast<uint32_t>(height),
         backend::TextureFormat::RGBA32,
-        backend::ImageUsage::Sampled
-    };
+        backend::ImageUsage::Sampled};
     tex->setTexture(params);
 
     stbi_image_free(data);
@@ -107,9 +103,9 @@ bool Ibl::loadEqirectImage(const std::filesystem::path& path)
     PreFilter preIbl(engine_);
 
     // create a cubemap from a eqirectangular env map
-    preIbl.eqirectToCubemap(tex);
+    cubeMap_ = preIbl.eqirectToCubemap(tex);
 
     return true;
 }
 
-}
+} // namespace yave

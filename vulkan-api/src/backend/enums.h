@@ -166,11 +166,24 @@ enum class IndexBufferType
 
 enum ImageUsage
 {
-    Sampled      = 1 << 0,
-    Storage      = 1 << 1,
+    Sampled = 1 << 0,
+    Storage = 1 << 1,
     ColourAttach = 1 << 2,
-    DepthAttach  = 1 << 3,
-    InputAttach  = 1 << 4
+    DepthAttach = 1 << 3,
+    InputAttach = 1 << 4
+};
+
+enum class LoadClearFlags : uint32_t
+{
+    Load,
+    Clear,
+    DontCare
+};
+
+enum class StoreClearFlags : uint32_t
+{
+    Store,
+    DontCare
 };
 
 // objects used by the public api but held here for easier

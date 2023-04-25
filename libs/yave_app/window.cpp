@@ -95,7 +95,7 @@ Window::Window(Application& app, const char* title, uint32_t width, uint32_t hei
     // create a scene for our application
     app.scene_ = app.engine_->createScene();
     app.engine_->setCurrentScene(app.scene_);
- 
+
     updateCameraForWindow();
 
     if (showUI_)

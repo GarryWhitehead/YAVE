@@ -37,22 +37,20 @@ class IndexBuffer;
 class PreFilter
 {
 public:
-
-	PreFilter(Engine* engine);
+    PreFilter(Engine* engine);
     ~PreFilter();
 
-	Texture* eqirectToCubemap(Texture* image); 
+    Texture* eqirectToCubemap(Texture* image);
 
 private:
+    Engine* engine_;
 
-	Engine* engine_;
-
-	Scene* scene_;
+    Scene* scene_;
     Renderer* renderer_;
     Camera* camera_;
 
-	VertexBuffer* vBuffer;
+    VertexBuffer* vBuffer;
     IndexBuffer* iBuffer;
 };
 
-}
+} // namespace yave

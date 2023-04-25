@@ -23,24 +23,22 @@
 #include "prefilter.h"
 
 #include <backend/enums.h>
-
-#include <yave/engine.h>
-#include <yave/texture.h>
-#include <yave/material.h>
-#include <yave/renderable_manager.h>
-#include <yave/renderable.h>
-#include <yave/renderer.h>
-#include <yave/render_primitive.h>
-#include <yave/vertex_buffer.h>
-#include <yave/index_buffer.h>
-#include <yave/object.h>
-#include <yave/transform_manager.h>
-#include <yave/texture_sampler.h>
-#include <yave/scene.h>
-#include <yave/camera.h>
-
-#include <utility/assertion.h>
 #include <image_utils/cubemap.h>
+#include <utility/assertion.h>
+#include <yave/camera.h>
+#include <yave/engine.h>
+#include <yave/index_buffer.h>
+#include <yave/material.h>
+#include <yave/object.h>
+#include <yave/render_primitive.h>
+#include <yave/renderable.h>
+#include <yave/renderable_manager.h>
+#include <yave/renderer.h>
+#include <yave/scene.h>
+#include <yave/texture.h>
+#include <yave/texture_sampler.h>
+#include <yave/transform_manager.h>
+#include <yave/vertex_buffer.h>
 
 namespace yave
 {
@@ -81,14 +79,19 @@ Texture* PreFilter::eqirectToCubemap(Texture* hdrImage)
     TextureSampler sampler(
         backend::SamplerFilter::Linear,
         backend::SamplerFilter::Linear,
-        backend::SamplerAddressMode::ClampToEdge);
+        backend::SamplerAddressMode::ClampToEdge,
+        16.0f);
     mat->addTexture(engine_, hdrImage, Material::ImageType::BaseColour, sampler);
-    
+
     std::array<mathfu::mat4, 6> faceViews;
     CubeMap::createFaceViews(faceViews);
     mat->addUboArrayParam(
-        "faceViews", backend::BufferElementType::Mat4, 6, backend::ShaderStage::Vertex, faceViews.data());
-    camera_->setProjection(2.0f / M_PI, 1.0f, 1.0f, 512.0f);
+        "faceViews",
+        backend::BufferElementType::Mat4,
+        6,
+        backend::ShaderStage::Vertex,
+        faceViews.data());
+    camera_->setProjection(90.0f, 1.0f, 1.0f, 512.0f);
 
     prim->setVertexBuffer(vBuffer);
     prim->setIndexBuffer(iBuffer);
@@ -107,16 +110,21 @@ Texture* PreFilter::eqirectToCubemap(Texture* hdrImage)
         512,
         512,
         backend::TextureFormat::RGBA16,
-        backend::ImageUsage::Sampled | backend::ImageUsage::ColourAttach,
-        1, 6);
+        backend::ImageUsage::ColourAttach | backend::ImageUsage::Sampled,
+        1,
+        6);
 
     // set the empty cube map as the render target for our draws
     RenderTarget rt;
     rt.setColourTexture(cubeTex, 0);
-    // Note: for cube map targets we use a multi-view renderpass to render all faces with one draw call
+    rt.setLoadFlags(backend::LoadClearFlags::Clear, 0);
+    rt.setStoreFlags(backend::StoreClearFlags::Store, 0);
+
+    // Note: for cube map targets we use a multi-view renderpass to render all faces with one draw
+    // call
     rt.build(engine_, "eqicube_target", true);
     renderer_->renderSingleScene(engine_, scene_, rt);
-    
+
     return cubeTex;
 }
 

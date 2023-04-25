@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include "backend/enums.h"
 #include "common.h"
 #include "resource_cache.h"
 #include "texture.h"
@@ -69,24 +70,6 @@ struct RenderTarget
 using RenderTargetHandle = util::Handle<RenderTarget>;
 using AttachmentHandle = util::Handle<vk::AttachmentDescription>;
 
-/**
- * Describes what should be done with the images pre- and post- pass - i.e. keep
- * or throw away the data. Using a normal enum instaed of the bitsetenum because
- * this will be used in the renderpass key
- */
-enum class LoadClearFlags : uint32_t
-{
-    Load,
-    Clear,
-    DontCare
-};
-
-enum class StoreClearFlags : uint32_t
-{
-    Store,
-    DontCare
-};
-
 class RenderPass
 {
 public:
@@ -108,10 +91,10 @@ public:
         vk::Format format;
         uint32_t sampleCount = 1;
         vk::ImageLayout finalLayout;
-        LoadClearFlags loadOp;
-        StoreClearFlags storeOp;
-        LoadClearFlags stencilLoadOp;
-        StoreClearFlags stencilStoreOp;
+        backend::LoadClearFlags loadOp;
+        backend::StoreClearFlags storeOp;
+        backend::LoadClearFlags stencilLoadOp;
+        backend::StoreClearFlags stencilStoreOp;
         uint32_t width;
         uint32_t height;
     };
@@ -121,9 +104,6 @@ public:
 
     // static functions
     static vk::ImageLayout getAttachmentLayout(vk::Format format);
-    static vk::AttachmentLoadOp loadFlagsToVk(const LoadClearFlags flags);
-    static vk::AttachmentStoreOp storeFlagsToVk(const StoreClearFlags flags);
-    static vk::SampleCountFlagBits samplesToVk(const uint32_t count);
 
     // Add an attahment for this pass. This can be a colour or depth attachment
     AttachmentHandle addAttachment(const Attachment& attachInfo);
@@ -179,10 +159,10 @@ private:
  */
 struct RenderPassData
 {
-    std::array<vkapi::LoadClearFlags, RenderTarget::MaxAttachmentCount> loadClearFlags = {
-        vkapi::LoadClearFlags::DontCare};
-    std::array<vkapi::StoreClearFlags, RenderTarget::MaxAttachmentCount> storeClearFlags = {
-        vkapi::StoreClearFlags::DontCare};
+    std::array<backend::LoadClearFlags, RenderTarget::MaxAttachmentCount> loadClearFlags = {
+        backend::LoadClearFlags::DontCare};
+    std::array<backend::StoreClearFlags, RenderTarget::MaxAttachmentCount> storeClearFlags = {
+        backend::StoreClearFlags::DontCare};
     std::array<vk::ImageLayout, RenderTarget::MaxAttachmentCount> finalLayouts = {
         vk::ImageLayout::eShaderReadOnlyOptimal};
     util::Colour4 clearCol;

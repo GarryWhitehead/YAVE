@@ -44,7 +44,6 @@
 #include "yave/texture_sampler.h"
 
 #include <image_utils/cubemap.h>
-
 #include <mathfu/glsl_mappings.h>
 
 #include <array>
@@ -52,7 +51,7 @@
 namespace yave
 {
 
-ISkybox::ISkybox(IEngine& engine, IScene& scene) : engine_(engine), blurFactor_(0.0f)
+ISkybox::ISkybox(IEngine& engine, IScene& scene) : engine_(engine)
 {
     auto* rendManager = engine_.getRenderableManagerI();
     skyboxObj_ = scene.createObjectI();
@@ -68,8 +67,7 @@ void ISkybox::buildI(ICamera& cam)
         backend::SamplerFilter::Linear,
         backend::SamplerFilter::Linear,
         backend::SamplerAddressMode::ClampToEdge,
-        1,
-        10);
+        16);
 
     material_->addImageTexture(
         engine_.driver(), cubeTexture_, Material::ImageType::BaseColour, sampler.get(), 0);
@@ -82,22 +80,18 @@ void ISkybox::buildI(ICamera& cam)
     render->skipVisibilityChecks();
 
     vBuffer->addAttribute(VertexBuffer::BindingType::Position, backend::BufferElementType::Float3);
-    vBuffer->buildI(driver, CubeMap::Vertices.size() * sizeof(float), (void*)CubeMap::Vertices.data());
+    vBuffer->buildI(
+        driver, CubeMap::Vertices.size() * sizeof(float), (void*)CubeMap::Vertices.data());
     iBuffer->buildI(
-        driver, CubeMap::Indices.size(), (void*)CubeMap::Indices.data(), backend::IndexBufferType::Uint32);
+        driver,
+        CubeMap::Indices.size(),
+        (void*)CubeMap::Indices.data(),
+        backend::IndexBufferType::Uint32);
     prim->addMeshDrawDataI(CubeMap::Indices.size(), 0, 0);
 
     prim->setVertexBuffer(vBuffer);
     prim->setIndexBuffer(iBuffer);
     render->setPrimitive(prim, 0);
-
-    material_->addUboParam(
-        "blurFactor",
-        backend::BufferElementType::Float,
-        sizeof(float),
-        1,
-        backend::ShaderStage::Fragment,
-        &blurFactor_);
 
     material_->setCullMode(backend::CullMode::Front);
     material_->setViewLayer(0x4);
@@ -114,11 +108,7 @@ ISkybox& ISkybox::setCubeMap(IMappedTexture* cubeTexture)
     return *this;
 }
 
-void ISkybox::update(ICamera& camera) noexcept
-{
-    // update the push constant values
-    material_->updateUboParam("blurFactor", backend::ShaderStage::Fragment, (void*)&blurFactor_);
-}
+void ISkybox::update(ICamera& camera) noexcept {}
 
 // ======================== client api =======================
 
@@ -129,8 +119,6 @@ void ISkybox::setTexture(Texture* texture) noexcept
 {
     setCubeMap(reinterpret_cast<IMappedTexture*>(texture));
 }
-
-void ISkybox::setBlurFactor(float blur) noexcept { blurFactor_ = blur; }
 
 void ISkybox::build(Camera* camera) { buildI(*(reinterpret_cast<ICamera*>(camera))); }
 

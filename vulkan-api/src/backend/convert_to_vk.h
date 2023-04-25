@@ -50,4 +50,10 @@ vk::Format textureFormatToVk(TextureFormat type);
 
 vk::ImageUsageFlags imageUsageToVk(uint32_t usageFlags);
 
+vk::AttachmentLoadOp loadFlagsToVk(const LoadClearFlags flags);
+
+vk::AttachmentStoreOp storeFlagsToVk(const StoreClearFlags flags);
+
+vk::SampleCountFlagBits samplesToVk(const uint32_t count);
+
 } // namespace backend

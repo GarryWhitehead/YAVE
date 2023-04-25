@@ -127,10 +127,7 @@ void IEngine::setCurrentSwapchainI(const SwapchainHandle& handle) noexcept
     currentSwapchain_ = swapchains_[handle.getKey()];
 }
 
-vkapi::Swapchain* IEngine::getCurrentSwapchain() noexcept
-{
-    return currentSwapchain_;
-}
+vkapi::Swapchain* IEngine::getCurrentSwapchain() noexcept { return currentSwapchain_; }
 
 SwapchainHandle IEngine::createSwapchainI(Window* win)
 {
@@ -143,10 +140,7 @@ SwapchainHandle IEngine::createSwapchainI(Window* win)
     return handle;
 }
 
-IRenderer* IEngine::createRendererI()
-{
-    return createResource(renderers_, this);
-}
+IRenderer* IEngine::createRendererI() { return createResource(renderers_, this); }
 
 IScene* IEngine::createSceneI() { return createResource(scenes_, *this); }
 
@@ -163,7 +157,10 @@ IMappedTexture* IEngine::createMappedTextureI() noexcept
     return createResource(mappedTextures_, *this);
 }
 
-ISkybox* IEngine::createSkyboxI() noexcept { return createResource(skyboxes_, *this, *currentScene_); }
+ISkybox* IEngine::createSkyboxI() noexcept
+{
+    return createResource(skyboxes_, *this, *currentScene_);
+}
 
 ICamera* IEngine::createCameraI() noexcept { return createResource(cameras_); }
 
@@ -212,10 +209,7 @@ Scene* IEngine::createScene() { return reinterpret_cast<Scene*>(createSceneI());
 
 vkapi::SwapchainHandle IEngine::createSwapchain(Window* win) { return createSwapchainI(win); }
 
-Renderer* IEngine::createRenderer()
-{
-    return reinterpret_cast<Renderer*>(createRendererI());
-}
+Renderer* IEngine::createRenderer() { return reinterpret_cast<Renderer*>(createRendererI()); }
 
 VertexBuffer* IEngine::createVertexBuffer()
 {

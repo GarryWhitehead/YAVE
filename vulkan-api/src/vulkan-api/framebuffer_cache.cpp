@@ -48,19 +48,23 @@ bool FramebufferCache::RPassKey::operator==(const RPassKey& rhs) const noexcept
     {
         return false;
     }
-    if (memcmp(loadOp, rhs.loadOp, sizeof(LoadClearFlags) * RenderTarget::MaxColourAttachCount) !=
-        0)
+    if (memcmp(
+            loadOp,
+            rhs.loadOp,
+            sizeof(backend::LoadClearFlags) * RenderTarget::MaxColourAttachCount) != 0)
     {
         return false;
     }
     if (memcmp(
-            storeOp, rhs.storeOp, sizeof(StoreClearFlags) * RenderTarget::MaxColourAttachCount) !=
-        0)
+            storeOp,
+            rhs.storeOp,
+            sizeof(backend::StoreClearFlags) * RenderTarget::MaxColourAttachCount) != 0)
     {
         return false;
     }
     if (depth != rhs.depth || dsStoreOp[0] != rhs.dsStoreOp[0] || dsLoadOp[0] != rhs.dsLoadOp[0] ||
-        dsStoreOp[1] != rhs.dsStoreOp[1] || dsLoadOp[1] != rhs.dsLoadOp[1] || multiView != rhs.multiView)
+        dsStoreOp[1] != rhs.dsStoreOp[1] || dsLoadOp[1] != rhs.dsLoadOp[1] ||
+        multiView != rhs.multiView)
     {
         return false;
     }

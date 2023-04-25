@@ -299,9 +299,7 @@ void ShaderProgramBundle::addRenderPrimitive(
 }
 
 void ShaderProgramBundle::addRenderPrimitive(
-    vk::PrimitiveTopology topo, 
-    uint32_t vertexCount,
-    VkBool32 primRestart)
+    vk::PrimitiveTopology topo, uint32_t vertexCount, VkBool32 primRestart)
 {
     renderPrim_.primitiveRestart = primRestart;
     renderPrim_.topology = topo;

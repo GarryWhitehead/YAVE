@@ -314,28 +314,94 @@ vk::Format textureFormatToVk(backend::TextureFormat type)
 vk::ImageUsageFlags imageUsageToVk(uint32_t usageFlags)
 {
     vk::ImageUsageFlags output;
-        if (usageFlags & ImageUsage::Sampled)
-        {
-            output |= vk::ImageUsageFlagBits::eSampled;
-        }
-        if (usageFlags & ImageUsage::Storage)
-        {
-            output |= vk::ImageUsageFlagBits::eStorage;
-        }
-        if (usageFlags & ImageUsage::ColourAttach)
-        {
-            output |= vk::ImageUsageFlagBits::eColorAttachment;
-        }
-        if (usageFlags & ImageUsage::DepthAttach)
-        {
-            output |= vk::ImageUsageFlagBits::eDepthStencilAttachment;
-        }
-        if (usageFlags & ImageUsage::InputAttach)
-        {
-            output |= vk::ImageUsageFlagBits::eInputAttachment;
-        }
-    
+    if (usageFlags & ImageUsage::Sampled)
+    {
+        output |= vk::ImageUsageFlagBits::eSampled;
+    }
+    if (usageFlags & ImageUsage::Storage)
+    {
+        output |= vk::ImageUsageFlagBits::eStorage;
+    }
+    if (usageFlags & ImageUsage::ColourAttach)
+    {
+        output |= vk::ImageUsageFlagBits::eColorAttachment;
+    }
+    if (usageFlags & ImageUsage::DepthAttach)
+    {
+        output |= vk::ImageUsageFlagBits::eDepthStencilAttachment;
+    }
+    if (usageFlags & ImageUsage::InputAttach)
+    {
+        output |= vk::ImageUsageFlagBits::eInputAttachment;
+    }
+
     return output;
+}
+
+vk::AttachmentLoadOp loadFlagsToVk(const LoadClearFlags flags)
+{
+    vk::AttachmentLoadOp result;
+    switch (flags)
+    {
+        case LoadClearFlags::Clear:
+            result = vk::AttachmentLoadOp::eClear;
+            break;
+        case LoadClearFlags::DontCare:
+            result = vk::AttachmentLoadOp::eDontCare;
+            break;
+        case LoadClearFlags::Load:
+            result = vk::AttachmentLoadOp::eLoad;
+            break;
+    }
+    return result;
+}
+
+vk::AttachmentStoreOp storeFlagsToVk(const StoreClearFlags flags)
+{
+    vk::AttachmentStoreOp result;
+    switch (flags)
+    {
+        case StoreClearFlags::DontCare:
+            result = vk::AttachmentStoreOp::eDontCare;
+            break;
+        case StoreClearFlags::Store:
+            result = vk::AttachmentStoreOp::eStore;
+            break;
+    }
+    return result;
+}
+
+vk::SampleCountFlagBits samplesToVk(const uint32_t count)
+{
+    vk::SampleCountFlagBits result = vk::SampleCountFlagBits::e1;
+    switch (count)
+    {
+        case 1:
+            result = vk::SampleCountFlagBits::e1;
+            break;
+        case 2:
+            result = vk::SampleCountFlagBits::e2;
+            break;
+        case 4:
+            result = vk::SampleCountFlagBits::e4;
+            break;
+        case 8:
+            result = vk::SampleCountFlagBits::e8;
+            break;
+        case 16:
+            result = vk::SampleCountFlagBits::e16;
+            break;
+        case 32:
+            result = vk::SampleCountFlagBits::e32;
+            break;
+        case 64:
+            result = vk::SampleCountFlagBits::e64;
+            break;
+        default:
+            SPDLOG_WARN("Unsupported sample count. Set to one.");
+            break;
+    }
+    return result;
 }
 
 } // namespace backend

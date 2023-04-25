@@ -27,37 +27,41 @@ namespace yave
 
 void CubeMap::createFaceViews(std::array<mathfu::mat4, 6>& faceViews) noexcept
 {
-    faceViews = {
-        // X_POSITIVE
-        mathfu::mat4::LookAt(
-            mathfu::vec3(1.0f, 0.0f, 0.0f),
-            mathfu::vec3(0.0f, 0.0f, 0.0f),
-            mathfu::vec3(0.0f, -1.0f, 0.0f)),
-        // X_NEGATIVE
-        mathfu::mat4::LookAt(
-            mathfu::vec3(-1.0f, 0.0f, 0.0f),
-            mathfu::vec3(0.0f, 0.0f, 0.0f),
-            mathfu::vec3(0.0f, -1.0f, 0.0f)),
-        // Y-POSITIVE
-        mathfu::mat4::LookAt(
-            mathfu::vec3(0.0f, 1.0f, 0.0f),
-            mathfu::vec3(0.0f, 0.0f, 0.0f),
-            mathfu::vec3(0.0f, 0.0f, 1.0f)),
-        // Y_NEGATIVE
-        mathfu::mat4::LookAt(
-            mathfu::vec3(0.0f, -1.0f, 0.0f),
-            mathfu::vec3(0.0f, 0.0f, 0.0f),
-            mathfu::vec3(0.0f, 0.0f, -1.0f)),
-        // Z_POSITIVE
-        mathfu::mat4::LookAt(
-            mathfu::vec3(0.0f, 0.0f, 1.0f),
-            mathfu::vec3(0.0f, 0.0f, 0.0f),
-            mathfu::vec3(0.0f, -1.0f, 0.0f)),
-        // Z_NEGATIVE
-        mathfu::mat4::LookAt(
-            mathfu::vec3(0.0f, 0.0f, -1.0f),
-            mathfu::vec3(0.0f, 0.0f, 0.0f),
-            mathfu::vec3(0.0f, -1.0f, 0.0f))};
-
+    faceViews = {// X_POSITIVE
+                 mathfu::mat4::LookAt(
+                     mathfu::vec3(1.0f, 0.0f, 0.0f),
+                     mathfu::vec3(0.0f, 0.0f, 0.0f),
+                     mathfu::vec3(0.0f, -1.0f, 0.0f),
+                     1.0f),
+                 // X_NEGATIVE
+                 mathfu::mat4::LookAt(
+                     mathfu::vec3(-1.0f, 0.0f, 0.0f),
+                     mathfu::vec3(0.0f, 0.0f, 0.0f),
+                     mathfu::vec3(0.0f, -1.0f, 0.0f),
+                     1.0f),
+                 // Y-POSITIVE
+                 mathfu::mat4::LookAt(
+                     mathfu::vec3(0.0f, -1.0f, 0.0f),
+                     mathfu::vec3(0.0f, 0.0f, 0.0f),
+                     mathfu::vec3(0.0f, 0.0f, -1.0f),
+                     1.0f),
+                 // Y_NEGATIVE
+                 mathfu::mat4::LookAt(
+                     mathfu::vec3(0.0f, 1.0f, 0.0f),
+                     mathfu::vec3(0.0f, 0.0f, 0.0f),
+                     mathfu::vec3(0.0f, 0.0f, 1.0f),
+                     1.0f),
+                 // Z_POSITIVE
+                 mathfu::mat4::LookAt(
+                     mathfu::vec3(0.0f, 0.0f, 1.0f),
+                     mathfu::vec3(0.0f, 0.0f, 0.0f),
+                     mathfu::vec3(0.0f, -1.0f, 0.0f),
+                     1.0f),
+                 // Z_NEGATIVE
+                 mathfu::mat4::LookAt(
+                     mathfu::vec3(0.0f, 0.0f, -1.0f),
+                     mathfu::vec3(0.0f, 0.0f, 0.0f),
+                     mathfu::vec3(0.0f, -1.0f, 0.0f),
+                     1.0f)};
 }
-}
+} // namespace yave

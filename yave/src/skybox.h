@@ -61,15 +61,12 @@ public:
     // =============== client api ===================
 
     void setTexture(Texture* texture) noexcept override;
-    void setBlurFactor(float blur) noexcept override;
     void build(Camera* camera) override;
 
 private:
     IEngine& engine_;
 
     IMappedTexture* cubeTexture_;
-
-    float blurFactor_;
 
     IMaterial* material_;
     IObject* skyboxObj_;

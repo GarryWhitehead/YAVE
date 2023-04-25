@@ -104,7 +104,7 @@ void ColourPass::render(
             passDesc.attachments.attach.colour[3] = data.emissive;
             passDesc.attachments.attach.colour[4] = data.pbr;
             passDesc.attachments.attach.depth = {data.depth};
-            passDesc.dsLoadClearFlags = {vkapi::LoadClearFlags::Clear};
+            passDesc.dsLoadClearFlags = {backend::LoadClearFlags::Clear};
             data.rt = builder.createRenderTarget("deferredTarget", passDesc);
         },
         [=, &scene, &engine](
@@ -161,13 +161,7 @@ void ColourPass::drawCallback(
     vk::VertexInputBindingDescription* bindDesc = vBuffer ? vBuffer->getInputBind() : nullptr;
 
     driver.draw(
-        cmdBuffer,
-        *programBundle,
-        vertexBuffer,
-        indexBuffer,
-        attrDesc,
-        bindDesc,
-        dynamicOffsets);
+        cmdBuffer, *programBundle, vertexBuffer, indexBuffer, attrDesc, bindDesc, dynamicOffsets);
 }
 
 } // namespace yave

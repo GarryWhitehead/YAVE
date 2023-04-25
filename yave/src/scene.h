@@ -49,7 +49,6 @@ class ISkybox;
 class IScene : public Scene
 {
 public:
-
     // constant object values
     constexpr static int MinimumFreeSlots = 256;
     constexpr static int MinimumFreeIds = 100;
@@ -132,7 +131,7 @@ private:
     std::unique_ptr<UniformBuffer> transUbo_;
     std::unique_ptr<UniformBuffer> skinUbo_;
 
-     // ============== object management ==================
+    // ============== object management ==================
     uint32_t nextId_ = 0;
 
     // the complete list of all objects associated with all registered scenes

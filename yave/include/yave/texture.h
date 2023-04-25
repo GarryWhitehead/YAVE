@@ -29,7 +29,6 @@ namespace yave
 class Texture
 {
 public:
-
     using TextureFormat = backend::TextureFormat;
     using ImageUsage = backend::ImageUsage;
 

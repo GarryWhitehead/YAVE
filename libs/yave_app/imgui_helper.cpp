@@ -30,10 +30,10 @@
 #include "yave/render_primitive.h"
 #include "yave/renderable.h"
 #include "yave/renderable_manager.h"
+#include "yave/scene.h"
 #include "yave/texture.h"
 #include "yave/transform_manager.h"
 #include "yave/vertex_buffer.h"
-#include "yave/scene.h"
 
 #include <cstdlib>
 #include <filesystem>

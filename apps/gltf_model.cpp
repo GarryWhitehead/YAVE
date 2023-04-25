@@ -37,18 +37,21 @@
 #include "yave/transform_manager.h"
 #include "yave/vertex_buffer.h"
 
+#include <ibl/ibl.h>
 #include <imgui.h>
 #include <model_parser/gltf/model_material.h>
 #include <model_parser/gltf/model_mesh.h>
 #include <utility/colour.h>
 #include <utility/logger.h>
-#include <ibl/ibl.h>
 #include <yave_app/app.h>
 
 #include <memory>
 
 yave::Object* GltfModelApp::buildModel(
-    const yave::GltfModel& model, yave::Engine* engine, yave::Scene* scene, yave::AssetLoader& loader)
+    const yave::GltfModel& model,
+    yave::Engine* engine,
+    yave::Scene* scene,
+    yave::AssetLoader& loader)
 {
     auto* rendManager = engine->getRenderManager();
     auto* renderable = engine->createRenderable();
@@ -216,26 +219,19 @@ int main()
 
     // create irradiance/specular maps
     yave::Ibl ibl(engine, YAVE_ASSETS_DIRECTORY);
-    if(!ibl.loadEqirectImage("sky.hdr"))
+    if (!ibl.loadEqirectImage("hdr/monoLake.hdr"))
     {
         exit(1);
     }
 
     engine->setCurrentScene(scene);
 
-    // create the skybox
     yave::AssetLoader loader(engine);
     loader.setAssetFolder(YAVE_ASSETS_DIRECTORY);
-    yave::Texture* skyboxTexture =
-        loader.loadFromFile("textures/uffizi_rgba16f_cube.ktx", backend::TextureFormat::RGBA16);
-    if (!skyboxTexture)
-    {
-        exit(1);
-    }
 
     // add the skybox to the scene
     yave::Skybox* skybox = engine->createSkybox();
-    skybox->setTexture(skyboxTexture);
+    skybox->setTexture(ibl.getCubeMap());
     skybox->build(app.getWindow()->getCamera());
 
     scene->setSkybox(skybox);

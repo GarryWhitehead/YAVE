@@ -59,7 +59,6 @@ using SwapchainHandle = vkapi::SwapchainHandle;
 class IEngine : public Engine
 {
 public:
- 
     IEngine();
     ~IEngine();
 

@@ -32,8 +32,6 @@ public:
 
     virtual void setTexture(Texture* texture) noexcept = 0;
 
-    virtual void setBlurFactor(float blur) noexcept = 0;
-
     virtual void build(Camera* camera) = 0;
 
 protected:

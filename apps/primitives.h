@@ -26,8 +26,8 @@
 #include "yave/light_manager.h"
 #include "yave/material.h"
 #include "yave/object.h"
-#include "yave_app/app.h"
 #include "yave/scene.h"
+#include "yave_app/app.h"
 
 class PrimitiveApp : public yave::Application
 {
