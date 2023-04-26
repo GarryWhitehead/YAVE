@@ -324,14 +324,13 @@ bool Shader::compile(std::string shaderCode, const VDefinitions& variants)
         printShader(shaderCode);
         return false;
     }
-    printShader(shaderCode);
+
     reflect(
         reinterpret_cast<uint32_t*>(compiler.getData()),
         static_cast<uint32_t>(compiler.getByteSize()) / sizeof(uint32_t));
 
     // create the shader module
     vk::ShaderModuleCreateInfo shaderInfo({}, compiler.getByteSize(), compiler.getData());
-
 
     VK_CHECK_RESULT(context_.device().createShaderModule(&shaderInfo, nullptr, &module_));
 

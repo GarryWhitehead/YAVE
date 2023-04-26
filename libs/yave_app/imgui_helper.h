@@ -41,11 +41,12 @@ class Application;
 class Material;
 class Renderable;
 class RenderPrimitive;
+class Scene;
 
 class ImGuiHelper
 {
 public:
-    ImGuiHelper(Engine* engine, std::filesystem::path& fontPath);
+    ImGuiHelper(Engine* engine, Scene* scene, std::filesystem::path& fontPath);
     ~ImGuiHelper();
 
     void beginFrame(Application& app) noexcept;

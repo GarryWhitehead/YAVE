@@ -19,47 +19,38 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+
 #pragma once
 
-#include <backend/enums.h>
+#include <mathfu/glsl_mappings.h>
 
 namespace yave
 {
+class Engine;
+class Texture;
+class Scene;
+class Renderer;
+class Camera;
+class VertexBuffer;
+class IndexBuffer;
 
-class Texture
+class PreFilter
 {
 public:
-    using TextureFormat = backend::TextureFormat;
-    using ImageUsage = backend::ImageUsage;
+    PreFilter(Engine* engine);
+    ~PreFilter();
 
-    struct Params
-    {
-        void* buffer = nullptr;
-        size_t bufferSize = 0;
-        uint32_t width = 0;
-        uint32_t height = 0;
-        TextureFormat format = TextureFormat::Undefined;
-        uint32_t usageFlags = 0;
-        uint32_t levels = 1;
-        uint32_t faces = 1;
-    };
+    Texture* eqirectToCubemap(Texture* image);
 
-    virtual ~Texture();
+private:
+    Engine* engine_;
 
-    virtual void setTexture(const Params& params, size_t* offsets = nullptr) noexcept = 0;
+    Scene* scene_;
+    Renderer* renderer_;
+    Camera* camera_;
 
-    virtual void setEmptyTexture(
-        uint32_t width,
-        uint32_t height,
-        TextureFormat format,
-        uint32_t usageFlags,
-        uint32_t levels = 1,
-        uint32_t faces = 1) noexcept = 0;
-
-    virtual Params getTextureParams() noexcept = 0;
-
-protected:
-    Texture();
+    VertexBuffer* vBuffer;
+    IndexBuffer* iBuffer;
 };
 
 } // namespace yave

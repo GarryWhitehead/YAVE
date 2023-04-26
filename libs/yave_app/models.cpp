@@ -120,7 +120,7 @@ void generateQuadMesh(
         (void*)indices.data(),
         backend::IndexBufferType::Uint32);
 
-    prim->addMeshDrawData(indices.size(), 0);
+    prim->addMeshDrawData(indices.size(), 0, 0);
 
     // we have uploaded the data to the device so no longer need the allocated
     // space
@@ -220,7 +220,7 @@ void generateSphereMesh(
 
     // using primitive rerstart here so when the 0xFFFF value is read, the most
     // recent indices values will be discarded
-    prim->addMeshDrawData(indices.size(), 0);
+    prim->addMeshDrawData(indices.size(), 0, 0);
     prim->setTopology(backend::PrimitiveTopology::TriangleStrip);
     prim->enablePrimitiveRestart();
 
@@ -344,7 +344,7 @@ void generateCapsuleMesh(
         (void*)indices.data(),
         backend::IndexBufferType::Uint32);
 
-    prim->addMeshDrawData(indices.size(), 0);
+    prim->addMeshDrawData(indices.size(), 0, 0);
 
     // we have uploaded the data to the device so no longer need the allocated
     // space
@@ -473,7 +473,7 @@ void generateCubeMesh(
         (void*)indices.data(),
         backend::IndexBufferType::Uint32);
 
-    prim->addMeshDrawData(indices.size(), 0);
+    prim->addMeshDrawData(indices.size(), 0, 0);
 
     // we have uploaded the data to the device so no longer need the allocated
     // space

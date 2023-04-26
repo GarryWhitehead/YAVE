@@ -21,7 +21,10 @@ target_sources(
     YaveImageUtils
     PRIVATE
     noise_generator.cpp
+    cubemap.cpp
+    
     noise_generator.h
+    cubemap.h
 )
 
 # add common compiler flags

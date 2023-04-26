@@ -37,6 +37,7 @@
 #include "yave/transform_manager.h"
 #include "yave/vertex_buffer.h"
 
+#include <ibl/ibl.h>
 #include <imgui.h>
 #include <model_parser/gltf/model_material.h>
 #include <model_parser/gltf/model_mesh.h>
@@ -47,11 +48,14 @@
 #include <memory>
 
 yave::Object* GltfModelApp::buildModel(
-    const yave::GltfModel& model, yave::Engine* engine, yave::AssetLoader& loader)
+    const yave::GltfModel& model,
+    yave::Engine* engine,
+    yave::Scene* scene,
+    yave::AssetLoader& loader)
 {
     auto* rendManager = engine->getRenderManager();
     auto* renderable = engine->createRenderable();
-    auto* obj = engine->createObject();
+    auto* obj = scene->createObject();
 
     size_t primCount = 0;
     for (auto& node : model.nodes)
@@ -139,7 +143,7 @@ yave::Object* GltfModelApp::buildModel(
         prim->setTopology(backend::primitiveTopologyToYave(mesh->topology_));
         for (auto const& p : mesh->primitives_)
         {
-            prim->addMeshDrawData(p.indexCount, p.indexPrimitiveOffset);
+            prim->addMeshDrawData(p.indexCount, p.indexPrimitiveOffset, 0);
         }
         prim->setMaterial(mat);
         renderable->setPrimitive(prim, primIdx);
@@ -150,12 +154,12 @@ yave::Object* GltfModelApp::buildModel(
     return obj;
 }
 
-void GltfModelApp::addLighting(yave::LightManager* lightManager, yave::Engine* engine)
+void GltfModelApp::addLighting(yave::LightManager* lightManager, yave::Scene* scene)
 {
-    dirLightObj = engine->createObject();
+    dirLightObj = scene->createObject();
     lightManager->create(dirLightParams, yave::LightManager::Type::Directional, dirLightObj);
 
-    spotLightObj = engine->createObject();
+    spotLightObj = scene->createObject();
     lightManager->create(spotLightParams, yave::LightManager::Type::Spot, spotLightObj);
 
     lightManager->prepare();
@@ -213,19 +217,21 @@ int main()
     yave::Engine* engine = app.getEngine();
     yave::Scene* scene = app.getScene();
 
-    // create the skybox
-    yave::AssetLoader loader(engine);
-    loader.setAssetFolder(YAVE_ASSETS_DIRECTORY);
-    yave::Texture* skyboxTexture =
-        loader.loadFromFile("textures/uffizi_rgba16f_cube.ktx", backend::TextureFormat::RGBA16);
-    if (!skyboxTexture)
+    // create irradiance/specular maps
+    yave::Ibl ibl(engine, YAVE_ASSETS_DIRECTORY);
+    if (!ibl.loadEqirectImage("hdr/monoLake.hdr"))
     {
         exit(1);
     }
 
+    engine->setCurrentScene(scene);
+
+    yave::AssetLoader loader(engine);
+    loader.setAssetFolder(YAVE_ASSETS_DIRECTORY);
+
     // add the skybox to the scene
     yave::Skybox* skybox = engine->createSkybox();
-    skybox->setTexture(skyboxTexture);
+    skybox->setTexture(ibl.getCubeMap());
     skybox->build(app.getWindow()->getCamera());
 
     scene->setSkybox(skybox);
@@ -233,7 +239,7 @@ int main()
     // create the renderer used to draw to the backbuffer
     auto handle = engine->createSwapchain(app.getWindow());
     engine->setCurrentSwapchain(handle);
-    auto renderer = engine->createRenderer(handle, scene);
+    auto renderer = engine->createRenderer();
 
     // add a gltf model to the scene
     yave::GltfModel model;
@@ -244,12 +250,12 @@ int main()
     }
     model.build();
 
-    app.buildModel(model, engine, loader);
+    app.buildModel(model, engine, scene, loader);
 
     auto lightManager = engine->getLightManager();
 
     // add some lighting to the scene
-    app.addLighting(lightManager, engine);
+    app.addLighting(lightManager, scene);
 
     app.run(renderer, scene);
 

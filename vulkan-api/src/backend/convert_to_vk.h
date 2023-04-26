@@ -25,12 +25,14 @@
 #include "enums.h"
 #include "vulkan/vulkan.hpp"
 
+#include <utility/bitset_enum.h>
+
 namespace backend
 {
 
-vk::BlendFactor blendFactorToVk(backend::BlendFactor factor);
+vk::BlendFactor blendFactorToVk(BlendFactor factor);
 
-vk::BlendOp blendOpToVk(backend::BlendOp op);
+vk::BlendOp blendOpToVk(BlendOp op);
 
 vk::SamplerAddressMode samplerAddrModeToVk(SamplerAddressMode mode);
 
@@ -42,8 +44,16 @@ vk::CompareOp compareOpToVk(CompareOp op);
 
 vk::PrimitiveTopology primitiveTopologyToVk(PrimitiveTopology topo);
 
-vk::IndexType indexBufferTypeToVk(backend::IndexBufferType type);
+vk::IndexType indexBufferTypeToVk(IndexBufferType type);
 
-vk::Format textureFormatToVk(backend::TextureFormat type);
+vk::Format textureFormatToVk(TextureFormat type);
+
+vk::ImageUsageFlags imageUsageToVk(uint32_t usageFlags);
+
+vk::AttachmentLoadOp loadFlagsToVk(const LoadClearFlags flags);
+
+vk::AttachmentStoreOp storeFlagsToVk(const StoreClearFlags flags);
+
+vk::SampleCountFlagBits samplesToVk(const uint32_t count);
 
 } // namespace backend

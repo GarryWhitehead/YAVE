@@ -131,7 +131,6 @@ public:
     {
         BitSetEnum cp(*this);
         cp.bitset.flip();
-
         return cp;
     }
 

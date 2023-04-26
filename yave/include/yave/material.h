@@ -127,22 +127,43 @@ public:
         const std::string& elementName,
         backend::BufferElementType type,
         size_t size,
+        size_t arrayCount,
+        backend::ShaderStage stage,
         void* value) = 0;
 
     template <typename T>
-    void
-    addUboParam(const std::string& elementName, backend::BufferElementType type, T* value = nullptr)
+    void addUboParam(
+        const std::string& elementName,
+        backend::BufferElementType type,
+        backend::ShaderStage stage,
+        T* value = nullptr)
     {
-        addUboParam(elementName, type, sizeof(T), (void*)value);
+        addUboParam(elementName, type, sizeof(T), 1, stage, (void*)value);
     }
 
     template <typename T>
-    void addUboParam(const std::string& elementName, backend::BufferElementType type, T& value)
+    void addUboParam(
+        const std::string& elementName,
+        backend::BufferElementType type,
+        backend::ShaderStage stage,
+        T& value)
     {
-        addUboParam(elementName, type, sizeof(T), (void*)&value);
+        addUboParam(elementName, type, sizeof(T), 1, stage, (void*)&value);
     }
 
-    virtual void updateUboParam(const std::string& elementName, void* value) = 0;
+    template <typename T>
+    void addUboArrayParam(
+        const std::string& elementName,
+        backend::BufferElementType type,
+        size_t arrayCount,
+        backend::ShaderStage stage,
+        T* value)
+    {
+        addUboParam(elementName, type, sizeof(T), arrayCount, stage, (void*)value);
+    }
+
+    virtual void
+    updateUboParam(const std::string& elementName, backend::ShaderStage stage, void* value) = 0;
 
     template <typename T>
     void updateUboParam(const std::string& elementName, T* value)

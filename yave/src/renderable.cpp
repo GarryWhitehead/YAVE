@@ -26,7 +26,10 @@ namespace yave
 {
 
 IRenderable::IRenderable()
-    : program_(nullptr), meshDynamicOffset_(0), skinDynamicOffset_(IRenderable::UNINITIALISED)
+    : program_(nullptr),
+      meshDynamicOffset_(0),
+      skinDynamicOffset_(IRenderable::UNINITIALISED),
+      useGBuffer_(true)
 {
 }
 
@@ -82,5 +85,7 @@ void IRenderable::setPrimitive(RenderPrimitive* prim, size_t idx)
 void IRenderable::setPrimitiveCount(size_t count) noexcept { setPrimitiveCountI(count); }
 
 void IRenderable::skipVisibilityChecks() { skipVisibilityChecksI(); }
+
+void IRenderable::disableGBuffer() noexcept { useGBuffer_ = false; }
 
 } // namespace yave

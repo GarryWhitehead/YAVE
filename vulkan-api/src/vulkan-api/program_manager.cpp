@@ -298,6 +298,14 @@ void ShaderProgramBundle::addRenderPrimitive(
     renderPrim_.offset = indicesOffset;
 }
 
+void ShaderProgramBundle::addRenderPrimitive(
+    vk::PrimitiveTopology topo, uint32_t vertexCount, VkBool32 primRestart)
+{
+    renderPrim_.primitiveRestart = primRestart;
+    renderPrim_.topology = topo;
+    renderPrim_.vertexCount = vertexCount;
+}
+
 void ShaderProgramBundle::addRenderPrimitive(uint32_t vertexCount)
 {
     renderPrim_.vertexCount = vertexCount;
@@ -410,6 +418,11 @@ Shader* ProgramManager::findShaderVariantOrCreate(
         {
             throw std::runtime_error("Error whilst compiling shader.");
         }
+        SPDLOG_INFO("Created shader (id={}): {}", bundle->getShaderId(), fmt::ptr(shader));
+    }
+    else
+    {
+        SPDLOG_INFO("Using cached shader(id={}): {}", bundle->getShaderId(), fmt::ptr(shader));
     }
 
     // update the pipeline layout

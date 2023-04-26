@@ -30,6 +30,7 @@
 #include "yave/render_primitive.h"
 #include "yave/renderable.h"
 #include "yave/renderable_manager.h"
+#include "yave/scene.h"
 #include "yave/texture.h"
 #include "yave/transform_manager.h"
 #include "yave/vertex_buffer.h"
@@ -40,7 +41,7 @@
 namespace yave
 {
 
-ImGuiHelper::ImGuiHelper(Engine* engine, std::filesystem::path& fontPath)
+ImGuiHelper::ImGuiHelper(Engine* engine, Scene* scene, std::filesystem::path& fontPath)
     : context_(ImGui::CreateContext()), engine_(engine), texture_(nullptr)
 {
     ImGuiIO& io = ImGui::GetIO();
@@ -58,17 +59,17 @@ ImGuiHelper::ImGuiHelper(Engine* engine, std::filesystem::path& fontPath)
 
     uint32_t dataSize = width * height * 4;
     texture_ = engine->createTexture();
-    texture_->setTexture(
-        {pixels,
-         dataSize,
-         static_cast<uint32_t>(width),
-         static_cast<uint32_t>(height),
-         1,
-         1,
-         backend::TextureFormat::RGBA8});
+    Texture::Params params {
+        pixels,
+        dataSize,
+        static_cast<uint32_t>(width),
+        static_cast<uint32_t>(height),
+        backend::TextureFormat::RGBA8,
+        backend::ImageUsage::Sampled};
+    texture_->setTexture(params);
     sampler_ = TextureSampler(backend::SamplerFilter::Nearest, backend::SamplerFilter::Nearest);
 
-    rendObj_ = engine_->createObject();
+    rendObj_ = scene->createObject();
     renderable_ = engine_->createRenderable();
 
     ImGui::StyleColorsDark();
@@ -195,7 +196,7 @@ void ImGuiHelper::updateDrawCommands(ImDrawData* drawData, const ImGuiIO& io)
             params.material->setScissor(width, height, offsetX, offsetY);
 
             // primitive data
-            params.prim->addMeshDrawData(pcmd.ElemCount, pcmd.IdxOffset);
+            params.prim->addMeshDrawData(pcmd.ElemCount, pcmd.IdxOffset, 0);
             params.prim->setIndexBuffer(iBuffers_[idx]);
             params.prim->setVertexBuffer(vBuffers_[idx]);
 

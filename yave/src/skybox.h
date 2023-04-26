@@ -46,7 +46,7 @@ class IMaterial;
 class ISkybox : public Skybox
 {
 public:
-    ISkybox(IEngine& engine);
+    ISkybox(IEngine& engine, IScene& scene);
 
     void buildI(ICamera& camera);
 
@@ -61,15 +61,12 @@ public:
     // =============== client api ===================
 
     void setTexture(Texture* texture) noexcept override;
-    void setBlurFactor(float blur) noexcept override;
     void build(Camera* camera) override;
 
 private:
     IEngine& engine_;
 
     IMappedTexture* cubeTexture_;
-
-    float blurFactor_;
 
     IMaterial* material_;
     IObject* skyboxObj_;

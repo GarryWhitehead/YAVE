@@ -49,6 +49,10 @@ class ISkybox;
 class IScene : public Scene
 {
 public:
+    // constant object values
+    constexpr static int MinimumFreeSlots = 256;
+    constexpr static int MinimumFreeIds = 100;
+
     static constexpr int ModelBufferInitialSize = 20;
 
     /**
@@ -88,10 +92,18 @@ public:
 
     void setCameraI(ICamera* cam) noexcept;
 
+    // ============= object functions ===================
+
+    IObject* createObjectI();
+
+    void destroyObject(IObject* obj);
+
+    const std::vector<std::unique_ptr<IObject>>& getObjectList() const noexcept { return objects_; }
+
     // ============== getters ============================
 
     ISkybox* getSkybox() noexcept { return skybox_; }
-    ICamera& getCurrentCameraI() noexcept { return *camera_; }
+    ICamera* getCurrentCameraI() noexcept { return camera_; }
     RenderQueue& getRenderQueue() noexcept { return renderQueue_; }
     UniformBuffer& getTransUbo() noexcept { return *transUbo_; }
     UniformBuffer& getSkinUbo() noexcept { return *skinUbo_; }
@@ -101,14 +113,15 @@ public:
     void setSkybox(Skybox* skybox) override;
     void setCamera(Camera* cam) override;
     Camera* getCurrentCamera() override;
+    Object* createObject() override;
 
 private:
     IEngine& engine_;
 
-    /// Current camera used by this scene.
+    // Current camera used by this scene.
     ICamera* camera_;
 
-    /// current skybox
+    // current skybox
     ISkybox* skybox_;
 
     std::vector<VisibleCandidate> candRenderableObjs_;
@@ -117,6 +130,15 @@ private:
 
     std::unique_ptr<UniformBuffer> transUbo_;
     std::unique_ptr<UniformBuffer> skinUbo_;
+
+    // ============== object management ==================
+    uint32_t nextId_ = 0;
+
+    // the complete list of all objects associated with all registered scenes
+    std::vector<std::unique_ptr<IObject>> objects_;
+
+    // ids of objects which has been destroyed and can be re-used
+    std::deque<uint64_t> freeIds_;
 };
 
 

@@ -101,6 +101,8 @@ public:
      */
     const TextureContext& context() const;
 
+    bool isCubeMap() const noexcept { return texContext_.faceCount == 6; }
+
     friend class ResourceCache;
 
 private:

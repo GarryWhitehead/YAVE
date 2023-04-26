@@ -19,47 +19,32 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+
 #pragma once
 
-#include <backend/enums.h>
+#include <filesystem>
 
 namespace yave
 {
+class Engine;
+class Texture;
 
-class Texture
+class Ibl
 {
 public:
-    using TextureFormat = backend::TextureFormat;
-    using ImageUsage = backend::ImageUsage;
+    Ibl(Engine* engine, const std::filesystem::path& assetPath = "");
+    ~Ibl();
 
-    struct Params
-    {
-        void* buffer = nullptr;
-        size_t bufferSize = 0;
-        uint32_t width = 0;
-        uint32_t height = 0;
-        TextureFormat format = TextureFormat::Undefined;
-        uint32_t usageFlags = 0;
-        uint32_t levels = 1;
-        uint32_t faces = 1;
-    };
+    bool loadEqirectImage(const std::filesystem::path& path);
 
-    virtual ~Texture();
+    Texture* getCubeMap() noexcept { return cubeMap_; }
 
-    virtual void setTexture(const Params& params, size_t* offsets = nullptr) noexcept = 0;
+private:
+    Engine* engine_;
 
-    virtual void setEmptyTexture(
-        uint32_t width,
-        uint32_t height,
-        TextureFormat format,
-        uint32_t usageFlags,
-        uint32_t levels = 1,
-        uint32_t faces = 1) noexcept = 0;
+    Texture* cubeMap_;
 
-    virtual Params getTextureParams() noexcept = 0;
-
-protected:
-    Texture();
+    std::filesystem::path assetPath_;
 };
 
 } // namespace yave

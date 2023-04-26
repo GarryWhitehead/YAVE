@@ -19,47 +19,36 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+
 #pragma once
 
-#include <backend/enums.h>
+#include <mathfu/glsl_mappings.h>
+
+#include <array>
 
 namespace yave
 {
 
-class Texture
+struct CubeMap
 {
-public:
-    using TextureFormat = backend::TextureFormat;
-    using ImageUsage = backend::ImageUsage;
+    // cube vertices
+    static constexpr std::array<float, 24> Vertices {
+        -1.0f, -1.0f, 1.0f,  1.0f, -1.0f, 1.0f,  1.0f, 1.0f, 1.0f,  -1.0f, 1.0f, 1.0f,
+        -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, -1.0f};
 
-    struct Params
-    {
-        void* buffer = nullptr;
-        size_t bufferSize = 0;
-        uint32_t width = 0;
-        uint32_t height = 0;
-        TextureFormat format = TextureFormat::Undefined;
-        uint32_t usageFlags = 0;
-        uint32_t levels = 1;
-        uint32_t faces = 1;
+    // cube indices
+    // clang-format off
+    static constexpr std::array<uint32_t, 36> Indices {
+        0, 1, 2, 2, 3, 0,       // front
+        1, 5, 6, 6, 2, 1,       // right side
+        7, 6, 5, 5, 4, 7,       // left side
+        4, 0, 3, 3, 7, 4,       // bottom
+        4, 5, 1, 1, 0, 4,       // back
+        3, 2, 6, 6, 7, 3        // top
     };
+    // clang-format on
 
-    virtual ~Texture();
-
-    virtual void setTexture(const Params& params, size_t* offsets = nullptr) noexcept = 0;
-
-    virtual void setEmptyTexture(
-        uint32_t width,
-        uint32_t height,
-        TextureFormat format,
-        uint32_t usageFlags,
-        uint32_t levels = 1,
-        uint32_t faces = 1) noexcept = 0;
-
-    virtual Params getTextureParams() noexcept = 0;
-
-protected:
-    Texture();
+    static void createFaceViews(std::array<mathfu::mat4, 6>& faceViews) noexcept;
 };
 
 } // namespace yave

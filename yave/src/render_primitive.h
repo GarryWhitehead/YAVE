@@ -52,6 +52,7 @@ public:
     {
         size_t indexCount = 0;
         size_t indexPrimitiveOffset = 0;
+        size_t vertexCount = 0;
     };
 
     struct Dimensions
@@ -65,7 +66,7 @@ public:
 
     void shutDown(vkapi::VkDriver& driver) noexcept;
 
-    void addMeshDrawDataI(size_t indexCount, size_t offset);
+    void addMeshDrawDataI(size_t indexCount, size_t offset, size_t vertexCount);
 
     vkapi::VDefinitions createVertexAttributeVariants();
 
@@ -90,7 +91,7 @@ public:
 
     // =================== client api =======================
 
-    void addMeshDrawData(size_t indexCount, size_t offset) override;
+    void addMeshDrawData(size_t indexCount, size_t offset, size_t vertexCount) override;
     void setTopology(Topology topo) override;
     void enablePrimitiveRestart() noexcept override;
     void setVertexBuffer(VertexBuffer* vBuffer) override;

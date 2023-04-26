@@ -37,7 +37,7 @@ public:
 
     virtual ~RenderPrimitive();
 
-    virtual void addMeshDrawData(size_t indexCount, size_t offset) = 0;
+    virtual void addMeshDrawData(size_t indexCount, size_t offset, size_t vertexCount) = 0;
 
     virtual void setTopology(Topology topo) = 0;
 

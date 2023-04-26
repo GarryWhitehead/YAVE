@@ -54,12 +54,14 @@ public:
     {
         vk::ImageLayout finalLayout[RenderTarget::MaxColourAttachCount];
         vk::Format colourFormats[RenderTarget::MaxColourAttachCount];
-        LoadClearFlags loadOp[RenderTarget::MaxColourAttachCount];
-        StoreClearFlags storeOp[RenderTarget::MaxColourAttachCount];
-        LoadClearFlags dsLoadOp[2];
-        StoreClearFlags dsStoreOp[2];
+        backend::LoadClearFlags loadOp[RenderTarget::MaxColourAttachCount];
+        backend::StoreClearFlags storeOp[RenderTarget::MaxColourAttachCount];
+        backend::LoadClearFlags dsLoadOp[2];
+        backend::StoreClearFlags dsStoreOp[2];
         vk::Format depth;
         uint32_t samples;
+        bool multiView;
+        uint8_t padding[3];
 
         bool operator==(const RPassKey& rhs) const noexcept;
     };

@@ -181,10 +181,12 @@ bool VkContext::prepareExtensions(
         extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
         deviceExtensions_.hasDebugUtils = true;
     }
+    if (findExtensionProperties(VK_KHR_MULTIVIEW_EXTENSION_NAME, extensionProps))
+    {
+        extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+        deviceExtensions_.hasMultiView = true;
+    }
 
-#if __APPLE__
-    // extensions.push_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
-#endif
 
 #ifdef VULKAN_VALIDATION_DEBUG
     // if debug utils isn't supported, try debug report
@@ -249,7 +251,6 @@ bool VkContext::createInstance(const char** glfwExtension, uint32_t extCount)
         requiredLayers_.data(),
         static_cast<uint32_t>(extensions.size()),
         extensions.data());
-    // createInfo.flags = vk::InstanceCreateFlagBits::eEnumeratePortabilityKHR;
     VK_CHECK_RESULT(vk::createInstance(&createInfo, nullptr, &instance_));
 
 #ifdef VULKAN_VALIDATION_DEBUG
@@ -297,37 +298,6 @@ bool VkContext::createInstance(const char** glfwExtension, uint32_t extCount)
     return true;
 }
 
-vk::PhysicalDeviceFeatures VkContext::prepareFeatures()
-{
-    vk::PhysicalDeviceFeatures requiredFeatures;
-    vk::PhysicalDeviceFeatures devFeatures = physical_.getFeatures();
-    if (devFeatures.textureCompressionETC2)
-    {
-        requiredFeatures.textureCompressionETC2 = VK_TRUE;
-    }
-    if (devFeatures.textureCompressionBC)
-    {
-        requiredFeatures.textureCompressionBC = VK_TRUE;
-    }
-    if (devFeatures.samplerAnisotropy)
-    {
-        requiredFeatures.samplerAnisotropy = VK_TRUE;
-    }
-    if (devFeatures.tessellationShader)
-    {
-        requiredFeatures.tessellationShader = VK_TRUE;
-    }
-    if (devFeatures.geometryShader)
-    {
-        requiredFeatures.geometryShader = VK_TRUE;
-    }
-    if (devFeatures.shaderStorageImageExtendedFormats)
-    {
-        requiredFeatures.shaderStorageImageExtendedFormats = VK_TRUE;
-    }
-    return requiredFeatures;
-}
-
 bool VkContext::prepareDevice(const vk::SurfaceKHR windowSurface)
 {
     if (!instance_)
@@ -345,7 +315,13 @@ bool VkContext::prepareDevice(const vk::SurfaceKHR windowSurface)
         if (gpu)
         {
             physical_ = gpu;
-            break;
+            // prefer discrete GPU over integrated.
+            // TODO: make this an option.
+            auto props = gpu.getProperties();
+            if (props.deviceType == vk::PhysicalDeviceType::eDiscreteGpu)
+            {
+                break;
+            }
         }
     }
 
@@ -440,12 +416,45 @@ bool VkContext::prepareDevice(const vk::SurfaceKHR windowSurface)
     }
 
     // enable required device features
-    auto reqFeatures = prepareFeatures();
+    vk::PhysicalDeviceFeatures2 reqFeatures2;
+    vk::PhysicalDeviceMultiviewFeatures mvFeatures;
+    mvFeatures.multiview = VK_TRUE;
+    reqFeatures2.pNext = &mvFeatures;
+
+    vk::PhysicalDeviceFeatures devFeatures = physical_.getFeatures();
+    if (devFeatures.textureCompressionETC2)
+    {
+        reqFeatures2.features.textureCompressionETC2 = VK_TRUE;
+    }
+    if (devFeatures.textureCompressionBC)
+    {
+        reqFeatures2.features.textureCompressionBC = VK_TRUE;
+    }
+    if (devFeatures.samplerAnisotropy)
+    {
+        reqFeatures2.features.samplerAnisotropy = VK_TRUE;
+    }
+    if (devFeatures.tessellationShader)
+    {
+        reqFeatures2.features.tessellationShader = VK_TRUE;
+    }
+    if (devFeatures.geometryShader)
+    {
+        reqFeatures2.features.geometryShader = VK_TRUE;
+    }
+    if (devFeatures.shaderStorageImageExtendedFormats)
+    {
+        reqFeatures2.features.shaderStorageImageExtendedFormats = VK_TRUE;
+    }
+    if (devFeatures.multiViewport)
+    {
+        reqFeatures2.features.multiViewport = VK_TRUE;
+    }
 
     // a swapchain extension must be present
     if (!findExtensionProperties(VK_KHR_SWAPCHAIN_EXTENSION_NAME, extensions))
     {
-        SPDLOG_ERROR("Critical error! Swap chain extension not found.");
+        SPDLOG_ERROR("Swap chain extension not found.");
         return false;
     }
 
@@ -465,7 +474,8 @@ bool VkContext::prepareDevice(const vk::SurfaceKHR windowSurface)
         requiredLayers_.empty() ? nullptr : requiredLayers_.data(),
         static_cast<uint32_t>(reqExtensions.size()),
         reqExtensions.data(),
-        &reqFeatures);
+        nullptr,
+        &reqFeatures2);
 
     VK_CHECK_RESULT(physical_.createDevice(&createInfo, nullptr, &device_));
 

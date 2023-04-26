@@ -193,9 +193,9 @@ class ImportedRenderTarget : public ImportedResource
 public:
     struct Descriptor
     {
-        vkapi::LoadClearFlags loadClearFlags[vkapi::RenderTarget::MaxAttachmentCount] = {
-            vkapi::LoadClearFlags::DontCare};
-        vkapi::StoreClearFlags storeClearFlags[vkapi::RenderTarget::MaxAttachmentCount] = {};
+        backend::LoadClearFlags loadClearFlags[vkapi::RenderTarget::MaxAttachmentCount] = {
+            backend::LoadClearFlags::DontCare};
+        backend::StoreClearFlags storeClearFlags[vkapi::RenderTarget::MaxAttachmentCount] = {};
 
         std::array<vk::ImageLayout, vkapi::RenderTarget::MaxAttachmentCount> finalLayouts = {};
 

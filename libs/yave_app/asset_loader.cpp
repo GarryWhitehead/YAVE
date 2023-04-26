@@ -137,15 +137,16 @@ AssetLoader::parseImageFile(const std::filesystem::path& filePath, backend::Text
     params.dataSize = width * height * comp;
 
     Texture* tex = engine_->createTexture();
-    tex->setTexture(
-        {params.data,
-         params.dataSize,
-         params.width,
-         params.height,
-         params.mipLevels,
-         params.faceCount,
-         format});
-
+    Texture::Params texParams {
+        params.data,
+        params.dataSize,
+        params.width,
+        params.height,
+        format,
+        backend::ImageUsage::Sampled, // should be user defined
+        params.mipLevels,
+        params.faceCount};
+    tex->setTexture(texParams);
     stbi_image_free(params.data);
 
     return tex;
@@ -191,15 +192,16 @@ AssetLoader::parseKtxFile(const std::filesystem::path& filePath, backend::Textur
     }
 
     Texture* tex = engine_->createTexture();
-    tex->setTexture(
-        {params.data,
-         params.dataSize,
-         params.width,
-         params.height,
-         params.mipLevels,
-         params.faceCount,
-         format},
-        offsets);
+    Texture::Params texParams {
+        params.data,
+        params.dataSize,
+        params.width,
+        params.height,
+        format,
+        backend::ImageUsage::Sampled, // should be user defined
+        params.mipLevels,
+        params.faceCount};
+    tex->setTexture(texParams, offsets);
 
     ktxTexture_Destroy(texture);
     delete[] offsets;

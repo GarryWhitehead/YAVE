@@ -118,7 +118,7 @@ void IEngine::createDefaultQuadBuffers() noexcept
         (void*)indices.data(),
         backend::IndexBufferType::Uint32);
 
-    quadPrimitive_.addMeshDrawData(indices.size(), 0);
+    quadPrimitive_.addMeshDrawData(indices.size(), 0, 0);
 }
 
 void IEngine::setCurrentSwapchainI(const SwapchainHandle& handle) noexcept
@@ -127,14 +127,7 @@ void IEngine::setCurrentSwapchainI(const SwapchainHandle& handle) noexcept
     currentSwapchain_ = swapchains_[handle.getKey()];
 }
 
-vkapi::Swapchain* IEngine::getCurrentSwapchain() noexcept
-{
-    ASSERT_FATAL(
-        currentSwapchain_,
-        "No swapchain has been registered with the engine via "
-        "setCurrentSwapchain.");
-    return currentSwapchain_;
-}
+vkapi::Swapchain* IEngine::getCurrentSwapchain() noexcept { return currentSwapchain_; }
 
 SwapchainHandle IEngine::createSwapchainI(Window* win)
 {
@@ -147,10 +140,7 @@ SwapchainHandle IEngine::createSwapchainI(Window* win)
     return handle;
 }
 
-IRenderer* IEngine::createRendererI(const SwapchainHandle& handle, IScene& scene)
-{
-    return createResource(renderers_, this);
-}
+IRenderer* IEngine::createRendererI() { return createResource(renderers_, this); }
 
 IScene* IEngine::createSceneI() { return createResource(scenes_, *this); }
 
@@ -167,7 +157,10 @@ IMappedTexture* IEngine::createMappedTextureI() noexcept
     return createResource(mappedTextures_, *this);
 }
 
-ISkybox* IEngine::createSkyboxI() noexcept { return createResource(skyboxes_, *this); }
+ISkybox* IEngine::createSkyboxI() noexcept
+{
+    return createResource(skyboxes_, *this, *currentScene_);
+}
 
 ICamera* IEngine::createCameraI() noexcept { return createResource(cameras_); }
 
@@ -202,39 +195,6 @@ template void IEngine::destroyResource<IScene>(IScene*, std::unordered_set<IScen
 
 template void IEngine::destroyResource<ICamera>(ICamera*, std::unordered_set<ICamera*>& container);
 
-IObject* IEngine::createObjectI()
-{
-    uint64_t id = 0;
-    if (!freeIds_.empty() && freeIds_.size() > MinimumFreeIds)
-    {
-        id = freeIds_.front();
-        freeIds_.pop_front();
-    }
-    else
-    {
-        id = nextId_++;
-    }
-
-    auto object = std::make_unique<IObject>(id);
-    objects_.emplace_back(std::move(object));
-    return objects_.back().get();
-}
-
-void IEngine::destroyObject(IObject* obj)
-{
-    size_t count = 0;
-    for (auto& object : objects_)
-    {
-        if (*obj == *object)
-        {
-            break;
-        }
-        ++count;
-    }
-    // completley remove from the list - costly!
-    objects_.erase(objects_.begin() + count);
-    freeIds_.push_front(obj->id());
-}
 
 // ==================== client api ========================
 
@@ -249,11 +209,7 @@ Scene* IEngine::createScene() { return reinterpret_cast<Scene*>(createSceneI());
 
 vkapi::SwapchainHandle IEngine::createSwapchain(Window* win) { return createSwapchainI(win); }
 
-Renderer* IEngine::createRenderer(const vkapi::SwapchainHandle& handle, Scene* scene)
-{
-    return reinterpret_cast<Renderer*>(
-        createRendererI(handle, *(reinterpret_cast<IScene*>(scene))));
-}
+Renderer* IEngine::createRenderer() { return reinterpret_cast<Renderer*>(createRendererI()); }
 
 VertexBuffer* IEngine::createVertexBuffer()
 {
@@ -293,8 +249,6 @@ LightManager* IEngine::getLightManager()
 {
     return reinterpret_cast<LightManager*>(getLightManagerI());
 }
-
-Object* IEngine::createObject() { return reinterpret_cast<Object*>(createObjectI()); }
 
 Texture* IEngine::createTexture() { return reinterpret_cast<Texture*>(createMappedTextureI()); }
 

@@ -104,21 +104,19 @@ bool IScene::update()
     Frustum frustum;
     frustum.projection(camera_->projMatrix() * camera_->viewMatrix());
 
-    // Update the lights since we have no updated the camera for this frame.
+    // Update the lights since we have not updated the camera for this frame.
     lightManager->update(*camera_);
 
     // At the moment we iterate through the list of objects
     // and find any that have a renderable or light component. If they are
     // active then these are added as a potential candiate lighting source
-    auto& objects = engine_.getObjectList();
-
     std::vector<LightInstance*> candLightObjs;
-    candLightObjs.reserve(objects.size());
+    candLightObjs.reserve(objects_.size());
 
     // TODO
     mathfu::mat4 worldTransform = mathfu::mat4::Identity();
 
-    for (const auto& object : objects)
+    for (const auto& object : objects_)
     {
         if (!object->isActive())
         {
@@ -358,6 +356,40 @@ void IScene::updateTransformBuffer(
     }
 }
 
+IObject* IScene::createObjectI()
+{
+    uint64_t id = 0;
+    if (!freeIds_.empty() && freeIds_.size() > MinimumFreeIds)
+    {
+        id = freeIds_.front();
+        freeIds_.pop_front();
+    }
+    else
+    {
+        id = nextId_++;
+    }
+
+    auto object = std::make_unique<IObject>(id);
+    objects_.emplace_back(std::move(object));
+    return objects_.back().get();
+}
+
+void IScene::destroyObject(IObject* obj)
+{
+    size_t count = 0;
+    for (auto& object : objects_)
+    {
+        if (*obj == *object)
+        {
+            break;
+        }
+        ++count;
+    }
+    // completley remove from the list - costly!
+    objects_.erase(objects_.begin() + count);
+    freeIds_.push_front(obj->id());
+}
+
 // ======================== client api =======================
 
 Scene::Scene() {}
@@ -367,6 +399,8 @@ void IScene::setSkybox(Skybox* skybox) { setSkyboxI(reinterpret_cast<ISkybox*>(s
 
 void IScene::setCamera(Camera* cam) { setCameraI(reinterpret_cast<ICamera*>(cam)); }
 
-Camera* IScene::getCurrentCamera() { return reinterpret_cast<Camera*>(&(getCurrentCameraI())); }
+Camera* IScene::getCurrentCamera() { return reinterpret_cast<Camera*>(getCurrentCameraI()); }
+
+Object* IScene::createObject() { return reinterpret_cast<Object*>(createObjectI()); }
 
 } // namespace yave

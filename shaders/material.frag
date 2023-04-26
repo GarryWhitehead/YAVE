@@ -9,11 +9,13 @@ layout(location = 2) in vec4 inColour;
 #endif
 layout(location = 3) in vec3 inPos;
 
-layout(location = 0) out vec4 outPos;
-layout(location = 1) out vec4 outColour;
+layout(location = 0) out vec4 outColour;
+#if defined(USE_GBUFFER_OUTPUT)
+layout(location = 1) out vec4 outPos;
 layout(location = 2) out vec4 outNormal;
 layout(location = 3) out vec4 outEmissive;
 layout(location = 4) out vec2 outPbr;
+#endif
 
 #define EPSILON 0.0000001
 
@@ -158,7 +160,14 @@ void main()
         diffuse.a);
 #endif
 
+// =========== fragment outputs ====================
+
     outColour = baseColour;
+
+// At the moment the definition is used when rendering materials which only require
+// a colour component though will not use the lighting stage (single scene draws into framebuffers for example). 
+// This should be fully implemented at some stage to support forward rendering.
+#if defined(USE_GBUFFER_OUTPUT)
     outNormal = vec4(normal, 1.0);
     outPbr = vec2(metallic, roughness);
 
@@ -178,6 +187,7 @@ void main()
     emissive = material_ubo.emissiveFactor.rgb;
 #endif
     outEmissive = vec4(emissive, 1.0);
+#endif
 
     materialFragment();
 }

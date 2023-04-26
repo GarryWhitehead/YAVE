@@ -81,6 +81,11 @@ ILightManager::~ILightManager() {}
 
 void ILightManager::prepareI()
 {
+    // if we have already initialised, then let's not do it again.
+    if (programBundle_)
+    {
+        return;
+    }
     auto& driver = engine_.driver();
     auto& manager = driver.progManager();
 
@@ -88,7 +93,7 @@ void ILightManager::prepareI()
     programBundle_->buildShaders("lighting.vert", "lighting.frag");
 
     IScene* scene = engine_.getCurrentScene();
-    auto& camera = scene->getCurrentCameraI();
+    ICamera* camera = scene->getCurrentCameraI();
 
     // The render primitive - simple version which only states the vertex
     // count for the full-screen quad. The vertex count is three as we
@@ -100,7 +105,7 @@ void ILightManager::prepareI()
 
     // The camera uniform buffer required by the vertex shader.
     auto* vProgram = programBundle_->getProgram(backend::ShaderStage::Vertex);
-    vProgram->addAttributeBlock(camera.getUbo().createShaderStr());
+    vProgram->addAttributeBlock(camera->getUbo().createShaderStr());
 
     // Add the samplers and push block code for the fragment shader.
     auto* fProgram = programBundle_->getProgram(backend::ShaderStage::Fragment);
@@ -108,7 +113,7 @@ void ILightManager::prepareI()
     fProgram->addAttributeBlock(ssbo_->createShaderStr());
 
     // Camera ubo
-    auto camUbo = camera.getUbo().getBufferParams(driver);
+    auto camUbo = camera->getUbo().getBufferParams(driver);
     programBundle_->addDescriptorBinding(
         static_cast<uint32_t>(camUbo.size),
         camUbo.binding,
@@ -377,7 +382,7 @@ rg::RenderGraphHandle ILightManager::render(
             rg::PassDescriptor desc;
             desc.attachments.attach.colour[0] = data.light;
             desc.attachments.attach.depth = {data.depth};
-            desc.dsLoadClearFlags = {vkapi::LoadClearFlags::Clear};
+            desc.dsLoadClearFlags = {backend::LoadClearFlags::Clear};
             data.rt = builder.createRenderTarget("lightRT", desc);
         },
         [=](::vkapi::VkDriver& driver,

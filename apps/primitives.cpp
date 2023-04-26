@@ -57,6 +57,7 @@ PrimitiveApp::PrimitiveApp(const yave::AppParams& params, bool showUI)
 void PrimitiveApp::buildPrimitive(
     yave::Engine* engine,
     PrimitiveType type,
+    yave::Scene* scene,
     const mathfu::vec3& position,
     const mathfu::vec3& scale,
     const mathfu::quat& rotation)
@@ -100,7 +101,7 @@ void PrimitiveApp::buildPrimitive(
     prim->setIndexBuffer(iBuffer);
     render->setPrimitive(prim, 0);
 
-    yave::Object* obj = engine->createObject();
+    yave::Object* obj = scene->createObject();
 
     mat->setPipeline(yave::Material::Pipeline::SpecularGlosiness);
     mat->setMaterialFactors(factors);
@@ -202,26 +203,26 @@ int main()
     // create the renderer used to draw to the backbuffer
     auto handle = engine->createSwapchain(app.getWindow());
     engine->setCurrentSwapchain(handle);
-    auto renderer = engine->createRenderer(handle, scene);
+    auto renderer = engine->createRenderer();
 
     // create objects
     app.buildPrimitive(
-        engine, PrimitiveApp::PrimitiveType::Sphere, {0.0f, 0.0f, 0.0f}, {1.5f, 1.5f, 1.5f});
-    app.buildPrimitive(engine, PrimitiveApp::PrimitiveType::Capsule, {10.0f, 0.0f, 0.0f});
-    app.buildPrimitive(engine, PrimitiveApp::PrimitiveType::Cube, {20.0f, 0.0f, 0.0f});
+        engine, PrimitiveApp::PrimitiveType::Sphere, scene, {0.0f, 0.0f, 0.0f}, {1.5f, 1.5f, 1.5f});
+    app.buildPrimitive(engine, PrimitiveApp::PrimitiveType::Capsule, scene, {10.0f, 0.0f, 0.0f});
+    app.buildPrimitive(engine, PrimitiveApp::PrimitiveType::Cube, scene, {20.0f, 0.0f, 0.0f});
 
     // add some lighting to the scene
     auto* lightManager = engine->getLightManager();
 
     yave::LightManager::CreateInfo ci {{2.0f, 2.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.8f, 0.3f, 1.0f}};
-    yave::Object* lightObj1 = engine->createObject();
+    yave::Object* lightObj1 = scene->createObject();
     lightManager->create(ci, yave::LightManager::Type::Directional, lightObj1);
 
     ci.colour = {0.4f, 0.2f, 0.0f};
     ci.position = {0.0f, 0.3f, -2.0f};
     ci.fov = 45.0f;
     ci.radius = 100.0f;
-    yave::Object* lightObj2 = engine->createObject();
+    yave::Object* lightObj2 = scene->createObject();
     lightManager->create(ci, yave::LightManager::Type::Spot, lightObj2);
     lightManager->prepare();
 

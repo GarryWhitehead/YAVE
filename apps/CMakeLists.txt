@@ -43,6 +43,6 @@ create_app(APP_NAME gltf_model FILES gltf_model.cpp gltf_model.h)
 create_app(APP_NAME triangle FILES triangle.cpp)
 
 target_link_libraries(primitives PUBLIC mathfu::mathfu YaveUtility)
-target_link_libraries(gltf_model PUBLIC mathfu::mathfu YaveUtility)
+target_link_libraries(gltf_model PUBLIC mathfu::mathfu YaveUtility YaveIbl)
 target_link_libraries(triangle PUBLIC mathfu::mathfu)
 

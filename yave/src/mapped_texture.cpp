@@ -22,6 +22,7 @@
 
 #include "mapped_texture.h"
 
+#include "backend/convert_to_yave.h"
 #include "backend/enums.h"
 #include "engine.h"
 #include "utility/assertion.h"
@@ -88,9 +89,9 @@ void IMappedTexture::setTextureI(
     uint32_t levels,
     uint32_t faces,
     backend::TextureFormat format,
+    uint32_t usageFlags,
     size_t* offsets)
 {
-    ASSERT_FATAL(buffer, "Invalid buffer is nullptr.");
     auto& driver = engine_.driver();
 
     buffer_ = buffer;
@@ -100,11 +101,8 @@ void IMappedTexture::setTextureI(
     faceCount_ = faces;
     format_ = backend::textureFormatToVk(format);
 
-    // we assume here that the textures created here will be always be sampled.
-    // TODO: should be user defined
-    auto usageFlags = vk::ImageUsageFlagBits::eSampled;
-
-    tHandle_ = driver.createTexture2d(format_, width, height, levels, faces, 1, usageFlags);
+    tHandle_ = driver.createTexture2d(
+        format_, width, height, levels, faces, 1, backend::imageUsageToVk(usageFlags));
     driver.mapTexture(tHandle_, buffer, bufferSize, offsets);
 }
 
@@ -115,10 +113,11 @@ void IMappedTexture::setTextureI(
     uint32_t levels,
     uint32_t faces,
     backend::TextureFormat format,
+    uint32_t usageFlags,
     size_t* offsets)
 {
     uint32_t bufferSize = totalTextureSize(width, height, 1, faces, levels, format);
-    setTextureI(buffer, bufferSize, width, height, levels, faces, format, offsets);
+    setTextureI(buffer, bufferSize, width, height, levels, faces, format, usageFlags, offsets);
 }
 
 // ================================== client api ===========================
@@ -126,22 +125,41 @@ void IMappedTexture::setTextureI(
 Texture::Texture() {}
 Texture::~Texture() {}
 
-void IMappedTexture::setTexture(const Texture::Descriptor& desc, size_t* offsets) noexcept
+void IMappedTexture::setTexture(const Params& params, size_t* offsets) noexcept
 {
+    size_t bufferSize = params.bufferSize;
+    if (!bufferSize)
+    {
+        bufferSize = totalTextureSize(
+            params.width, params.height, 1, params.faces, params.levels, params.format);
+    }
+
     setTextureI(
-        desc.buffer,
-        desc.bufferSize,
-        desc.width,
-        desc.height,
-        desc.levels,
-        desc.faces,
-        desc.format,
+        params.buffer,
+        bufferSize,
+        params.width,
+        params.height,
+        params.levels,
+        params.faces,
+        params.format,
+        params.usageFlags,
         offsets);
 }
 
-Texture::Descriptor IMappedTexture::getTextureDescriptor() noexcept
+void IMappedTexture::setEmptyTexture(
+    uint32_t width,
+    uint32_t height,
+    backend::TextureFormat format,
+    uint32_t usageFlags,
+    uint32_t levels = 1,
+    uint32_t faces = 1) noexcept
 {
-    return {buffer_, width_, height_, mipLevels_, faceCount_};
+    uint32_t bufferSize = totalTextureSize(width, height, 1, faces, levels, format);
+    void* buffer = (uint8_t*)new uint8_t[bufferSize];
+    ASSERT_LOG(buffer);
+    setTextureI(buffer, bufferSize, width, height, levels, faces, format, usageFlags, nullptr);
 }
+
+Texture::Params IMappedTexture::getTextureParams() noexcept { return {buffer_, width_, height_}; }
 
 } // namespace yave

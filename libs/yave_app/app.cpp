@@ -47,9 +47,6 @@ Application::Application(const AppParams& params, bool showUI)
     window_ = std::make_unique<Window>(
         *this, params.winTitle.c_str(), params.winWidth, params.winHeight, showUI);
 
-    // create a scene for our application
-    scene_ = engine_->createScene();
-    engine_->setCurrentScene(scene_);
     scene_->setCamera(window_->getCamera());
 }
 

@@ -59,9 +59,6 @@ using SwapchainHandle = vkapi::SwapchainHandle;
 class IEngine : public Engine
 {
 public:
-    constexpr static int MinimumFreeSlots = 256;
-    constexpr static int MinimumFreeIds = 100;
-
     IEngine();
     ~IEngine();
 
@@ -71,7 +68,7 @@ public:
     void shutdown();
 
     SwapchainHandle createSwapchainI(Window* win);
-    IRenderer* createRendererI(const SwapchainHandle& handle, IScene& scene);
+    IRenderer* createRendererI();
     IScene* createSceneI();
     void setCurrentSceneI(IScene* scene) { currentScene_ = scene; }
 
@@ -82,12 +79,6 @@ public:
     IMappedTexture* createMappedTextureI() noexcept;
     ISkybox* createSkyboxI() noexcept;
     ICamera* createCameraI() noexcept;
-
-    IObject* createObjectI();
-
-    void destroyObject(IObject* obj);
-
-    const std::vector<std::unique_ptr<IObject>>& getObjectList() const noexcept { return objects_; }
 
     void setCurrentSwapchainI(const SwapchainHandle& handle) noexcept;
     vkapi::Swapchain* getCurrentSwapchain() noexcept;
@@ -127,7 +118,7 @@ public:
 
     Scene* createScene() override;
     vkapi::SwapchainHandle createSwapchain(Window* win) override;
-    Renderer* createRenderer(const vkapi::SwapchainHandle& handle, Scene* scene) override;
+    Renderer* createRenderer() override;
     VertexBuffer* createVertexBuffer() override;
     IndexBuffer* createIndexBuffer() override;
     RenderPrimitive* createRenderPrimitive() override;
@@ -137,7 +128,6 @@ public:
     RenderableManager* getRenderManager() override;
     TransformManager* getTransformManager() override;
     LightManager* getLightManager() override;
-    Object* createObject() override;
     Texture* createTexture() override;
     Skybox* createSkybox() override;
     Camera* createCamera() override;
@@ -174,15 +164,6 @@ private:
     IVertexBuffer quadVertexBuffer_;
     IIndexBuffer quadIndexBuffer_;
     IRenderPrimitive quadPrimitive_;
-
-    // ============== object management ==================
-    uint32_t nextId_ = 0;
-
-    // the complete list of all objects associated with all registered scenes
-    std::vector<std::unique_ptr<IObject>> objects_;
-
-    // ids of objects which has been destroyed and can be re-used
-    std::deque<uint64_t> freeIds_;
 
     // =========== vk backend ============================
 

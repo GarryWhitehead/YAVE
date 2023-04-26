@@ -290,7 +290,7 @@ void Texture::map(VkDriver& driver, void* data, uint32_t dataSize, size_t* offse
 
     // the final transition here may need improving on....
     Image::transition(
-        *image_, vk::ImageLayout::eTransferDstOptimal, this->imageLayout_, cBuffer.cmdBuffer);
+        *image_, vk::ImageLayout::eTransferDstOptimal, imageLayout_, cBuffer.cmdBuffer);
 }
 
 const TextureContext& Texture::context() const { return texContext_; }

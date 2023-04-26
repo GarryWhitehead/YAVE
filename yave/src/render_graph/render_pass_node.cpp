@@ -91,6 +91,7 @@ void RenderPassInfo::bake(const RenderGraph& rGraph)
         name,
         vkBackend.rPassData.width,
         vkBackend.rPassData.height,
+        false,
         desc.samples,
         desc.clearColour,
         colourInfo,
@@ -205,8 +206,8 @@ void RenderPassNode::build()
         {
             auto& attachment = renderPassTarget.desc.attachments.attachArray[i];
 
-            rPassData.loadClearFlags[i] = vkapi::LoadClearFlags::DontCare;
-            rPassData.storeClearFlags[i] = vkapi::StoreClearFlags::Store;
+            rPassData.loadClearFlags[i] = backend::LoadClearFlags::DontCare;
+            rPassData.storeClearFlags[i] = backend::StoreClearFlags::Store;
 
             if (attachment)
             {
@@ -227,12 +228,12 @@ void RenderPassNode::build()
                     // if the pass has no readers then we can clear the store
                     if (renderPassTarget.writers[i] && !renderPassTarget.writers[i]->hasReaders())
                     {
-                        rPassData.storeClearFlags[i] = vkapi::StoreClearFlags::DontCare;
+                        rPassData.storeClearFlags[i] = backend::StoreClearFlags::DontCare;
                     }
                     // if the pass has no writers then we can clear the load op
                     if (!renderPassTarget.readers[i] || !renderPassTarget.readers[i]->hasWriters())
                     {
-                        rPassData.loadClearFlags[i] = vkapi::LoadClearFlags::Clear;
+                        rPassData.loadClearFlags[i] = backend::LoadClearFlags::Clear;
                     }
                 }
 
@@ -276,8 +277,8 @@ void RenderPassNode::build()
                 }
                 else
                 {
-                    rPassData.loadClearFlags[i] = vkapi::LoadClearFlags::DontCare;
-                    rPassData.storeClearFlags[i] = vkapi::StoreClearFlags::DontCare;
+                    rPassData.loadClearFlags[i] = backend::LoadClearFlags::DontCare;
+                    rPassData.storeClearFlags[i] = backend::StoreClearFlags::DontCare;
                 }
             }
         }

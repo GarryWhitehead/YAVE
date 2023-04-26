@@ -55,6 +55,9 @@ using MaterialHandle = util::Handle<IMaterial>;
 class IMaterial : public Material
 {
 public:
+    constexpr static int VertexUboBindPoint = 4;
+    constexpr static int FragmentUboBindPoint = 4;
+
     constexpr static int MaxSamplerCount = 6;
 
     enum Variants : uint64_t
@@ -74,6 +77,7 @@ public:
         HasEmissiveFactor,
         HasSpecularFactor,
         HasDiffuseFactor,
+        EnableGBufferPipeline,
         __SENTINEL__
     };
 
@@ -108,13 +112,15 @@ public:
 
     void update(IEngine& engine) noexcept;
 
-    void updateUboParamI(const std::string& name, void* value) { ubo_->updateElement(name, value); }
+    void updateUboParamI(const std::string& name, backend::ShaderStage stage, void* value);
 
     void addUboParamI(
-        const std::string& elementName, backend::BufferElementType type, size_t size, void* value)
-    {
-        ubo_->pushElement(elementName, type, static_cast<uint32_t>(size), (void*)value);
-    }
+        const std::string& elementName,
+        backend::BufferElementType type,
+        size_t size,
+        size_t arrayCount,
+        backend::ShaderStage stage,
+        void* value);
 
     void updatePushConstantParamI(const std::string& name, backend::ShaderStage stage, void* value)
     {
@@ -209,12 +215,15 @@ public:
         const std::string& elementName,
         backend::BufferElementType type,
         size_t size,
+        size_t arrayCount,
+        backend::ShaderStage stage,
         void* value) override;
 
     void updatePushConstantParam(
         const std::string& elementName, backend::ShaderStage stage, void* value) override;
 
-    void updateUboParam(const std::string& elementName, void* value) override;
+    void updateUboParam(
+        const std::string& elementName, backend::ShaderStage stage, void* value) override;
 
     void addTexture(
         Engine* engine,
@@ -236,13 +245,12 @@ private:
     util::BitSetEnum<Variants> variantBits_;
 
     // used to generate the push block for the material shader -
-    // push blocks are allowed for the vertex (0) and fragmant (1)
+    // push blocks are allowed for the vertex (0) and fragment (1)
     // stages at present.
     std::unique_ptr<PushBlock> pushBlock_[2];
 
-    // uniform buffer - custom buffer only allowed for fragment
-    // stage at present.
-    std::unique_ptr<UniformBuffer> ubo_;
+    // uniform buffers - only vertex and fragment shader for now
+    std::unique_ptr<UniformBuffer> ubos_[2];
 
     std::vector<std::pair<backend::ShaderStage, BufferBase*>> buffers_;
 
