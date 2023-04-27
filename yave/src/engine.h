@@ -101,6 +101,8 @@ public:
     template <typename RESOURCE>
     void destroyResource(RESOURCE* resource, std::unordered_set<RESOURCE*>& container);
 
+    void deleteRenderTargetI(const vkapi::RenderTargetHandle& handle);
+
     // ==================== getters =======================
 
     vkapi::VkDriver& driver() noexcept { return *driver_; }
@@ -138,6 +140,9 @@ public:
     void destroy(Renderable* buffer) override;
     void destroy(Scene* buffer) override;
     void destroy(Camera* buffer) override;
+    void destroy(Renderer* renderer) override;
+
+    void deleteRenderTarget(const vkapi::RenderTargetHandle& handle);
 
 private:
     Window* currentWindow_;

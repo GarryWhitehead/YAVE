@@ -70,6 +70,8 @@ public:
 
     void destroyI(const IObject& obj);
 
+    void destroyI(IMaterial* mat);
+
     // ===================== client api ==================================
 
     void build(
@@ -82,6 +84,8 @@ public:
 
     void destroy(const Object* obj) override;
 
+    void destroy(Material* mat) override;
+
 private:
     IEngine& engine_;
 
@@ -89,7 +93,7 @@ private:
     std::vector<IRenderable> renderables_;
 
     // all the materials
-    std::vector<std::unique_ptr<IMaterial>> materials_;
+    std::unordered_set<IMaterial*> materials_;
 };
 
 } // namespace yave

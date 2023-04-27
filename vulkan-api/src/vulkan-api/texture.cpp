@@ -34,23 +34,9 @@
 namespace vkapi
 {
 
-enum Filter
+Texture::Texture(VkContext& context) : context_(context), imageLayout_(vk::ImageLayout::eUndefined)
 {
-    Nearest,
-    Linear,
-    Cubic
-};
-
-enum AddressMode
-{
-    Repeat,
-    MirroredRepeat,
-    ClampToEdge,
-    ClampToBorder,
-    MirrorClampToEdge
-};
-
-Texture::Texture(VkContext& context) : context_(context) {}
+}
 Texture::~Texture() {}
 
 uint32_t Texture::getFormatCompSize(vk::Format format)
@@ -183,9 +169,9 @@ void Texture::destroy() const
     {
         image_->destroy();
     }
-    if (imageView_)
+    for (int level = 0; level < texContext_.mipLevels; ++level)
     {
-        context_.device().destroyImageView(imageView_->get(), nullptr);
+        context_.device().destroyImageView(imageView_[level]->get(), nullptr);
     }
 }
 
@@ -199,24 +185,28 @@ void Texture::createTexture2d(
     uint8_t arrayCount,
     vk::ImageUsageFlags usageFlags)
 {
+    ASSERT_FATAL(
+        mipLevels < MaxMipCount,
+        "Requested mip levels of %d exceed max allowed count: %d",
+        mipLevels,
+        MaxMipCount);
+
     texContext_ = TextureContext {format, width, height, mipLevels, faceCount, arrayCount};
 
     // create an empty image
     image_ = std::make_unique<Image>(driver.context(), *this);
     image_->create(driver.vmaAlloc(), usageFlags);
 
-    // and a image view of the empty image
-    imageView_ = std::make_unique<ImageView>(driver.context());
-    imageView_->create(driver.context().device(), *image_);
+    // and a image view for each mip level
+    for (int level = 0; level < mipLevels; ++level)
+    {
+        imageView_[level] = std::make_unique<ImageView>(driver.context());
+        imageView_[level]->create(driver.context().device(), *image_, level);
+    }
 
-    if (isDepth(format) || isStencil(format))
-    {
-        imageLayout_ = vk::ImageLayout::eDepthStencilReadOnlyOptimal;
-    }
-    else
-    {
-        imageLayout_ = vk::ImageLayout::eShaderReadOnlyOptimal;
-    }
+    imageLayout_ = (isDepth(format) || isStencil(format))
+        ? vk::ImageLayout::eDepthStencilReadOnlyOptimal
+        : vk::ImageLayout::eShaderReadOnlyOptimal;
 }
 
 void Texture::createTexture2d(
@@ -224,9 +214,14 @@ void Texture::createTexture2d(
 {
     image_ = std::make_unique<Image>(driver.context(), image, format, width, height);
     texContext_ = TextureContext {format, width, height, 1, 1, 0};
-    imageView_ = std::make_unique<ImageView>(driver.context());
-    imageView_->create(driver.context().device(), image, format, 1, 1, 0);
-    imageLayout_ = vk::ImageLayout::eShaderReadOnlyOptimal;
+
+    // assume a mip level count of one
+    imageView_[0] = std::make_unique<ImageView>(driver.context());
+    imageView_[0]->create(driver.context().device(), image, format, 1, 1, 0, 0);
+
+    imageLayout_ = (isDepth(format) || isStencil(format))
+        ? vk::ImageLayout::eDepthStencilReadOnlyOptimal
+        : vk::ImageLayout::eShaderReadOnlyOptimal;
 }
 
 void Texture::map(VkDriver& driver, void* data, uint32_t dataSize, size_t* offsets)
@@ -295,10 +290,12 @@ void Texture::map(VkDriver& driver, void* data, uint32_t dataSize, size_t* offse
 
 const TextureContext& Texture::context() const { return texContext_; }
 
-ImageView* Texture::getImageView() const
+ImageView* Texture::getImageView(uint32_t level) const
 {
-    ASSERT_LOG(imageView_);
-    return imageView_.get();
+    ASSERT_FATAL(imageView_[level], "Image view at level %d is uninitialsied", level);
+    ASSERT_FATAL(
+        level < MaxMipCount, "Mip level of %d exceeds max count of %d", level, MaxMipCount);
+    return imageView_[level].get();
 }
 
 Image* Texture::getImage() const

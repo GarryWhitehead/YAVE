@@ -46,6 +46,8 @@ public:
 
     virtual void destroy(const Object* obj) = 0;
 
+     virtual void destroy(Material* mat) = 0;
+
 protected:
     RenderableManager();
 };

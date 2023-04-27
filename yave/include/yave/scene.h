@@ -42,6 +42,8 @@ public:
 
     virtual Object* createObject() = 0;
 
+    virtual void destroy(Object* obj) = 0;
+
 protected:
     Scene();
 };

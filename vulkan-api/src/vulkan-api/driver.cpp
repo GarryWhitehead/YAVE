@@ -334,7 +334,7 @@ void VkDriver::beginRenderpass(
         if (colour.handle)
         {
             vkapi::Texture* tex = colour.handle.getResource();
-            fboKey.views[idx] = tex->getImageView()->get();
+            fboKey.views[idx] = tex->getImageView(colour.level)->get();
             ASSERT_FATAL(fboKey.views[idx], "ImageView for attachment %d is invalid.", idx);
             ++count;
         }
@@ -615,6 +615,13 @@ void VkDriver::destroyTexture2D(TextureHandle& handle)
 }
 
 void VkDriver::destroyBuffer(BufferHandle& handle) { resourceCache_->deleteUbo(handle, gc); }
+
+void VkDriver::deleteRenderTarget(const RenderTargetHandle& rtHandle) 
+{
+    ASSERT_FATAL(
+        rtHandle.getKey() < renderTargets_.size(), "Render target handle is out of range.");
+    renderTargets_.erase(renderTargets_.begin() + rtHandle.getKey());
+}
 
 void VkDriver::collectGarbage() noexcept
 {

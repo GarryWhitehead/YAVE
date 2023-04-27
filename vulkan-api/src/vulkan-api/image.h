@@ -38,25 +38,15 @@ class Image;
 class ImageView
 {
 public:
-    /// no default contructor
+
     ImageView(const VkContext& context);
     ~ImageView();
 
-    /**
-     * @brief Returns the aspect flags bsed on the texture format
-     */
     static vk::ImageAspectFlags getImageAspect(vk::Format format);
 
-    /**
-     * @brief Calculates the view type based on how many faces and whether the
-     * texture is an array
-     */
     static vk::ImageViewType getTextureType(uint32_t faceCount, uint32_t arrayCount);
 
-    /**
-     * @brief Create a new image view based on the specified **Image**
-     */
-    void create(const vk::Device& dev, const Image& image);
+    void create(const vk::Device& dev, const Image& image, uint32_t level);
 
     void create(
         const vk::Device& dev,
@@ -64,11 +54,9 @@ public:
         vk::Format format,
         uint8_t faceCount,
         uint8_t mipLevels,
-        uint8_t arrayCount);
+        uint8_t arrayCount,
+        uint32_t level);
 
-    /**
-     * @brief Return the vulkan image view handle
-     */
     const vk::ImageView& get() const { return imageView_; }
 
 private:
@@ -90,20 +78,10 @@ public:
 
     void destroy() noexcept;
 
-    /**
-     * Returns the interpolation filter based on the format type
-     */
     static vk::Filter getFilterType(const vk::Format& format);
 
-    /**
-     * @brief Create a new VkImage instance based on the specified texture  and
-     * usage flags
-     */
     void create(const VmaAllocator& vmaAlloc, vk::ImageUsageFlags usageFlags);
 
-    /**
-     *@brief Tansitions the image from one layout to another.
-     */
     static void transition(
         const Image& image,
         const vk::ImageLayout& oldLayout,
@@ -112,24 +90,13 @@ public:
         uint32_t baseMipMapLevel = UINT32_MAX);
 
     // =========== static functions ===================
-    /**
-     * @brief Generates mip maps for the required levels for this image
-     */
+
     void generateMipMap(const Image& image, const vk::CommandBuffer& cmdBuffer);
 
-    /**
-     * @brief Blits the source image to the dst image using the specified
-     */
     static void blit(const Image& srcImage, const Image& dstImage, Commands& cmd);
 
-    /**
-     * @brief Returns the vulkan image handle
-     */
     const vk::Image& get() const { return image_; }
 
-    /**
-     * @brief Returns the texture context associated with this image
-     */
     const TextureContext& context() const { return tex_; }
 
 private:

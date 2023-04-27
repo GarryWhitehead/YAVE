@@ -88,7 +88,8 @@ void ImageView::create(
     vk::Format format,
     uint8_t faceCount,
     uint8_t mipLevels,
-    uint8_t arrayCount)
+    uint8_t arrayCount,
+    uint32_t level)
 {
     device_ = dev;
 
@@ -106,12 +107,12 @@ void ImageView::create(
          vk::ComponentSwizzle::eIdentity,
          vk::ComponentSwizzle::eIdentity,
          vk::ComponentSwizzle::eIdentity},
-        vk::ImageSubresourceRange(aspect, 0, mipLevels, 0, faceCount));
+        vk::ImageSubresourceRange(aspect, level, 1, 0, faceCount));
 
     VK_CHECK_RESULT(device_.createImageView(&createInfo, nullptr, &imageView_));
 }
 
-void ImageView::create(const vk::Device& dev, const Image& image)
+void ImageView::create(const vk::Device& dev, const Image& image, uint32_t level)
 {
     create(
         dev,
@@ -119,7 +120,8 @@ void ImageView::create(const vk::Device& dev, const Image& image)
         image.context().format,
         image.context().faceCount,
         image.context().mipLevels,
-        image.context().arrayCount);
+        image.context().arrayCount,
+        level);
 }
 
 // ==================== Image ===================

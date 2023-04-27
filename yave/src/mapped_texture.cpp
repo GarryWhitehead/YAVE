@@ -97,12 +97,12 @@ void IMappedTexture::setTextureI(
     buffer_ = buffer;
     width_ = width;
     height_ = height;
-    mipLevels_ = levels;
+    mipLevels_ = levels == 0xFFFF ? static_cast<uint32_t>(floor(log2(width))) + 1 : levels;
     faceCount_ = faces;
     format_ = backend::textureFormatToVk(format);
 
     tHandle_ = driver.createTexture2d(
-        format_, width, height, levels, faces, 1, backend::imageUsageToVk(usageFlags));
+        format_, width, height, mipLevels_, faces, 1, backend::imageUsageToVk(usageFlags));
     driver.mapTexture(tHandle_, buffer, bufferSize, offsets);
 }
 
@@ -160,6 +160,9 @@ void IMappedTexture::setEmptyTexture(
     setTextureI(buffer, bufferSize, width, height, levels, faces, format, usageFlags, nullptr);
 }
 
-Texture::Params IMappedTexture::getTextureParams() noexcept { return {buffer_, width_, height_}; }
+Texture::Params IMappedTexture::getTextureParams() noexcept
+{
+    return {buffer_, width_, height_, {}, {}, mipLevels_, faceCount_};
+}
 
 } // namespace yave

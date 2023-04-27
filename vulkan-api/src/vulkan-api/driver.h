@@ -114,6 +114,8 @@ public:
         const RenderTarget::AttachmentInfo& depth,
         const RenderTarget::AttachmentInfo& stencil);
 
+    void deleteRenderTarget(const RenderTargetHandle& rtHandle);
+
     vk::Format getSupportedDepthFormat() const;
 
     // =============== delete buffer =======================================

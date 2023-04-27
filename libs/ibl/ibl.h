@@ -43,6 +43,7 @@ private:
     Engine* engine_;
 
     Texture* cubeMap_;
+    Texture* irradianceMap_;
 
     std::filesystem::path assetPath_;
 };

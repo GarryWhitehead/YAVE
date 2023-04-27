@@ -195,6 +195,10 @@ template void IEngine::destroyResource<IScene>(IScene*, std::unordered_set<IScen
 
 template void IEngine::destroyResource<ICamera>(ICamera*, std::unordered_set<ICamera*>& container);
 
+void IEngine::deleteRenderTargetI(const vkapi::RenderTargetHandle& handle)
+{
+    driver_->deleteRenderTarget(handle);
+}
 
 // ==================== client api ========================
 
@@ -284,6 +288,16 @@ void IEngine::destroy(Scene* buffer)
 void IEngine::destroy(Camera* buffer)
 {
     destroyResource(reinterpret_cast<ICamera*>(buffer), cameras_);
+}
+
+void IEngine::destroy(Renderer* renderer) 
+{
+    destroyResource(reinterpret_cast<IRenderer*>(renderer), renderers_);
+}
+
+void IEngine::deleteRenderTarget(const vkapi::RenderTargetHandle& handle) 
+{
+    deleteRenderTargetI(handle);
 }
 
 

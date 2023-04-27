@@ -193,6 +193,10 @@ void IRenderer::renderI(vkapi::VkDriver& driver, IScene& scene)
     rGraph_.execute();
 }
 
+void IRenderer::shutDown(vkapi::VkDriver& driver) noexcept 
+{
+}
+
 // ================== client api =====================
 
 Renderer::Renderer() {}
@@ -301,8 +305,8 @@ void RenderTarget::build(Engine* engine, const util::CString& name, bool multiVi
             vkRt.colours[i].level = attachments_[i].mipLevel;
             vkRt.colours[i].layer = attachments_[i].layer;
 
-            uint32_t width = mT->getWidth();
-            uint32_t height = mT->getHeight();
+            uint32_t width = mT->getWidth() >> attachments_[i].mipLevel;
+            uint32_t height = mT->getHeight() >> attachments_[i].mipLevel;
             minWidth = std::min(minWidth, width);
             minHeight = std::min(minHeight, height);
             maxWidth = std::max(maxWidth, width);

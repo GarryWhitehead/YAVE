@@ -82,10 +82,10 @@ void IRenderableManager::buildI(
 
 IMaterial* IRenderableManager::createMaterialI() noexcept
 {
-    auto mat = std::make_unique<IMaterial>(engine_);
-    IMaterial* output = mat.get();
-    materials_.emplace_back(std::move(mat));
-    return output;
+    IMaterial* mat = new IMaterial(engine_);
+    ASSERT_LOG(mat);
+    materials_.insert(mat);
+    return mat;
 }
 
 IRenderable* IRenderableManager::getMesh(const IObject& obj)
@@ -98,7 +98,19 @@ IRenderable* IRenderableManager::getMesh(const IObject& obj)
     return &renderables_[handle.get()];
 }
 
-void IRenderableManager::destroyI(const IObject& obj) { removeObject(obj); }
+void IRenderableManager::destroyI(const IObject& obj) 
+{ 
+    engine_.getTransformManagerI()->removeObject(obj);
+    removeObject(obj); 
+}
+
+void IRenderableManager::destroyI(IMaterial* mat) 
+{ 
+    auto iter = materials_.find(mat); 
+    ASSERT_FATAL(iter != materials_.end(), "Material not found in set.");
+    delete mat;
+    materials_.erase(iter);
+}
 
 // ==================== client api ========================
 
@@ -126,6 +138,11 @@ Material* IRenderableManager::createMaterial() noexcept
 void IRenderableManager::destroy(const Object* obj)
 {
     destroyI(*(reinterpret_cast<const IObject*>(obj)));
+}
+
+void IRenderableManager::destroy(Material* mat)
+{
+    destroyI(reinterpret_cast<IMaterial*>(mat));
 }
 
 } // namespace yave

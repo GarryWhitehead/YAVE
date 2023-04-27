@@ -52,6 +52,9 @@ struct TextureContext
 class Texture
 {
 public:
+
+    static constexpr int MaxMipCount = 12;
+
     Texture(VkContext& context);
     ~Texture();
 
@@ -61,14 +64,6 @@ public:
     static uint32_t getFormatByteSize(vk::Format format);
     static uint32_t getFormatCompSize(vk::Format format);
 
-    /**
-     * @brief Creates a image and image view for a 2d texture
-     * @param format The format of the texture - see **vk::Format**
-     * @param width The width of the texture in pixels
-     * @param height The height of the texture in pixels
-     * @param mipLevels The number of levels this texture contains
-     * @param usageFlags The intended usage for this image.
-     */
     void createTexture2d(
         VkDriver& driver,
         vk::Format format,
@@ -84,21 +79,14 @@ public:
 
     void destroy() const;
 
-    /**
-     * @brief Maps a image in the format specified when the texture as created,
-     * to the GPU.
-     */
     void map(VkDriver& driver, void* data, uint32_t dataSize, size_t* offsets);
 
     // ================= getters =======================
-    ImageView* getImageView() const;
+
+    ImageView* getImageView(uint32_t level = 0) const;
     Image* getImage() const;
     const vk::ImageLayout& getImageLayout() const;
 
-    /**
-     * @brief Returns a struct containing all user relevant info for this
-     * texture
-     */
     const TextureContext& context() const;
 
     bool isCubeMap() const noexcept { return texContext_.faceCount == 6; }
@@ -106,15 +94,15 @@ public:
     friend class ResourceCache;
 
 private:
-    // texture info
+
     VkContext& context_;
 
     TextureContext texContext_;
 
-    vk::ImageLayout imageLayout_ = vk::ImageLayout::eUndefined;
+    vk::ImageLayout imageLayout_;
 
     std::unique_ptr<Image> image_;
-    std::unique_ptr<ImageView> imageView_;
+    std::unique_ptr<ImageView> imageView_[MaxMipCount];
 
     uint64_t framesUntilGc;
 };

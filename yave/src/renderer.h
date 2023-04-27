@@ -43,6 +43,8 @@ public:
     IRenderer(IEngine* engine);
     ~IRenderer();
 
+    void shutDown(vkapi::VkDriver& driver) noexcept;
+   
     void createBackbufferRT() noexcept;
 
     void beginFrameI() noexcept;

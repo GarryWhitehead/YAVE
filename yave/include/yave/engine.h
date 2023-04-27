@@ -22,6 +22,7 @@
 #pragma once
 
 #include "vulkan-api/swapchain.h"
+#include "vulkan-api/driver.h"
 
 #include <filesystem>
 #include <memory>
@@ -88,6 +89,9 @@ public:
     virtual void destroy(Renderable* buffer) = 0;
     virtual void destroy(Scene* buffer) = 0;
     virtual void destroy(Camera* buffer) = 0;
+    virtual void destroy(Renderer* renderer) = 0;
+
+    virtual void deleteRenderTarget(const vkapi::RenderTargetHandle& handle) = 0;
 
 protected:
     Engine();

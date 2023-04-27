@@ -100,10 +100,11 @@ bool Ibl::loadEqirectImage(const std::filesystem::path& path)
 
     stbi_image_free(data);
 
-    PreFilter preIbl(engine_);
+    PreFilter preIbl(engine_, {});
 
     // create a cubemap from a eqirectangular env map
     cubeMap_ = preIbl.eqirectToCubemap(tex);
+    irradianceMap_ = preIbl.createIrradianceEnvMap(cubeMap_);
 
     return true;
 }

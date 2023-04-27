@@ -403,4 +403,6 @@ Camera* IScene::getCurrentCamera() { return reinterpret_cast<Camera*>(getCurrent
 
 Object* IScene::createObject() { return reinterpret_cast<Object*>(createObjectI()); }
 
+void IScene::destroy(Object* obj) { destroyObject(reinterpret_cast<IObject*>(obj)); }
+
 } // namespace yave

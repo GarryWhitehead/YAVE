@@ -114,6 +114,7 @@ public:
     void setCamera(Camera* cam) override;
     Camera* getCurrentCamera() override;
     Object* createObject() override;
+    void destroy(Object* obj) override;
 
 private:
     IEngine& engine_;

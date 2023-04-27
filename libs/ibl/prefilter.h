@@ -33,24 +33,41 @@ class Renderer;
 class Camera;
 class VertexBuffer;
 class IndexBuffer;
+class RenderPrimitive;
+class Renderable;
 
 class PreFilter
 {
 public:
-    PreFilter(Engine* engine);
+
+    struct Options
+    {
+        float sampleCount = 32.0f;
+    };
+
+    PreFilter(Engine* engine, const Options& options);
     ~PreFilter();
 
     Texture* eqirectToCubemap(Texture* image);
 
+    Texture* createIrradianceEnvMap(Texture* cubeMap);
+
+    Texture* createSpecularEnvMap(Texture* cubeMap);
+
 private:
+
     Engine* engine_;
 
     Scene* scene_;
     Renderer* renderer_;
     Camera* camera_;
+    RenderPrimitive* prim_;
+    Renderable* render_;
 
     VertexBuffer* vBuffer;
     IndexBuffer* iBuffer;
+
+    const Options& options_;
 };
 
 } // namespace yave
