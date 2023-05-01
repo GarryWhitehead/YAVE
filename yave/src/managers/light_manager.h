@@ -38,7 +38,7 @@ namespace yave
 {
 
 // forward declerations
-class IObject;
+class Object;
 class ICamera;
 class IEngine;
 class IVertexBuffer;
@@ -112,36 +112,36 @@ public:
 
     void setRadius(float fallout, LightInstance& light);
 
-    void setIntensityI(float intensity, IObject* obj);
-    void setFalloutI(float fallout, IObject* obj);
-    void setPositionI(const mathfu::vec3& pos, IObject* obj);
-    void setTargetI(const mathfu::vec3& target, IObject* obj);
-    void setColourI(const mathfu::vec3& col, IObject* obj);
-    void setFovI(float fov, IObject* obj);
+    void setIntensityI(float intensity, Object& obj);
+    void setFalloutI(float fallout, Object& obj);
+    void setPositionI(const mathfu::vec3& pos, Object& obj);
+    void setTargetI(const mathfu::vec3& target, Object& obj);
+    void setColourI(const mathfu::vec3& col, Object& obj);
+    void setFovI(float fov, Object& obj);
 
-    void createLight(const CreateInfo& ci, IObject* obj, LightManager::Type type);
+    void createLight(const CreateInfo& ci, Object& obj, LightManager::Type type);
 
     size_t getLightCount() const;
 
-    LightInstance* getLightInstance(IObject* obj);
+    LightInstance* getLightInstance(Object& obj);
 
-    void destroy(const IObject& handle);
+    void destroy(const Object& handle);
 
     rg::RenderGraphHandle
     render(rg::RenderGraph& rGraph, uint32_t width, uint32_t height, vk::Format depthFormat);
 
     // =================== client api ========================
 
-    void create(const CreateInfo& ci, Type type, Object* obj) override;
+    void create(const CreateInfo& ci, Type type, Object& obj) override;
 
     void prepare() override;
 
-    void setIntensity(float intensity, Object* obj) override;
-    void setFallout(float fallout, Object* obj) override;
-    void setPosition(const mathfu::vec3& pos, Object* obj) override;
-    void setTarget(const mathfu::vec3& target, Object* obj) override;
-    void setColour(const mathfu::vec3& col, Object* obj) override;
-    void setFov(float fov, Object* obj) override;
+    void setIntensity(float intensity, Object& obj) override;
+    void setFallout(float fallout, Object& obj) override;
+    void setPosition(const mathfu::vec3& pos, Object& obj) override;
+    void setTarget(const mathfu::vec3& target, Object& obj) override;
+    void setColour(const mathfu::vec3& col, Object& obj) override;
+    void setFov(float fov, Object& obj) override;
 
 private:
     IEngine& engine_;

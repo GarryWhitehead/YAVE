@@ -29,6 +29,7 @@
 #include "vulkan-api/driver.h"
 #include "vulkan-api/program_manager.h"
 #include "yave/camera.h"
+#include "yave/object.h"
 #include "yave/skybox.h"
 #include "yave/texture.h"
 
@@ -37,7 +38,6 @@
 namespace yave
 {
 class IEngine;
-class IObject;
 class IMappedTexture;
 class IScene;
 class ICamera;
@@ -69,7 +69,7 @@ private:
     IMappedTexture* cubeTexture_;
 
     IMaterial* material_;
-    IObject* skyboxObj_;
+    Object skyboxObj_;
 };
 
 } // namespace yave

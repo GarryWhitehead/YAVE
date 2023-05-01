@@ -24,6 +24,7 @@
 
 #include "index_buffer.h"
 #include "managers/transform_manager.h"
+#include "object_manager.h"
 #include "render_primitive.h"
 #include "renderer.h"
 #include "utility/compiler.h"
@@ -44,7 +45,7 @@
 
 namespace yave
 {
-class IObject;
+class Object;
 class IScene;
 class Window;
 class IRenderable;
@@ -85,6 +86,8 @@ public:
 
     void createDefaultQuadBuffers() noexcept;
 
+    void flush();
+
     // ================= resource handling ===================
 
     template <typename RESOURCE, typename... ARGS>
@@ -101,6 +104,8 @@ public:
     template <typename RESOURCE>
     void destroyResource(RESOURCE* resource, std::unordered_set<RESOURCE*>& container);
 
+    void deleteRenderTargetI(const vkapi::RenderTargetHandle& handle);
+
     // ==================== getters =======================
 
     vkapi::VkDriver& driver() noexcept { return *driver_; }
@@ -110,6 +115,7 @@ public:
     IRenderableManager* getRenderableManagerI() noexcept { return rendManager_.get(); }
     ITransformManager* getTransformManagerI() noexcept { return transformManager_.get(); }
     ILightManager* getLightManagerI() noexcept { return lightManager_.get(); }
+    IObjectManager* getObjManagerI() noexcept { return objManager_.get(); }
 
     auto getQuadBuffers() noexcept { return std::make_pair(&quadVertexBuffer_, &quadIndexBuffer_); }
     IRenderPrimitive* getQuadPrimitive() noexcept { return &quadPrimitive_; }
@@ -128,9 +134,11 @@ public:
     RenderableManager* getRenderManager() override;
     TransformManager* getTransformManager() override;
     LightManager* getLightManager() override;
+    ObjectManager* getObjectManager() override;
     Texture* createTexture() override;
     Skybox* createSkybox() override;
     Camera* createCamera() override;
+    void flushCmds() override;
 
     void destroy(VertexBuffer* buffer) override;
     void destroy(IndexBuffer* buffer) override;
@@ -138,6 +146,9 @@ public:
     void destroy(Renderable* buffer) override;
     void destroy(Scene* buffer) override;
     void destroy(Camera* buffer) override;
+    void destroy(Renderer* renderer) override;
+
+    void deleteRenderTarget(const vkapi::RenderTargetHandle& handle);
 
 private:
     Window* currentWindow_;
@@ -145,6 +156,7 @@ private:
     std::unique_ptr<IRenderableManager> rendManager_;
     std::unique_ptr<ITransformManager> transformManager_;
     std::unique_ptr<ILightManager> lightManager_;
+    std::unique_ptr<IObjectManager> objManager_;
 
     std::unordered_set<IVertexBuffer*> vBuffers_;
     std::unordered_set<IIndexBuffer*> iBuffers_;

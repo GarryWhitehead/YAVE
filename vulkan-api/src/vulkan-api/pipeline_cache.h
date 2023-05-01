@@ -184,7 +184,7 @@ public:
 
     void setPipelineKeyToDefault() noexcept;
 
-    void bindPipeline(vk::CommandBuffer cmdBuffer, PipelineLayout& pipelineLayout);
+    void bindPipeline(vk::CommandBuffer& cmdBuffer, PipelineLayout& pipelineLayout);
 
     void bindShaderModules(ShaderProgramBundle& prog);
 
@@ -220,7 +220,7 @@ public:
     void bindSampler(DescriptorImage descImages[MaxSamplerBindCount]);
 
     void bindDescriptors(
-        vk::CommandBuffer cmdBuffer,
+        vk::CommandBuffer& cmdBuffer,
         PipelineLayout& pipelineLayout,
         const std::vector<uint32_t>& dynamicOffsets = {});
 

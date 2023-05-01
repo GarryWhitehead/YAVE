@@ -21,6 +21,7 @@
  */
 #pragma once
 
+#include "vulkan-api/driver.h"
 #include "vulkan-api/swapchain.h"
 
 #include <filesystem>
@@ -37,6 +38,7 @@ class RenderPrimitive;
 class Renderable;
 class RenderableManager;
 class Object;
+class ObjectManager;
 class TransformManager;
 class LightManager;
 class Texture;
@@ -76,11 +78,15 @@ public:
 
     virtual LightManager* getLightManager() = 0;
 
+    virtual ObjectManager* getObjectManager() = 0;
+
     virtual Texture* createTexture() = 0;
 
     virtual Skybox* createSkybox() = 0;
 
     virtual Camera* createCamera() = 0;
+
+    virtual void flushCmds() = 0;
 
     virtual void destroy(IndexBuffer* buffer) = 0;
     virtual void destroy(VertexBuffer* buffer) = 0;
@@ -88,6 +94,9 @@ public:
     virtual void destroy(Renderable* buffer) = 0;
     virtual void destroy(Scene* buffer) = 0;
     virtual void destroy(Camera* buffer) = 0;
+    virtual void destroy(Renderer* renderer) = 0;
+
+    virtual void deleteRenderTarget(const vkapi::RenderTargetHandle& handle) = 0;
 
 protected:
     Engine();

@@ -87,8 +87,9 @@ void IScene::setCameraI(ICamera* cam) noexcept
 
 bool IScene::update()
 {
-    const auto& lightManager = engine_.getLightManagerI();
-    const auto& rendManager = engine_.getRenderableManagerI();
+    ILightManager* lightManager = engine_.getLightManagerI();
+    IRenderableManager* rendManager = engine_.getRenderableManagerI();
+    IObjectManager* objManager = engine_.getObjManagerI();
 
     if (skybox_)
     {
@@ -116,24 +117,24 @@ bool IScene::update()
     // TODO
     mathfu::mat4 worldTransform = mathfu::mat4::Identity();
 
-    for (const auto& object : objects_)
+    for (Object& object : objects_)
     {
-        if (!object->isActive())
+        if (!objManager->isAlive(object))
         {
             continue;
         }
 
-        ObjectHandle rHandle = rendManager->getObjIndex(*object);
+        ObjectHandle rHandle = rendManager->getObjIndex(object);
         if (rHandle.valid())
         {
-            VisibleCandidate candidate = {buildRendCandidate(object.get(), worldTransform)};
+            VisibleCandidate candidate = {buildRendCandidate(object, worldTransform)};
             candRenderableObjs_.emplace_back(candidate);
         }
 
-        ObjectHandle lHandle = lightManager->getObjIndex(*object);
+        ObjectHandle lHandle = lightManager->getObjIndex(object);
         if (lHandle.valid())
         {
-            candLightObjs.emplace_back(lightManager->getLightInstance(object.get()));
+            candLightObjs.emplace_back(lightManager->getLightInstance(object));
         }
     }
 
@@ -204,14 +205,14 @@ bool IScene::update()
     return true;
 }
 
-IScene::VisibleCandidate IScene::buildRendCandidate(IObject* obj, const mathfu::mat4& worldMatrix)
+IScene::VisibleCandidate IScene::buildRendCandidate(Object& obj, const mathfu::mat4& worldMatrix)
 {
     auto* transManager = engine_.getTransformManagerI();
     auto* rendManager = engine_.getRenderableManagerI();
 
     VisibleCandidate candidate;
-    candidate.renderable = rendManager->getMesh(*obj);
-    candidate.transform = transManager->getTransform(*obj);
+    candidate.renderable = rendManager->getMesh(obj);
+    candidate.transform = transManager->getTransform(obj);
 
     // if this renderable is void from the visibility checks,
     // then return early.
@@ -279,7 +280,7 @@ void IScene::updateCameraBuffer()
 }
 
 void IScene::updateTransformBuffer(
-    const std::vector<IScene::VisibleCandidate>& candIObjects,
+    const std::vector<IScene::VisibleCandidate>& candObjects,
     const size_t staticModelCount,
     const size_t skinnedModelCount)
 {
@@ -307,7 +308,7 @@ void IScene::updateTransformBuffer(
     size_t staticCount = 0;
     size_t skinnedCount = 0;
 
-    for (auto& cand : candIObjects)
+    for (auto& cand : candObjects)
     {
         IRenderable* rend = cand.renderable;
         if (!rend->getVisibility().testBit(IRenderable::Visible::Render))
@@ -356,40 +357,6 @@ void IScene::updateTransformBuffer(
     }
 }
 
-IObject* IScene::createObjectI()
-{
-    uint64_t id = 0;
-    if (!freeIds_.empty() && freeIds_.size() > MinimumFreeIds)
-    {
-        id = freeIds_.front();
-        freeIds_.pop_front();
-    }
-    else
-    {
-        id = nextId_++;
-    }
-
-    auto object = std::make_unique<IObject>(id);
-    objects_.emplace_back(std::move(object));
-    return objects_.back().get();
-}
-
-void IScene::destroyObject(IObject* obj)
-{
-    size_t count = 0;
-    for (auto& object : objects_)
-    {
-        if (*obj == *object)
-        {
-            break;
-        }
-        ++count;
-    }
-    // completley remove from the list - costly!
-    objects_.erase(objects_.begin() + count);
-    freeIds_.push_front(obj->id());
-}
-
 // ======================== client api =======================
 
 Scene::Scene() {}
@@ -401,6 +368,18 @@ void IScene::setCamera(Camera* cam) { setCameraI(reinterpret_cast<ICamera*>(cam)
 
 Camera* IScene::getCurrentCamera() { return reinterpret_cast<Camera*>(getCurrentCameraI()); }
 
-Object* IScene::createObject() { return reinterpret_cast<Object*>(createObjectI()); }
+void IScene::addObject(Object obj) { objects_.emplace_back(obj); }
+
+void IScene::destroyObject(Object obj)
+{
+    auto iter = std::find_if(objects_.begin(), objects_.end(), [&obj](const Object& rhs) {
+        return obj.getId() == rhs.getId();
+    });
+    ASSERT_FATAL(
+        iter != objects_.end(),
+        "Trying to delete an object of id %d that is not present within the objects list for this "
+        "scene");
+    objects_.erase(iter);
+}
 
 } // namespace yave

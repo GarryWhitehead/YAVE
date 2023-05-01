@@ -28,6 +28,7 @@
 #include "yave/light_manager.h"
 #include "yave/material.h"
 #include "yave/object.h"
+#include "yave/object_manager.h"
 #include "yave/render_primitive.h"
 #include "yave/renderable.h"
 #include "yave/renderable_manager.h"
@@ -63,6 +64,7 @@ void PrimitiveApp::buildPrimitive(
     const mathfu::quat& rotation)
 {
     auto* rendManager = engine->getRenderManager();
+    yave::ObjectManager* objManager = engine->getObjectManager();
 
     auto render = engine->createRenderable();
     auto vBuffer = engine->createVertexBuffer();
@@ -101,7 +103,8 @@ void PrimitiveApp::buildPrimitive(
     prim->setIndexBuffer(iBuffer);
     render->setPrimitive(prim, 0);
 
-    yave::Object* obj = scene->createObject();
+    yave::Object obj = objManager->createObject();
+    scene->addObject(obj);
 
     mat->setPipeline(yave::Material::Pipeline::SpecularGlosiness);
     mat->setMaterialFactors(factors);
@@ -213,16 +216,19 @@ int main()
 
     // add some lighting to the scene
     auto* lightManager = engine->getLightManager();
+    yave::ObjectManager* objManager = engine->getObjectManager();
 
     yave::LightManager::CreateInfo ci {{2.0f, 2.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.8f, 0.3f, 1.0f}};
-    yave::Object* lightObj1 = scene->createObject();
+    yave::Object lightObj1 = objManager->createObject();
+    scene->addObject(lightObj1);
     lightManager->create(ci, yave::LightManager::Type::Directional, lightObj1);
 
     ci.colour = {0.4f, 0.2f, 0.0f};
     ci.position = {0.0f, 0.3f, -2.0f};
     ci.fov = 45.0f;
     ci.radius = 100.0f;
-    yave::Object* lightObj2 = scene->createObject();
+    yave::Object lightObj2 = objManager->createObject();
+    scene->addObject(lightObj2);
     lightManager->create(ci, yave::LightManager::Type::Spot, lightObj2);
     lightManager->prepare();
 

@@ -166,6 +166,9 @@ void Commands::flush()
         return;
     }
 
+    // reset the bound pipeline associated with this cmd buffer
+    driver_.pipelineCache().setPipelineKeyToDefault();
+
     currentCmdBuffer_->cmdBuffer.end();
 
     std::vector<vk::Semaphore> waitSignals;

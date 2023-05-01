@@ -185,16 +185,16 @@ void PipelineCache::setPipelineKeyToDefault() noexcept
     }
 }
 
-void PipelineCache::bindPipeline(vk::CommandBuffer cmdBuffer, PipelineLayout& pipelineLayout)
+void PipelineCache::bindPipeline(vk::CommandBuffer& cmdBuffer, PipelineLayout& pipelineLayout)
 {
     // check if the required pipeline is already bound. If so, nothing to do
     // here.
-    if (boundPipeline_ == pipelineRequires_)
-    {
-        pipelines_[boundPipeline_]->lastUsedFrameStamp_ = driver_.getCurrentFrame();
-        setPipelineKeyToDefault();
-        return;
-    }
+    //    if (boundPipeline_ == pipelineRequires_)
+    //  {
+    //     pipelines_[boundPipeline_]->lastUsedFrameStamp_ = driver_.getCurrentFrame();
+    //     setPipelineKeyToDefault();
+    //     return;
+    // }
 
     Pipeline* pline = findOrCreatePipeline(pipelineLayout);
     ASSERT_FATAL(pline, "When trying to find or create pipeline, returned nullptr.");
@@ -360,7 +360,7 @@ void PipelineCache::bindSampler(DescriptorImage descImages[MaxSamplerBindCount])
 }
 
 void PipelineCache::bindDescriptors(
-    vk::CommandBuffer cmdBuffer,
+    vk::CommandBuffer& cmdBuffer,
     PipelineLayout& pipelineLayout,
     const std::vector<uint32_t>& dynamicOffsets)
 {

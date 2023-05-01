@@ -74,6 +74,8 @@ public:
         uint32_t mipLevels,
         backend::TextureFormat format) noexcept;
 
+    void generateMipMapsI();
+
     static uint32_t getFormatByteSize(backend::TextureFormat format);
 
     bool isCubeMap() const noexcept { return faceCount_ == 6; }
@@ -102,6 +104,8 @@ public:
         uint32_t faces) noexcept override;
 
     Params getTextureParams() noexcept override;
+
+    void generateMipMaps() override;
 
 private:
     IEngine& engine_;

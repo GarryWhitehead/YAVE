@@ -114,6 +114,8 @@ public:
         const RenderTarget::AttachmentInfo& depth,
         const RenderTarget::AttachmentInfo& stencil);
 
+    void deleteRenderTarget(const RenderTargetHandle& rtHandle);
+
     vk::Format getSupportedDepthFormat() const;
 
     // =============== delete buffer =======================================
@@ -134,6 +136,8 @@ public:
     void endRenderpass(vk::CommandBuffer& cmdBuffer);
 
     Commands& getCommands() noexcept;
+
+    void generateMipMaps(const TextureHandle& handle, const vk::CommandBuffer& cmdBuffer);
 
     // ============= retrieve and delete  resources ============================
 

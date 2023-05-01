@@ -21,13 +21,41 @@
  */
 #pragma once
 
+#include "utility/assertion.h"
+#include "yave/object.h"
+
 #include <cstdint>
-#include <functional>
 
 namespace yave
 {
 
-class Object
+class ObjectHandle
+{
+public:
+    static constexpr uint64_t InvalidHandle = UINT64_MAX;
+
+    ObjectHandle() : handle_(InvalidHandle) {}
+    explicit ObjectHandle(uint64_t h) : handle_(h) {}
+
+    explicit operator bool() const noexcept { return handle_ != InvalidHandle; }
+    bool operator==(const ObjectHandle rhs) { return handle_ == rhs.handle_; }
+    bool operator!=(const ObjectHandle rhs) { return handle_ != rhs.handle_; }
+
+    uint64_t get() const noexcept
+    {
+        ASSERT_LOG(handle_ != InvalidHandle);
+        return handle_;
+    }
+
+    void invalidate() noexcept { handle_ = InvalidHandle; }
+
+    bool valid() const noexcept { return handle_ != InvalidHandle; }
+
+private:
+    uint64_t handle_;
+};
+
+class Object : public Object
 {
 public:
     Object() : id_(0) {}
@@ -42,7 +70,7 @@ public:
     bool operator<=(const Object& obj) const noexcept { return id_ <= obj.id_; }
 
     // helper functions
-    uint64_t getId() const noexcept { return id_; }
+    uint64_t id() const noexcept { return id_; }
 
     void setId(const uint64_t objId) noexcept { id_ = objId; }
 
@@ -59,15 +87,12 @@ private:
  */
 struct ObjHash
 {
-    size_t operator()(const Object& id) const { return std::hash<uint64_t> {}(id.getId()); }
+    size_t operator()(const Object& id) const { return std::hash<uint64_t> {}(id.id()); }
 };
 
 struct ObjEqual
 {
-    bool operator()(const Object& lhs, const Object& rhs) const
-    {
-        return lhs.getId() == rhs.getId();
-    }
+    bool operator()(const Object& lhs, const Object& rhs) const { return lhs.id() == rhs.id(); }
 };
 
 } // namespace yave

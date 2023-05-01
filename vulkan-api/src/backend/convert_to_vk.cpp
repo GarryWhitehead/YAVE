@@ -334,7 +334,14 @@ vk::ImageUsageFlags imageUsageToVk(uint32_t usageFlags)
     {
         output |= vk::ImageUsageFlagBits::eInputAttachment;
     }
-
+    if (usageFlags & ImageUsage::Src)
+    {
+        output |= vk::ImageUsageFlagBits::eTransferSrc;
+    }
+    if (usageFlags & ImageUsage::Dst)
+    {
+        output |= vk::ImageUsageFlagBits::eTransferDst;
+    }
     return output;
 }
 

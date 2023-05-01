@@ -42,21 +42,21 @@ public:
 
     GltfModelApp(const yave::AppParams& params, bool showUI) : yave::Application(params, showUI) {}
 
-    yave::Object* buildModel(
+    yave::Object buildModel(
         const yave::GltfModel& model,
         yave::Engine* engine,
         yave::Scene* scene,
         yave::AssetLoader& loader);
 
-    void addLighting(yave::LightManager* lightManager, yave::Scene* scene);
+    void addLighting(yave::Engine* engine, yave::LightManager* lightManager, yave::Scene* scene);
 
     void uiCallback(yave::Engine* engine) override;
 
     bool showDirLight = true;
     bool showSpotLight = true;
 
-    yave::Object* dirLightObj;
-    yave::Object* spotLightObj;
+    yave::Object dirLightObj;
+    yave::Object spotLightObj;
 
     std::vector<yave::Material*> materials;
 };

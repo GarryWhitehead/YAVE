@@ -58,6 +58,8 @@ public:
 
     virtual Params getTextureParams() noexcept = 0;
 
+    virtual void generateMipMaps() = 0;
+
 protected:
     Texture();
 };

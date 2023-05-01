@@ -170,7 +170,9 @@ enum ImageUsage
     Storage = 1 << 1,
     ColourAttach = 1 << 2,
     DepthAttach = 1 << 3,
-    InputAttach = 1 << 4
+    InputAttach = 1 << 4,
+    Src = 1 << 5,
+    Dst = 1 << 6
 };
 
 enum class LoadClearFlags : uint32_t

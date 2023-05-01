@@ -54,7 +54,7 @@ IRenderableManager::~IRenderableManager() {}
 
 void IRenderableManager::buildI(
     IRenderable* renderable,
-    IObject* obj,
+    Object& obj,
     const ModelTransform& transform,
     const std::string& matShader)
 {
@@ -66,8 +66,8 @@ void IRenderableManager::buildI(
 
     engine_.getTransformManager()->addModelTransform(transform, obj);
 
-    // first add the IObject which will give us a free slot
-    ObjectHandle objHandle = addObject(*obj);
+    // first add the Object which will give us a free slot
+    ObjectHandle objHandle = addObject(obj);
 
     // check whether we just add to the back or use a freed slot
     if (objHandle.get() >= renderables_.size())
@@ -82,13 +82,13 @@ void IRenderableManager::buildI(
 
 IMaterial* IRenderableManager::createMaterialI() noexcept
 {
-    auto mat = std::make_unique<IMaterial>(engine_);
-    IMaterial* output = mat.get();
-    materials_.emplace_back(std::move(mat));
-    return output;
+    IMaterial* mat = new IMaterial(engine_);
+    ASSERT_LOG(mat);
+    materials_.insert(mat);
+    return mat;
 }
 
-IRenderable* IRenderableManager::getMesh(const IObject& obj)
+IRenderable* IRenderableManager::getMesh(const Object& obj)
 {
     ObjectHandle handle = getObjIndex(obj);
     ASSERT_FATAL(
@@ -98,7 +98,19 @@ IRenderable* IRenderableManager::getMesh(const IObject& obj)
     return &renderables_[handle.get()];
 }
 
-void IRenderableManager::destroyI(const IObject& obj) { removeObject(obj); }
+void IRenderableManager::destroyI(const Object& obj)
+{
+    engine_.getTransformManagerI()->removeObject(obj);
+    removeObject(obj);
+}
+
+void IRenderableManager::destroyI(IMaterial* mat)
+{
+    auto iter = materials_.find(mat);
+    ASSERT_FATAL(iter != materials_.end(), "Material not found in set.");
+    delete mat;
+    materials_.erase(iter);
+}
 
 // ==================== client api ========================
 
@@ -107,15 +119,11 @@ RenderableManager::~RenderableManager() {}
 
 void IRenderableManager::build(
     Renderable* renderable,
-    Object* obj,
+    Object& obj,
     const ModelTransform& transform,
     const std::string& matShader)
 {
-    buildI(
-        reinterpret_cast<IRenderable*>(renderable),
-        reinterpret_cast<IObject*>(obj),
-        transform,
-        matShader);
+    buildI(reinterpret_cast<IRenderable*>(renderable), obj, transform, matShader);
 }
 
 Material* IRenderableManager::createMaterial() noexcept
@@ -123,9 +131,8 @@ Material* IRenderableManager::createMaterial() noexcept
     return reinterpret_cast<Material*>(createMaterialI());
 }
 
-void IRenderableManager::destroy(const Object* obj)
-{
-    destroyI(*(reinterpret_cast<const IObject*>(obj)));
-}
+void IRenderableManager::destroy(const Object& obj) { destroyI(obj); }
+
+void IRenderableManager::destroy(Material* mat) { destroyI(reinterpret_cast<IMaterial*>(mat)); }
 
 } // namespace yave

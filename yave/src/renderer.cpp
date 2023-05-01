@@ -130,8 +130,6 @@ void IRenderer::renderSingleSceneI(vkapi::VkDriver& driver, IScene& scene, Rende
     driver.beginRenderpass(cmdBuffer, data, rTarget.getHandle());
     queue.render(*engine_, scene, cmdBuffer, RenderQueue::Type::Colour);
     driver.endRenderpass(cmdBuffer);
-
-    cmds.flush();
 }
 
 void IRenderer::renderI(vkapi::VkDriver& driver, IScene& scene)
@@ -192,6 +190,8 @@ void IRenderer::renderI(vkapi::VkDriver& driver, IScene& scene)
 
     rGraph_.execute();
 }
+
+void IRenderer::shutDown(vkapi::VkDriver& driver) noexcept {}
 
 // ================== client api =====================
 
@@ -293,16 +293,13 @@ void RenderTarget::build(Engine* engine, const util::CString& name, bool multiVi
         if (attachments_[i].texture)
         {
             IMappedTexture* mT = reinterpret_cast<IMappedTexture*>(attachments_[i].texture);
-            ASSERT_FATAL(
-                multiView && mT->isCubeMap(),
-                "Only cubemap textures are supported for multiview rendering.");
 
             vkRt.colours[i].handle = mT->getBackendHandle();
             vkRt.colours[i].level = attachments_[i].mipLevel;
             vkRt.colours[i].layer = attachments_[i].layer;
 
-            uint32_t width = mT->getWidth();
-            uint32_t height = mT->getHeight();
+            uint32_t width = mT->getWidth() >> attachments_[i].mipLevel;
+            uint32_t height = mT->getHeight() >> attachments_[i].mipLevel;
             minWidth = std::min(minWidth, width);
             minHeight = std::min(minHeight, height);
             maxWidth = std::max(maxWidth, width);

@@ -47,6 +47,7 @@ IEngine::IEngine()
     : currentWindow_(nullptr),
       rendManager_(std::make_unique<IRenderableManager>(*this)),
       transformManager_(std::make_unique<ITransformManager>(*this)),
+      objManager_(std::make_unique<IObjectManager>()),
       currentScene_(nullptr),
       currentSwapchain_(nullptr),
       driver_(nullptr)
@@ -164,6 +165,12 @@ ISkybox* IEngine::createSkyboxI() noexcept
 
 ICamera* IEngine::createCameraI() noexcept { return createResource(cameras_); }
 
+void IEngine::flush()
+{
+    auto& cmds = driver_->getCommands();
+    cmds.flush();
+}
+
 template <typename RESOURCE>
 void IEngine::destroyResource(RESOURCE* buffer, std::unordered_set<RESOURCE*>& container)
 {
@@ -195,6 +202,10 @@ template void IEngine::destroyResource<IScene>(IScene*, std::unordered_set<IScen
 
 template void IEngine::destroyResource<ICamera>(ICamera*, std::unordered_set<ICamera*>& container);
 
+void IEngine::deleteRenderTargetI(const vkapi::RenderTargetHandle& handle)
+{
+    driver_->deleteRenderTarget(handle);
+}
 
 // ==================== client api ========================
 
@@ -250,11 +261,18 @@ LightManager* IEngine::getLightManager()
     return reinterpret_cast<LightManager*>(getLightManagerI());
 }
 
+ObjectManager* IEngine::getObjectManager()
+{
+    return reinterpret_cast<ObjectManager*>(getObjManagerI());
+}
+
 Texture* IEngine::createTexture() { return reinterpret_cast<Texture*>(createMappedTextureI()); }
 
 Skybox* IEngine::createSkybox() { return reinterpret_cast<Skybox*>(createSkyboxI()); }
 
 Camera* IEngine::createCamera() { return reinterpret_cast<Camera*>(createCameraI()); }
+
+void IEngine::flushCmds() { flush(); }
 
 void IEngine::destroy(VertexBuffer* buffer)
 {
@@ -284,6 +302,16 @@ void IEngine::destroy(Scene* buffer)
 void IEngine::destroy(Camera* buffer)
 {
     destroyResource(reinterpret_cast<ICamera*>(buffer), cameras_);
+}
+
+void IEngine::destroy(Renderer* renderer)
+{
+    destroyResource(reinterpret_cast<IRenderer*>(renderer), renderers_);
+}
+
+void IEngine::deleteRenderTarget(const vkapi::RenderTargetHandle& handle)
+{
+    deleteRenderTargetI(handle);
 }
 
 

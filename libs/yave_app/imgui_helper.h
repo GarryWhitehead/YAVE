@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include "yave/object.h"
+
 #include <imgui.h>
 #include <mathfu/glsl_mappings.h>
 #include <yave/texture_sampler.h>
@@ -35,7 +37,6 @@ namespace yave
 class Engine;
 class VertexBuffer;
 class IndexBuffer;
-class Object;
 class Texture;
 class Application;
 class Material;
@@ -68,7 +69,7 @@ private:
 
     Engine* engine_;
 
-    Object* rendObj_;
+    Object rendObj_;
     Renderable* renderable_;
 
     struct RenderParams

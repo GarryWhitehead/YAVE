@@ -88,7 +88,8 @@ void ImageView::create(
     vk::Format format,
     uint8_t faceCount,
     uint8_t mipLevels,
-    uint8_t arrayCount)
+    uint8_t arrayCount,
+    uint32_t level)
 {
     device_ = dev;
 
@@ -106,12 +107,12 @@ void ImageView::create(
          vk::ComponentSwizzle::eIdentity,
          vk::ComponentSwizzle::eIdentity,
          vk::ComponentSwizzle::eIdentity},
-        vk::ImageSubresourceRange(aspect, 0, mipLevels, 0, faceCount));
+        vk::ImageSubresourceRange(aspect, level, 1, 0, faceCount));
 
     VK_CHECK_RESULT(device_.createImageView(&createInfo, nullptr, &imageView_));
 }
 
-void ImageView::create(const vk::Device& dev, const Image& image)
+void ImageView::create(const vk::Device& dev, const Image& image, uint32_t level)
 {
     create(
         dev,
@@ -119,7 +120,8 @@ void ImageView::create(const vk::Device& dev, const Image& image)
         image.context().format,
         image.context().faceCount,
         image.context().mipLevels,
-        image.context().arrayCount);
+        image.context().arrayCount,
+        level);
 }
 
 // ==================== Image ===================
@@ -288,56 +290,6 @@ void Image::transition(
         nullptr,
         1,
         &memoryBarrier);
-}
-
-void Image::generateMipMap(const Image& image, const vk::CommandBuffer& cmdBuffer)
-{
-    const TextureContext& tex = image.context();
-
-    for (uint8_t i = 1; i < tex.mipLevels; ++i)
-    {
-        // source
-        vk::ImageSubresourceLayers src(vk::ImageAspectFlagBits::eColor, i - 1, 0, 1);
-        vk::Offset3D srcOffset(tex.width >> (i - 1), tex.height >> (i - 1), 1);
-
-        // destination
-        vk::ImageSubresourceLayers dst(vk::ImageAspectFlagBits::eColor, i, 0, 1);
-        vk::Offset3D dstOffset(tex.width >> i, tex.height >> i, 1);
-
-        vk::ImageBlit imageBlit;
-        imageBlit.srcSubresource = src;
-        imageBlit.srcOffsets[1] = srcOffset;
-        imageBlit.dstSubresource = dst;
-        imageBlit.dstOffsets[1] = dstOffset;
-
-        // create image barrier - transition image to transfer
-        transition(
-            image, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, cmdBuffer, i);
-
-        // blit the image
-        cmdBuffer.blitImage(
-            image.get(),
-            vk::ImageLayout::eTransferSrcOptimal,
-            image.get(),
-            vk::ImageLayout::eTransferDstOptimal,
-            1,
-            &imageBlit,
-            vk::Filter::eLinear);
-
-        transition(
-            image,
-            vk::ImageLayout::eTransferDstOptimal,
-            vk::ImageLayout::eTransferSrcOptimal,
-            cmdBuffer,
-            i);
-    }
-
-    // prepare for shader read
-    transition(
-        image,
-        vk::ImageLayout::eTransferSrcOptimal,
-        vk::ImageLayout::eShaderReadOnlyOptimal,
-        cmdBuffer);
 }
 
 void Image::blit(const Image& srcImage, const Image& dstImage, Commands& cmds)

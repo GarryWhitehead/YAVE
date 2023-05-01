@@ -334,7 +334,7 @@ void VkDriver::beginRenderpass(
         if (colour.handle)
         {
             vkapi::Texture* tex = colour.handle.getResource();
-            fboKey.views[idx] = tex->getImageView()->get();
+            fboKey.views[idx] = tex->getImageView(colour.level)->get();
             ASSERT_FATAL(fboKey.views[idx], "ImageView for attachment %d is invalid.", idx);
             ++count;
         }
@@ -583,6 +583,79 @@ BufferHandle VkDriver::addUbo(const size_t size, VkBufferUsageFlags usage)
     return resourceCache_->createUbo(size, usage);
 }
 
+void VkDriver::generateMipMaps(const TextureHandle& handle, const vk::CommandBuffer& cmdBuffer)
+{
+    const Texture* texture = handle.getResource();
+    const TextureContext& texParams = texture->context();
+
+    ASSERT_LOG(texParams.width > 0 && texParams.height > 0);
+    ASSERT_LOG(texParams.width == texParams.height);
+
+    if (texParams.mipLevels == 1 || (texParams.width == 2 && texParams.height == 2))
+    {
+        return;
+    }
+
+    Image* image = texture->getImage();
+
+    Image::transition(
+        *image,
+        vk::ImageLayout::eShaderReadOnlyOptimal,
+        vk::ImageLayout::eTransferSrcOptimal,
+        cmdBuffer,
+        0);
+
+    for (uint8_t i = 1; i < texParams.mipLevels; ++i)
+    {
+        // source
+        vk::ImageSubresourceLayers src(vk::ImageAspectFlagBits::eColor, i - 1, 0, 1);
+        vk::Offset3D srcOffset(texParams.width >> (i - 1), texParams.height >> (i - 1), 1);
+
+        // destination
+        vk::ImageSubresourceLayers dst(vk::ImageAspectFlagBits::eColor, i, 0, 1);
+        vk::Offset3D dstOffset(texParams.width >> i, texParams.height >> i, 1);
+
+        vk::ImageBlit imageBlit;
+        imageBlit.srcSubresource = src;
+        imageBlit.srcOffsets[1] = srcOffset;
+        imageBlit.dstSubresource = dst;
+        imageBlit.dstOffsets[1] = dstOffset;
+
+        // create image barrier - transition image to transfer
+        Image::transition(
+            *image,
+            vk::ImageLayout::eUndefined,
+            vk::ImageLayout::eTransferDstOptimal,
+            cmdBuffer,
+            i);
+
+        // blit the image
+        cmdBuffer.blitImage(
+            image->get(),
+            vk::ImageLayout::eTransferSrcOptimal,
+            image->get(),
+            vk::ImageLayout::eTransferDstOptimal,
+            1,
+            &imageBlit,
+            vk::Filter::eLinear);
+
+        Image::transition(
+            *image,
+            vk::ImageLayout::eTransferDstOptimal,
+            vk::ImageLayout::eTransferSrcOptimal,
+            cmdBuffer,
+            i);
+    }
+
+    // prepare for shader read
+    Image::transition(
+        *image,
+        vk::ImageLayout::eTransferSrcOptimal,
+        vk::ImageLayout::eShaderReadOnlyOptimal,
+        cmdBuffer);
+}
+
+
 TextureHandle VkDriver::createTexture2d(
     vk::Format format,
     uint32_t width,
@@ -615,6 +688,13 @@ void VkDriver::destroyTexture2D(TextureHandle& handle)
 }
 
 void VkDriver::destroyBuffer(BufferHandle& handle) { resourceCache_->deleteUbo(handle, gc); }
+
+void VkDriver::deleteRenderTarget(const RenderTargetHandle& rtHandle)
+{
+    ASSERT_FATAL(
+        rtHandle.getKey() < renderTargets_.size(), "Render target handle is out of range.");
+    renderTargets_.erase(renderTargets_.begin() + rtHandle.getKey());
+}
 
 void VkDriver::collectGarbage() noexcept
 {
