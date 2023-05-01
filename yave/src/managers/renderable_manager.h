@@ -42,7 +42,7 @@
 namespace yave
 {
 // forard declerations
-class IObject;
+class Object;
 class IEngine;
 class IRenderable;
 class IMaterialBuilder;
@@ -56,19 +56,19 @@ public:
     ~IRenderableManager();
 
     /**
-     * @brief Returns a instance of a mesh based on the specified IObject
+     * @brief Returns a instance of a mesh based on the specified Object
      */
-    IRenderable* getMesh(const IObject& obj);
+    IRenderable* getMesh(const Object& obj);
 
     void buildI(
         IRenderable* renderable,
-        IObject* obj,
+        Object& obj,
         const ModelTransform& transform,
         const std::string& matShader);
 
     IMaterial* createMaterialI() noexcept;
 
-    void destroyI(const IObject& obj);
+    void destroyI(const Object& obj);
 
     void destroyI(IMaterial* mat);
 
@@ -76,13 +76,13 @@ public:
 
     void build(
         Renderable* renderable,
-        Object* obj,
+        Object& obj,
         const ModelTransform& transform,
         const std::string& matShader) override;
 
     Material* createMaterial() noexcept override;
 
-    void destroy(const Object* obj) override;
+    void destroy(const Object& obj) override;
 
     void destroy(Material* mat) override;
 

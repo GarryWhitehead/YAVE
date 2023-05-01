@@ -38,15 +38,15 @@ public:
 
     virtual void build(
         Renderable* renderable,
-        Object* obj,
+        Object& obj,
         const ModelTransform& transform,
         const std::string& matShader = "default.glsl") = 0;
 
     virtual Material* createMaterial() noexcept = 0;
 
-    virtual void destroy(const Object* obj) = 0;
+    virtual void destroy(const Object& obj) = 0;
 
-     virtual void destroy(Material* mat) = 0;
+    virtual void destroy(Material* mat) = 0;
 
 protected:
     RenderableManager();

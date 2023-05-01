@@ -5,7 +5,6 @@
 void materialVertex(vec4 pos)
 {
     outPos = inPos.xyz;
-    outPos.xy *= -1.0;
 	
 	gl_Position = camera_ubo.project * ubo.faceViews[gl_ViewIndex] * vec4(inPos, 1.0);
     gl_Position.z = gl_Position.w;

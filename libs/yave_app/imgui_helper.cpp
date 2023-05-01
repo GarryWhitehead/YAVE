@@ -27,6 +27,7 @@
 #include "yave/index_buffer.h"
 #include "yave/material.h"
 #include "yave/object.h"
+#include "yave/object_manager.h"
 #include "yave/render_primitive.h"
 #include "yave/renderable.h"
 #include "yave/renderable_manager.h"
@@ -69,7 +70,9 @@ ImGuiHelper::ImGuiHelper(Engine* engine, Scene* scene, std::filesystem::path& fo
     texture_->setTexture(params);
     sampler_ = TextureSampler(backend::SamplerFilter::Nearest, backend::SamplerFilter::Nearest);
 
-    rendObj_ = scene->createObject();
+    ObjectManager* objManager = engine->getObjectManager();
+    rendObj_ = objManager->createObject();
+    scene->addObject(rendObj_);
     renderable_ = engine_->createRenderable();
 
     ImGui::StyleColorsDark();

@@ -56,7 +56,7 @@ class IMaterial : public Material
 {
 public:
     constexpr static int VertexUboBindPoint = 4;
-    constexpr static int FragmentUboBindPoint = 4;
+    constexpr static int FragmentUboBindPoint = 5;
 
     constexpr static int MaxSamplerCount = 6;
 
@@ -101,7 +101,7 @@ public:
         vkapi::VkDriver& driver,
         IMappedTexture* texture,
         Material::ImageType type,
-        const backend::TextureSamplerParams& params,
+        backend::TextureSamplerParams& params,
         uint32_t binding);
 
     void build(
@@ -232,10 +232,10 @@ public:
         uint32_t height,
         backend::TextureFormat format,
         ImageType type,
-        const TextureSampler& sampler) override;
+        TextureSampler& sampler) override;
 
-    void addTexture(
-        Engine* engine, Texture* texture, ImageType type, const TextureSampler& sampler) override;
+    void
+    addTexture(Engine* engine, Texture* texture, ImageType type, TextureSampler& sampler) override;
 
 private:
     // handle to ourself

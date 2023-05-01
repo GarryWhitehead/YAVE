@@ -40,9 +40,8 @@ public:
 
     virtual Camera* getCurrentCamera() = 0;
 
-    virtual Object* createObject() = 0;
-
-    virtual void destroy(Object* obj) = 0;
+    virtual void addObject(Object obj) = 0;
+    virtual void destroyObject(Object obj) = 0;
 
 protected:
     Scene();

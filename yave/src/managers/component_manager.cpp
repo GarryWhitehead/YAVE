@@ -28,27 +28,27 @@ namespace yave
 ComponentManager::ComponentManager() : index_(0) {}
 ComponentManager::~ComponentManager() {}
 
-ObjectHandle ComponentManager::addObject(const IObject& obj) noexcept
+ObjectHandle ComponentManager::addObject(const Object& obj) noexcept
 {
     uint64_t retIdx = 0;
 
-    // if there is no free slots, then create a new one
-    if (freeSlots_.empty())
+    // if there are free slots and the threshold has been reached,
+    // use an empty slot.
+    if (!freeSlots_.empty() && freeSlots_.size() > MinimumFreeSlots)
     {
-        objects_.emplace(obj, index_);
-        retIdx = index_++;
-    }
-    else
-    {
-        // otherwise, use an already used container slot
         retIdx = freeSlots_.back();
         objects_.emplace(obj, retIdx);
         freeSlots_.pop_back();
     }
+    else
+    {
+        objects_.emplace(obj, index_);
+        retIdx = index_++;
+    }
     return ObjectHandle(retIdx);
 }
 
-ObjectHandle ComponentManager::getObjIndex(const IObject& obj)
+ObjectHandle ComponentManager::getObjIndex(const Object& obj)
 {
     auto iter = objects_.find(obj);
     if (iter == objects_.end())
@@ -58,7 +58,7 @@ ObjectHandle ComponentManager::getObjIndex(const IObject& obj)
     return ObjectHandle(iter->second);
 }
 
-bool ComponentManager::hasObject(const IObject& obj)
+bool ComponentManager::hasObject(const Object& obj)
 {
     if (objects_.find(obj) == objects_.end())
     {
@@ -67,7 +67,7 @@ bool ComponentManager::hasObject(const IObject& obj)
     return true;
 }
 
-bool ComponentManager::removeObject(const IObject& obj)
+bool ComponentManager::removeObject(const Object& obj)
 {
     auto iter = objects_.find(obj);
     if (iter == objects_.end())

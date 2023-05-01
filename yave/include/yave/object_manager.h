@@ -19,15 +19,23 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
-#include "object_instance.h"
+#pragma once
 
 namespace yave
 {
+class Object;
 
-// ===================== client api ===========================
+class ObjectManager
+{
+public:
+    ~ObjectManager();
 
-Object::Object() {}
-Object::~Object() {}
+    virtual Object createObject() = 0;
+
+    virtual void destroyObject(Object& obj) = 0;
+
+protected:
+    ObjectManager();
+};
 
 } // namespace yave

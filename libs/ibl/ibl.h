@@ -44,6 +44,8 @@ private:
 
     Texture* cubeMap_;
     Texture* irradianceMap_;
+    Texture* specularMap_;
+    Texture* brdfLut_;
 
     std::filesystem::path assetPath_;
 };

@@ -22,54 +22,56 @@
 
 #pragma once
 
-#include <mathfu/glsl_mappings.h>
+#include "yave/object.h"
+#include "yave/object_manager.h"
+
+#include <deque>
 
 namespace yave
 {
-class Engine;
-class Texture;
-class Scene;
-class Renderer;
-class Camera;
-class VertexBuffer;
-class IndexBuffer;
-class RenderPrimitive;
-class Renderable;
 
-class PreFilter
+/**
+ Based heavily on the implementation described in the bitsquid engine
+ blogpost: http://bitsquid.blogspot.com/2014/08/building-data-oriented-entity-system.html
+ */
+class IObjectManager : public ObjectManager
 {
 public:
-    struct Options
-    {
-        int brdfSampleCount = 1024;
+    static constexpr int IndexBits = 22;
+    static constexpr int IndexMask = (1 << IndexBits) - 1;
+    static constexpr int IndexCount = (1 << IndexBits);
 
-        int specularSampleCount = 32;
-        int specularLevelCount = 5;
-    };
+    static constexpr int GenerationBits = 8;
+    static constexpr int GenerationMask = (1 << GenerationBits) - 1;
 
-    PreFilter(Engine* engine, const Options& options);
-    ~PreFilter();
+    constexpr static int MinimumFreeIds = 1024;
 
-    Texture* eqirectToCubemap(Texture* image);
+    IObjectManager();
+    ~IObjectManager();
 
-    Texture* createIrradianceEnvMap(Texture* cubeMap);
+    Object createObjectI();
 
-    Texture* createSpecularEnvMap(Texture* cubeMap);
+    void destroyObjectI(Object& obj);
 
-    Texture* createBrdfLut();
+    uint32_t getIndex(const Object& obj) const;
+
+    uint8_t getGeneration(const Object& obj) const;
+
+    bool isAlive(Object& obj) const noexcept;
+
+    // ================= client api =============================
+
+    Object createObject() override;
+
+    void destroyObject(Object& obj) override;
 
 private:
-    Engine* engine_;
+    static Object makeObject(uint8_t generation, uint32_t index);
 
-    Scene* scene_;
-    Renderer* renderer_;
-    Camera* camera_;
-    RenderPrimitive* prim_;
-
-    VertexBuffer* vBuffer;
-    IndexBuffer* iBuffer;
-
-    const Options& options_;
+private:
+    int currentIdx_;
+    std::deque<int> freeIds_;
+    uint8_t* generations_;
 };
 
 } // namespace yave

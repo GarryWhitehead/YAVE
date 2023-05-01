@@ -38,7 +38,6 @@ class Image;
 class ImageView
 {
 public:
-
     ImageView(const VkContext& context);
     ~ImageView();
 
@@ -88,10 +87,6 @@ public:
         const vk::ImageLayout& newLayout,
         const vk::CommandBuffer& cmdBuff,
         uint32_t baseMipMapLevel = UINT32_MAX);
-
-    // =========== static functions ===================
-
-    void generateMipMap(const Image& image, const vk::CommandBuffer& cmdBuffer);
 
     static void blit(const Image& srcImage, const Image& dstImage, Commands& cmd);
 

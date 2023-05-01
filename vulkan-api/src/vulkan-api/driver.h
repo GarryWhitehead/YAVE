@@ -137,6 +137,8 @@ public:
 
     Commands& getCommands() noexcept;
 
+    void generateMipMaps(const TextureHandle& handle, const vk::CommandBuffer& cmdBuffer);
+
     // ============= retrieve and delete  resources ============================
 
     void mapTexture(const TextureHandle& handle, void* data, uint32_t dataSize, size_t* offsets);

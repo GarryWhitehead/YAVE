@@ -189,12 +189,12 @@ void PipelineCache::bindPipeline(vk::CommandBuffer& cmdBuffer, PipelineLayout& p
 {
     // check if the required pipeline is already bound. If so, nothing to do
     // here.
-//    if (boundPipeline_ == pipelineRequires_)
-  //  {
-   //     pipelines_[boundPipeline_]->lastUsedFrameStamp_ = driver_.getCurrentFrame();
-   //     setPipelineKeyToDefault();
-   //     return;
-   // }
+    //    if (boundPipeline_ == pipelineRequires_)
+    //  {
+    //     pipelines_[boundPipeline_]->lastUsedFrameStamp_ = driver_.getCurrentFrame();
+    //     setPipelineKeyToDefault();
+    //     return;
+    // }
 
     Pipeline* pline = findOrCreatePipeline(pipelineLayout);
     ASSERT_FATAL(pline, "When trying to find or create pipeline, returned nullptr.");

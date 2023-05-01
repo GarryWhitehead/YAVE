@@ -105,6 +105,8 @@ bool Ibl::loadEqirectImage(const std::filesystem::path& path)
     // create a cubemap from a eqirectangular env map
     cubeMap_ = preIbl.eqirectToCubemap(tex);
     irradianceMap_ = preIbl.createIrradianceEnvMap(cubeMap_);
+    specularMap_ = preIbl.createSpecularEnvMap(cubeMap_);
+    brdfLut_ = preIbl.createBrdfLut();
 
     return true;
 }

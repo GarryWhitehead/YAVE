@@ -55,42 +55,4 @@ private:
     uint64_t handle_;
 };
 
-class IObject : public Object
-{
-public:
-    IObject(const uint64_t id) : id_(id) {}
-
-    // operator overloads
-    bool operator==(const IObject& obj) const noexcept { return id_ == obj.id_; }
-    bool operator!=(const IObject& obj) const noexcept { return id_ != obj.id_; }
-    bool operator>(const IObject& obj) const noexcept { return id_ > obj.id_; }
-    bool operator>=(const IObject& obj) const noexcept { return id_ >= obj.id_; }
-    bool operator<(const IObject& obj) const noexcept { return id_ < obj.id_; }
-    bool operator<=(const IObject& obj) const noexcept { return id_ <= obj.id_; }
-
-    // helper functions
-    uint64_t id() const noexcept { return id_; }
-
-    void setId(const uint64_t objId) noexcept { id_ = objId; }
-
-    bool isActive() const noexcept { return active_; }
-
-private:
-    uint64_t id_;
-    bool active_ = true;
-};
-
-/**
- * Hasher overloads to allow for IObjects to be hashed via their id
- */
-struct ObjHash
-{
-    size_t operator()(const IObject& id) const { return std::hash<uint64_t> {}(id.id()); }
-};
-
-struct ObjEqual
-{
-    bool operator()(const IObject& lhs, const IObject& rhs) const { return lhs.id() == rhs.id(); }
-};
-
 } // namespace yave

@@ -139,7 +139,7 @@ bool ShaderCompiler::compile(bool optimise)
     }
 
     options.SetSourceLanguage(shaderc_source_language_glsl);
-    options.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_1);
+    options.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_2);
 
     // we need to create a new instantation of the includer interface - using
     // the one from shaerc - though could use our own.

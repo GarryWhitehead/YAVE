@@ -5,7 +5,6 @@
 void materialVertex(vec4 pos)
 {
     outPos = inPos.xyz;
-    outPos.xy *= -1.0;
     
     gl_Position = camera_ubo.project * ubo.faceViews[gl_ViewIndex] * vec4(inPos, 1.0);
     gl_Position.z = gl_Position.w;
@@ -61,10 +60,14 @@ void materialFragment()
 	float totalWeight = 0.0;
 	vec3 preFilterCol = vec3(0.0);
 
-	for(uint c = 0; c < material_ubo.sampleCount; c++) {
+    float a = material_ubo.roughness * material_ubo.roughness;
+
+    // TODO: for some reason using the ubo paramter to define the sample count 
+    // gives an error when compiling the shader
+	for(int c = 0; c < 1024; c++) {
 	
 		vec2 Xi = Hammersley(c, material_ubo.sampleCount);
-		vec3 H = GGX_ImportanceSample(Xi, N, material_ubo.roughness);
+		vec3 H = GGX_ImportanceSample(Xi, N, a);
 		
 		vec3 L = 2.0 * dot(V, H) * H - V;
 		
@@ -74,7 +77,7 @@ void materialFragment()
 		
 		if(NdotL > 0.0) {
 		
-			float D = GGX_Distribution(NdotH, material_ubo.roughness);
+			float D = GGX_Distribution(NdotH, a);
 			float pdf = (D * NdotH / (4.0 * HdotV)) + 0.0001;
 			
 			float resolution = float(textureSize(BaseColourSampler, 0).s);

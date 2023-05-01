@@ -45,7 +45,7 @@ vk::Sampler SamplerCache::createSampler(const backend::TextureSamplerParams& par
         {},
         backend::samplerFilterToVk(params.mag),
         backend::samplerFilterToVk(params.min),
-        vk::SamplerMipmapMode::eLinear,
+        vk::SamplerMipmapMode::eLinear, // TODO: should be user definable
         backend::samplerAddrModeToVk(params.addrU),
         backend::samplerAddrModeToVk(params.addrV),
         backend::samplerAddrModeToVk(params.addrW),
@@ -55,8 +55,7 @@ vk::Sampler SamplerCache::createSampler(const backend::TextureSamplerParams& par
         params.enableCompare,
         backend::compareOpToVk(params.compareOp),
         0.0f,
-        // TODO: Need to specify if lod is not required. Should be 0.25f then
-        params.mipLevels,
+        params.mipLevels == 0 ? 0.25 : static_cast<float>(params.mipLevels),
         vk::BorderColor::eFloatOpaqueWhite,
         VK_FALSE);
 

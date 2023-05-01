@@ -44,13 +44,11 @@ public:
         backend::SamplerFilter min,
         backend::SamplerFilter mag,
         backend::SamplerAddressMode addr,
-        float ansiotropy,
-        uint32_t mipLevels)
+        float ansiotropy)
     {
         params_ = {min, mag, addr, addr, addr};
         params_.anisotropy = ansiotropy;
         params_.enableAnisotropy = true;
-        params_.mipLevels = mipLevels;
     }
 
     TextureSampler(
@@ -63,18 +61,7 @@ public:
         params_ = {min, mag, addrU, addrV, addrW};
     }
 
-    TextureSampler(
-        backend::SamplerFilter min,
-        backend::SamplerFilter mag,
-        backend::SamplerAddressMode addr,
-        float ansiotropy)
-    {
-        params_ = {min, mag, addr, addr, addr};
-        params_.anisotropy = ansiotropy;
-        params_.enableAnisotropy = true;
-    }
-
-    backend::TextureSamplerParams get() const noexcept { return params_; }
+    backend::TextureSamplerParams& get() noexcept { return params_; }
 
 private:
     backend::TextureSamplerParams params_;

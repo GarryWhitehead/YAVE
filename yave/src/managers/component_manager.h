@@ -34,6 +34,8 @@ namespace yave
 class ComponentManager
 {
 public:
+    static constexpr int MinimumFreeSlots = 1024;
+
     ComponentManager();
     ~ComponentManager();
 
@@ -42,39 +44,39 @@ public:
     ComponentManager& operator=(const ComponentManager&) = delete;
 
     /**
-     * @brief Adds an IObject to the list and returns its location
+     * @brief Adds an Object to the list and returns its location
      * This will either be a new slot or an already created one if any
      * have been freed
      */
-    ObjectHandle addObject(const IObject& obj) noexcept;
+    ObjectHandle addObject(const Object& obj) noexcept;
 
     /**
-     * @brief Returns an IObjects index value if found
+     * @brief Returns an Objects index value if found
      * Note: returns zero if not found
      */
-    ObjectHandle getObjIndex(const IObject& obj);
+    ObjectHandle getObjIndex(const Object& obj);
 
     /**
-     * @brief Removes an IObject from the manager and adds its slot index to
+     * @brief Removes an Object from the manager and adds its slot index to
      * to the freed list for reuse.
      */
-    bool removeObject(const IObject& obj);
+    bool removeObject(const Object& obj);
 
-    bool hasObject(const IObject& obj);
+    bool hasObject(const Object& obj);
 
-    using ObjectMap = std::unordered_map<IObject, size_t, ObjHash, ObjEqual>;
+    using ObjectMap = std::unordered_map<Object, size_t, ObjHash, ObjEqual>;
 
 protected:
-    // the IObjects which contain this component and their index location
+    // the Objects which contain this component and their index location
     ObjectMap objects_;
 
-    // free buffer indices from destroyed IObjects.
+    // free buffer indices from destroyed Objects.
     // rather than resize buffers which will be slow, empty slots in manager
     // containers are stored here and re-used
     std::vector<size_t> freeSlots_;
 
     // the current index into the main manager buffers which will be allocated
-    // to the next IObject that is added.
+    // to the next Object that is added.
     uint64_t index_;
 };
 } // namespace yave

@@ -40,7 +40,7 @@ ITransformManager::ITransformManager(IEngine& engine) {}
 
 ITransformManager::~ITransformManager() {}
 
-bool ITransformManager::addNodeHierachy(NodeInstance& node, IObject& obj, SkinInstance* skin)
+bool ITransformManager::addNodeHierachy(NodeInstance& node, Object& obj, SkinInstance* skin)
 {
     if (!node.getRootNode())
     {
@@ -64,7 +64,7 @@ bool ITransformManager::addNodeHierachy(NodeInstance& node, IObject& obj, SkinIn
     // update the model transform, and if skinned, joint matrices
     updateModelTransform(info.root, info);
 
-    // request a slot for this IObject
+    // request a slot for this Object
     ObjectHandle handle = addObject(obj);
 
     if (handle.get() >= nodes_.size())
@@ -79,7 +79,7 @@ bool ITransformManager::addNodeHierachy(NodeInstance& node, IObject& obj, SkinIn
     return true;
 }
 
-void ITransformManager::addTransformI(const mathfu::mat4& local, IObject* obj)
+void ITransformManager::addTransformI(const mathfu::mat4& local, Object& obj)
 {
     TransformInfo info;
     info.root = new NodeInfo();
@@ -89,8 +89,8 @@ void ITransformManager::addTransformI(const mathfu::mat4& local, IObject* obj)
     // update the model transform, and if skinned, joint matrices
     updateModelTransform(info.root, info);
 
-    // request a slot for this IObject
-    ObjectHandle handle = addObject(*obj);
+    // request a slot for this Object
+    ObjectHandle handle = addObject(obj);
 
     if (handle.get() >= nodes_.size())
     {
@@ -130,7 +130,7 @@ void ITransformManager::updateModelTransform(NodeInfo* parent, TransformInfo& tr
 
         if (transInfo.skinOffset != TransformInfo::Uninitialised)
         {
-            // the transform data index for this IObject is stored on the
+            // the transform data index for this Object is stored on the
             // component
             uint32_t skinIndex = static_cast<uint32_t>(parent->skinIndex);
             ASSERT_LOG(skinIndex >= 0);
@@ -168,14 +168,14 @@ void ITransformManager::updateModelTransform(NodeInfo* parent, TransformInfo& tr
     }
 }
 
-void ITransformManager::updateModel(const IObject& obj)
+void ITransformManager::updateModel(const Object& obj)
 {
     ObjectHandle handle = getObjIndex(obj);
     TransformInfo& info = nodes_[handle.get()];
     updateModelTransform(info.root->parent, info);
 }
 
-TransformInfo* ITransformManager::getTransform(const IObject& obj)
+TransformInfo* ITransformManager::getTransform(const Object& obj)
 {
     ObjectHandle handle = getObjIndex(obj);
     ASSERT_FATAL(
@@ -190,13 +190,13 @@ TransformInfo* ITransformManager::getTransform(const IObject& obj)
 TransformManager::TransformManager() {}
 TransformManager::~TransformManager() {}
 
-void ITransformManager::addModelTransform(const ModelTransform& transform, Object* obj)
+void ITransformManager::addModelTransform(const ModelTransform& transform, Object& obj)
 {
     mathfu::mat4 r = transform.rot.ToMatrix4();
     mathfu::mat4 s = mathfu::mat4::FromScaleVector(transform.scale);
     mathfu::mat4 t = mathfu::mat4::FromTranslationVector(transform.translation);
     mathfu::mat4 local = t * r * s;
-    addTransformI(local, reinterpret_cast<IObject*>(obj));
+    addTransformI(local, obj);
 }
 
 } // namespace yave

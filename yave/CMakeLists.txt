@@ -36,6 +36,7 @@ target_sources(
     include/yave/material.h
     include/yave/vertex_buffer.h
     include/yave/index_buffer.h
+    include/yave/object_manager.h
     
     PRIVATE
     src/engine.cpp
@@ -50,11 +51,11 @@ target_sources(
     src/samplerset.cpp
     src/mapped_texture.cpp
     src/renderable.cpp
-    src/object_instance.cpp
     src/colour_pass.cpp
     src/render_queue.cpp
     src/vertex_buffer.cpp
     src/index_buffer.cpp
+    src/object_manager.cpp
     src/managers/renderable_manager.cpp
     src/managers/component_manager.cpp
     src/managers/renderable_manager.cpp
@@ -88,6 +89,7 @@ target_sources(
     src/render_queue.h
     src/index_buffer.h
     src/vertex_buffer.h
+    src/object_manager.h
     src/managers/component_manager.h
     src/managers/renderable_manager.h
     src/managers/transform_manager.h

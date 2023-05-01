@@ -205,7 +205,7 @@ void IMaterial::addImageTexture(
     vkapi::VkDriver& driver,
     IMappedTexture* texture,
     Material::ImageType type,
-    const backend::TextureSamplerParams& params,
+    backend::TextureSamplerParams& params,
     uint32_t binding)
 {
     addVariant(type);
@@ -222,6 +222,7 @@ void IMaterial::addImageTexture(
 
     setSamplerParamI(imageTypeToStr(type), binding, samplerType);
 
+    params.mipLevels = texture->getMipLevels();
     programBundle_->setTexture(
         texture->getBackendHandle(), binding, driver.getSamplerCache().createSampler(params));
 }
@@ -467,7 +468,7 @@ Material::Material() = default;
 Material::~Material() = default;
 
 void IMaterial::addTexture(
-    Engine* engine, Texture* texture, ImageType type, const TextureSampler& sampler)
+    Engine* engine, Texture* texture, ImageType type, TextureSampler& sampler)
 {
     uint32_t binding = util::ecast(type);
     addImageTexture(
@@ -485,7 +486,7 @@ void IMaterial::addTexture(
     uint32_t height,
     backend::TextureFormat format,
     Material::ImageType type,
-    const TextureSampler& sampler)
+    TextureSampler& sampler)
 {
     ASSERT_LOG(imageBuffer);
 

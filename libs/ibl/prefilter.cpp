@@ -30,6 +30,7 @@
 #include <yave/index_buffer.h>
 #include <yave/material.h>
 #include <yave/object.h>
+#include <yave/object_manager.h>
 #include <yave/render_primitive.h>
 #include <yave/renderable.h>
 #include <yave/renderable_manager.h>
@@ -69,19 +70,12 @@ PreFilter::PreFilter(Engine* engine, const Options& options) : engine_(engine), 
     prim_->setVertexBuffer(vBuffer);
     prim_->setIndexBuffer(iBuffer);
     prim_->addMeshDrawData(CubeMap::Indices.size(), 0, 0);
-
-    render_ = engine_->createRenderable();
-    render_->setPrimitiveCount(1);
-    render_->setPrimitive(prim_, 0);
-    render_->skipVisibilityChecks();
-    render_->disableGBuffer();
 }
 
-PreFilter::~PreFilter() 
-{ 
+PreFilter::~PreFilter()
+{
     engine_->destroy(prim_);
     engine_->destroy(camera_);
-    engine_->destroy(render_);
     engine_->destroy(renderer_);
     engine_->destroy(vBuffer);
     engine_->destroy(iBuffer);
@@ -93,9 +87,12 @@ Texture* PreFilter::eqirectToCubemap(Texture* hdrImage)
     ASSERT_FATAL(hdrImage, "Input image is nullptr!");
 
     RenderableManager* rManager = engine_->getRenderManager();
-    Object* obj = scene_->createObject();
+    ObjectManager* objManager = engine_->getObjectManager();
+    Object obj = objManager->createObject();
     Material* mat = rManager->createMaterial();
-   
+
+    scene_->addObject(obj);
+
     TextureSampler sampler(
         backend::SamplerFilter::Linear,
         backend::SamplerFilter::Linear,
@@ -113,16 +110,22 @@ Texture* PreFilter::eqirectToCubemap(Texture* hdrImage)
         faceViews.data());
     prim_->setMaterial(mat);
 
-    rManager->build(render_, obj, {}, "eqirect_to_cubemap.glsl");
+    Renderable* render = engine_->createRenderable();
+    render->setPrimitiveCount(1);
+    render->setPrimitive(prim_, 0);
+    render->skipVisibilityChecks();
+    render->disableGBuffer();
+
+    rManager->build(render, obj, {}, "eqirect_to_cubemap.glsl");
 
     // create the cube texture to render into
     Texture* cubeTex = engine_->createTexture();
     cubeTex->setEmptyTexture(
         512,
         512,
-        backend::TextureFormat::RGBA16,
+        backend::TextureFormat::RGBA32,
         backend::ImageUsage::ColourAttach | backend::ImageUsage::Sampled,
-        1,
+        0xFFFF,
         6);
 
     // set the empty cube map as the render target for our draws
@@ -131,26 +134,84 @@ Texture* PreFilter::eqirectToCubemap(Texture* hdrImage)
     rt.setLoadFlags(backend::LoadClearFlags::Clear, 0);
     rt.setStoreFlags(backend::StoreClearFlags::Store, 0);
 
-    // Note: for cube map targets we use a multi-view renderpass to render all faces with one draw
-    // call
     rt.build(engine_, "eqicube_target", true);
     renderer_->renderSingleScene(engine_, scene_, rt);
-
     engine_->deleteRenderTarget(rt.getHandle());
 
-    scene_->destroy(obj);
+    cubeTex->generateMipMaps();
+    engine_->flushCmds();
+
+    scene_->destroyObject(obj);
     rManager->destroy(mat);
+    engine_->destroy(render);
 
     return cubeTex;
 }
 
-Texture* PreFilter::createIrradianceEnvMap(Texture* cubeMap) 
+Texture* PreFilter::createBrdfLut()
+{
+    RenderableManager* rManager = engine_->getRenderManager();
+    ObjectManager* objManager = engine_->getObjectManager();
+    Object obj = objManager->createObject();
+    Material* mat = rManager->createMaterial();
+
+    scene_->addObject(obj);
+
+    mat->addUboParam(
+        "sampleCount",
+        backend::BufferElementType::Int,
+        backend::ShaderStage::Fragment,
+        &options_.brdfSampleCount);
+
+    RenderPrimitive* fullscreenPrim = engine_->createRenderPrimitive();
+    fullscreenPrim->addMeshDrawData(0, 0, 3);
+    fullscreenPrim->setMaterial(mat);
+
+    Renderable* render = engine_->createRenderable();
+    render->setPrimitiveCount(1);
+    render->setPrimitive(fullscreenPrim, 0);
+    render->skipVisibilityChecks();
+    render->disableGBuffer();
+
+    rManager->build(render, obj, {}, "brdf.glsl");
+
+    // create the cube texture to render into
+    Texture* outputTex = engine_->createTexture();
+    outputTex->setEmptyTexture(
+        512,
+        512,
+        backend::TextureFormat::RGBA16,
+        backend::ImageUsage::ColourAttach | backend::ImageUsage::Sampled);
+
+    // set the empty cube map as the render target for our draws
+    RenderTarget rt;
+    rt.setColourTexture(outputTex, 0);
+    rt.setLoadFlags(backend::LoadClearFlags::Clear, 0);
+    rt.setStoreFlags(backend::StoreClearFlags::Store, 0);
+
+    rt.build(engine_, "brdf_target");
+    renderer_->renderSingleScene(engine_, scene_, rt);
+
+    engine_->deleteRenderTarget(rt.getHandle());
+
+    engine_->destroy(fullscreenPrim);
+    scene_->destroyObject(obj);
+    rManager->destroy(mat);
+    engine_->destroy(render);
+
+    return outputTex;
+}
+
+Texture* PreFilter::createIrradianceEnvMap(Texture* cubeMap)
 {
     ASSERT_FATAL(cubeMap, "Cubemap image is nullptr!");
 
     RenderableManager* rManager = engine_->getRenderManager();
-    Object* obj = scene_->createObject();
+    ObjectManager* objManager = engine_->getObjectManager();
+    Object obj = objManager->createObject();
     Material* mat = rManager->createMaterial();
+
+    scene_->addObject(obj);
 
     TextureSampler cubeSampler(backend::SamplerFilter::Linear, backend::SamplerFilter::Linear);
 
@@ -164,8 +225,14 @@ Texture* PreFilter::createIrradianceEnvMap(Texture* cubeMap)
         faceViews.data());
     mat->addTexture(engine_, cubeMap, Material::ImageType::BaseColour, cubeSampler);
     prim_->setMaterial(mat);
- 
-    rManager->build(render_, obj, {}, "irradiance.glsl");
+
+    Renderable* render = engine_->createRenderable();
+    render->setPrimitiveCount(1);
+    render->setPrimitive(prim_, 0);
+    render->skipVisibilityChecks();
+    render->disableGBuffer();
+
+    rManager->build(render, obj, {}, "irradiance.glsl");
 
     // create the irradiance cubemap texture to render into
     Texture* cubeTex = engine_->createTexture();
@@ -174,7 +241,7 @@ Texture* PreFilter::createIrradianceEnvMap(Texture* cubeMap)
         64,
         backend::TextureFormat::RGBA32,
         backend::ImageUsage::ColourAttach | backend::ImageUsage::Sampled,
-        0xFFFF,
+        1,
         6);
 
     // set the empty cube map as the render target for our draws
@@ -183,38 +250,36 @@ Texture* PreFilter::createIrradianceEnvMap(Texture* cubeMap)
     rt.setLoadFlags(backend::LoadClearFlags::Clear, 0);
     rt.setStoreFlags(backend::StoreClearFlags::Store, 0);
 
-    // Render each cubemap mip level (faces are drawn in one call with multiview)
-    uint32_t maxMipLevels = cubeTex->getTextureParams().levels;
-    uint32_t dim = cubeTex->getTextureParams().width;
+    rt.build(engine_, "irradiance_target", true);
+    renderer_->renderSingleScene(engine_, scene_, rt);
 
-    for (int level = 0; level < maxMipLevels; ++level)
-    {
-        rt.setMipLevel(level, 0);
-        rt.build(engine_, "irradiance_target", true);
-        mat->setViewport(dim, dim, 0, 0);
-        renderer_->renderSingleScene(engine_, scene_, rt);
-        dim >>= 1;
+    engine_->deleteRenderTarget(rt.getHandle());
 
-        engine_->deleteRenderTarget(rt.getHandle());
-    }
-
-    scene_->destroy(obj);
+    scene_->destroyObject(obj);
     rManager->destroy(mat);
+    engine_->destroy(render);
 
     return cubeTex;
 }
 
-Texture* PreFilter::createSpecularEnvMap(Texture* cubeMap) 
+Texture* PreFilter::createSpecularEnvMap(Texture* cubeMap)
 {
     ASSERT_FATAL(cubeMap, "Cubemap image is nullptr!");
 
     float roughness = 0.0f;
 
     RenderableManager* rManager = engine_->getRenderManager();
-    Object* obj = scene_->createObject();
+    ObjectManager* objManager = engine_->getObjectManager();
+    Object obj = objManager->createObject();
     Material* mat = rManager->createMaterial();
 
-    TextureSampler cubeSampler(backend::SamplerFilter::Linear, backend::SamplerFilter::Linear);
+    scene_->addObject(obj);
+
+    TextureSampler cubeSampler(
+        backend::SamplerFilter::Linear,
+        backend::SamplerFilter::Linear,
+        backend::SamplerAddressMode::ClampToEdge,
+        16.0f);
 
     std::array<mathfu::mat4, 6> faceViews;
     CubeMap::createFaceViews(faceViews);
@@ -226,15 +291,21 @@ Texture* PreFilter::createSpecularEnvMap(Texture* cubeMap)
         faceViews.data());
     mat->addUboParam(
         "sampleCount",
-        backend::BufferElementType::Float,
+        backend::BufferElementType::Int,
         backend::ShaderStage::Fragment,
-        &options_.sampleCount);
+        &options_.specularSampleCount);
     mat->addUboParam(
         "roughness", backend::BufferElementType::Float, backend::ShaderStage::Fragment, &roughness);
-    mat->addTexture(engine_, cubeMap, Material::ImageType::BaseColour, cubeSampler);    
+    mat->addTexture(engine_, cubeMap, Material::ImageType::BaseColour, cubeSampler);
     prim_->setMaterial(mat);
 
-    rManager->build(render_, obj, {}, "specular.glsl");
+    Renderable* render = engine_->createRenderable();
+    render->setPrimitiveCount(1);
+    render->setPrimitive(prim_, 0);
+    render->skipVisibilityChecks();
+    render->disableGBuffer();
+
+    rManager->build(render, obj, {}, "specular.glsl");
 
     // create the irradiance cubemap texture to render into
     Texture* cubeTex = engine_->createTexture();
@@ -243,7 +314,7 @@ Texture* PreFilter::createSpecularEnvMap(Texture* cubeMap)
         512,
         backend::TextureFormat::RGBA16,
         backend::ImageUsage::ColourAttach | backend::ImageUsage::Sampled,
-        0xFFFF,
+        options_.specularLevelCount,
         6);
 
     // set the empty cube map as the render target for our draws
@@ -262,7 +333,7 @@ Texture* PreFilter::createSpecularEnvMap(Texture* cubeMap)
         rt.build(engine_, "specular_target", true);
         mat->setViewport(dim, dim, 0, 0);
 
-        roughness = static_cast<float>(level) / static_cast<float>(maxMipLevels) - 1.0f;
+        roughness = static_cast<float>(level - (maxMipLevels - 1));
         mat->updateUboParam("roughness", backend::ShaderStage::Fragment, &roughness);
 
         renderer_->renderSingleScene(engine_, scene_, rt);
@@ -270,8 +341,9 @@ Texture* PreFilter::createSpecularEnvMap(Texture* cubeMap)
         dim >>= 1;
     }
 
-    scene_->destroy(obj);
+    scene_->destroyObject(obj);
     rManager->destroy(mat);
+    engine_->destroy(render);
 
     return cubeTex;
 }

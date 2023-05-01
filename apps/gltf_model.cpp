@@ -27,6 +27,7 @@
 #include "backend/enums.h"
 #include "yave/camera.h"
 #include "yave/index_buffer.h"
+#include "yave/object_manager.h"
 #include "yave/render_primitive.h"
 #include "yave/renderable.h"
 #include "yave/renderable_manager.h"
@@ -47,15 +48,17 @@
 
 #include <memory>
 
-yave::Object* GltfModelApp::buildModel(
+yave::Object GltfModelApp::buildModel(
     const yave::GltfModel& model,
     yave::Engine* engine,
     yave::Scene* scene,
     yave::AssetLoader& loader)
 {
-    auto* rendManager = engine->getRenderManager();
-    auto* renderable = engine->createRenderable();
-    auto* obj = scene->createObject();
+    yave::RenderableManager* rendManager = engine->getRenderManager();
+    yave::Renderable* renderable = engine->createRenderable();
+    yave::ObjectManager* objManager = engine->getObjectManager();
+    yave::Object obj = objManager->createObject();
+    scene->addObject(obj);
 
     size_t primCount = 0;
     for (auto& node : model.nodes)
@@ -154,12 +157,17 @@ yave::Object* GltfModelApp::buildModel(
     return obj;
 }
 
-void GltfModelApp::addLighting(yave::LightManager* lightManager, yave::Scene* scene)
+void GltfModelApp::addLighting(
+    yave::Engine* engine, yave::LightManager* lightManager, yave::Scene* scene)
 {
-    dirLightObj = scene->createObject();
+    yave::ObjectManager* objManager = engine->getObjectManager();
+
+    dirLightObj = objManager->createObject();
+    scene->addObject(dirLightObj);
     lightManager->create(dirLightParams, yave::LightManager::Type::Directional, dirLightObj);
 
-    spotLightObj = scene->createObject();
+    spotLightObj = objManager->createObject();
+    scene->addObject(spotLightObj);
     lightManager->create(spotLightParams, yave::LightManager::Type::Spot, spotLightObj);
 
     lightManager->prepare();
@@ -255,7 +263,7 @@ int main()
     auto lightManager = engine->getLightManager();
 
     // add some lighting to the scene
-    app.addLighting(lightManager, scene);
+    app.addLighting(engine, lightManager, scene);
 
     app.run(renderer, scene);
 

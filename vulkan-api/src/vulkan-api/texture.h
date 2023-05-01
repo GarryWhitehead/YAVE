@@ -52,7 +52,6 @@ struct TextureContext
 class Texture
 {
 public:
-
     static constexpr int MaxMipCount = 12;
 
     Texture(VkContext& context);
@@ -94,7 +93,6 @@ public:
     friend class ResourceCache;
 
 private:
-
     VkContext& context_;
 
     TextureContext texContext_;

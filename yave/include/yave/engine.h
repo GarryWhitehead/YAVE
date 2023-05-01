@@ -21,8 +21,8 @@
  */
 #pragma once
 
-#include "vulkan-api/swapchain.h"
 #include "vulkan-api/driver.h"
+#include "vulkan-api/swapchain.h"
 
 #include <filesystem>
 #include <memory>
@@ -38,6 +38,7 @@ class RenderPrimitive;
 class Renderable;
 class RenderableManager;
 class Object;
+class ObjectManager;
 class TransformManager;
 class LightManager;
 class Texture;
@@ -77,11 +78,15 @@ public:
 
     virtual LightManager* getLightManager() = 0;
 
+    virtual ObjectManager* getObjectManager() = 0;
+
     virtual Texture* createTexture() = 0;
 
     virtual Skybox* createSkybox() = 0;
 
     virtual Camera* createCamera() = 0;
+
+    virtual void flushCmds() = 0;
 
     virtual void destroy(IndexBuffer* buffer) = 0;
     virtual void destroy(VertexBuffer* buffer) = 0;

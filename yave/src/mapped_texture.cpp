@@ -120,6 +120,15 @@ void IMappedTexture::setTextureI(
     setTextureI(buffer, bufferSize, width, height, levels, faces, format, usageFlags, offsets);
 }
 
+void IMappedTexture::generateMipMapsI()
+{
+    ASSERT_FATAL(tHandle_, "Texture must have been set before generating lod.");
+
+    auto& driver = engine_.driver();
+    auto& cmds = driver.getCommands();
+    driver.generateMipMaps(tHandle_, cmds.getCmdBuffer().cmdBuffer);
+}
+
 // ================================== client api ===========================
 
 Texture::Texture() {}
@@ -157,12 +166,23 @@ void IMappedTexture::setEmptyTexture(
     uint32_t bufferSize = totalTextureSize(width, height, 1, faces, levels, format);
     void* buffer = (uint8_t*)new uint8_t[bufferSize];
     ASSERT_LOG(buffer);
+
+    // if there are more than one mip level, then assume that a call
+    // to generateMipMaps will happen which requires the image to be
+    // give a src usage
+    if (levels > 1)
+    {
+        usageFlags |= backend::ImageUsage::Src;
+    }
+
     setTextureI(buffer, bufferSize, width, height, levels, faces, format, usageFlags, nullptr);
 }
 
 Texture::Params IMappedTexture::getTextureParams() noexcept
 {
-    return {buffer_, width_, height_, {}, {}, mipLevels_, faceCount_};
+    return {buffer_, 0, width_, height_, {}, {}, mipLevels_, faceCount_};
 }
+
+void IMappedTexture::generateMipMaps() { generateMipMapsI(); }
 
 } // namespace yave

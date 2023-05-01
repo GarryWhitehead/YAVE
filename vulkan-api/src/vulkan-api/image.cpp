@@ -292,56 +292,6 @@ void Image::transition(
         &memoryBarrier);
 }
 
-void Image::generateMipMap(const Image& image, const vk::CommandBuffer& cmdBuffer)
-{
-    const TextureContext& tex = image.context();
-
-    for (uint8_t i = 1; i < tex.mipLevels; ++i)
-    {
-        // source
-        vk::ImageSubresourceLayers src(vk::ImageAspectFlagBits::eColor, i - 1, 0, 1);
-        vk::Offset3D srcOffset(tex.width >> (i - 1), tex.height >> (i - 1), 1);
-
-        // destination
-        vk::ImageSubresourceLayers dst(vk::ImageAspectFlagBits::eColor, i, 0, 1);
-        vk::Offset3D dstOffset(tex.width >> i, tex.height >> i, 1);
-
-        vk::ImageBlit imageBlit;
-        imageBlit.srcSubresource = src;
-        imageBlit.srcOffsets[1] = srcOffset;
-        imageBlit.dstSubresource = dst;
-        imageBlit.dstOffsets[1] = dstOffset;
-
-        // create image barrier - transition image to transfer
-        transition(
-            image, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, cmdBuffer, i);
-
-        // blit the image
-        cmdBuffer.blitImage(
-            image.get(),
-            vk::ImageLayout::eTransferSrcOptimal,
-            image.get(),
-            vk::ImageLayout::eTransferDstOptimal,
-            1,
-            &imageBlit,
-            vk::Filter::eLinear);
-
-        transition(
-            image,
-            vk::ImageLayout::eTransferDstOptimal,
-            vk::ImageLayout::eTransferSrcOptimal,
-            cmdBuffer,
-            i);
-    }
-
-    // prepare for shader read
-    transition(
-        image,
-        vk::ImageLayout::eTransferSrcOptimal,
-        vk::ImageLayout::eShaderReadOnlyOptimal,
-        cmdBuffer);
-}
-
 void Image::blit(const Image& srcImage, const Image& dstImage, Commands& cmds)
 {
     // source

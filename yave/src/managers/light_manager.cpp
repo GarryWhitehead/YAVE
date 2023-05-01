@@ -174,10 +174,10 @@ void ILightManager::setRadius(float fallout, LightInstance& light)
 }
 
 void ILightManager::createLight(
-    const LightManager::CreateInfo& ci, IObject* obj, LightManager::Type type)
+    const LightManager::CreateInfo& ci, Object& obj, LightManager::Type type)
 {
     // first add the object which will give us a free slot
-    ObjectHandle handle = addObject(*obj);
+    ObjectHandle handle = addObject(obj);
 
     auto instance = std::make_unique<LightInstance>();
     instance->type = type;
@@ -275,57 +275,52 @@ void ILightManager::updateSsbo(std::vector<LightInstance*>& lights)
     ssbo_->mapGpuBuffer(driver, ssboBuffer_, mappedSize);
 }
 
-LightInstance* ILightManager::getLightInstance(IObject* obj)
+LightInstance* ILightManager::getLightInstance(Object& obj)
 {
-    ASSERT_FATAL(obj, "Can not retrive light instance, object is null.");
     ASSERT_FATAL(
-        hasObject(*obj), "Object with id %d is not associated with this manager", obj->id());
-    return lights_[getObjIndex(*obj).get()].get();
+        hasObject(obj), "Object with id %d is not associated with this manager", obj.getId());
+    return lights_[getObjIndex(obj).get()].get();
 }
 
 size_t ILightManager::getLightCount() const { return lights_.size(); }
 
-void ILightManager::setIntensityI(float intensity, IObject* obj)
+void ILightManager::setIntensityI(float intensity, Object& obj)
 {
     LightInstance* instance = getLightInstance(obj);
     setIntensity(intensity, instance->type, *instance);
 }
 
-void ILightManager::setFalloutI(float fallout, IObject* obj)
+void ILightManager::setFalloutI(float fallout, Object& obj)
 {
     LightInstance* instance = getLightInstance(obj);
     setRadius(fallout, *instance);
 }
 
-void ILightManager::setPositionI(const mathfu::vec3& pos, IObject* obj)
+void ILightManager::setPositionI(const mathfu::vec3& pos, Object& obj)
 {
     LightInstance* instance = getLightInstance(obj);
     instance->position = pos;
 }
 
-void ILightManager::setTargetI(const mathfu::vec3& target, IObject* obj)
+void ILightManager::setTargetI(const mathfu::vec3& target, Object& obj)
 {
     LightInstance* instance = getLightInstance(obj);
     instance->target = target;
 }
 
-void ILightManager::setColourI(const mathfu::vec3& col, IObject* obj)
+void ILightManager::setColourI(const mathfu::vec3& col, Object& obj)
 {
     LightInstance* instance = getLightInstance(obj);
     instance->colour = col;
 }
 
-void ILightManager::setFovI(float fov, IObject* obj)
+void ILightManager::setFovI(float fov, Object& obj)
 {
     LightInstance* instance = getLightInstance(obj);
     instance->fov = fov;
 }
 
-void ILightManager::destroy(const IObject& obj)
-{
-    ASSERT_FATAL(obj.isActive(), "Something went wrong - invalid object handle: not active.");
-    removeObject(obj);
-}
+void ILightManager::destroy(const Object& obj) { removeObject(obj); }
 
 rg::RenderGraphHandle ILightManager::render(
     rg::RenderGraph& rGraph, uint32_t width, uint32_t height, vk::Format depthFormat)
@@ -429,41 +424,23 @@ rg::RenderGraphHandle ILightManager::render(
 LightManager::LightManager() = default;
 LightManager::~LightManager() = default;
 
-void ILightManager::create(const CreateInfo& ci, Type type, Object* obj)
+void ILightManager::create(const CreateInfo& ci, Type type, Object& obj)
 {
-    createLight(ci, reinterpret_cast<IObject*>(obj), type);
+    createLight(ci, obj, type);
 }
 
 void ILightManager::prepare() { prepareI(); }
 
-void ILightManager::setIntensity(float intensity, Object* obj)
-{
-    setIntensityI(intensity, reinterpret_cast<IObject*>(obj));
-}
+void ILightManager::setIntensity(float intensity, Object& obj) { setIntensityI(intensity, obj); }
 
-void ILightManager::setFallout(float fallout, Object* obj)
-{
-    setFalloutI(fallout, reinterpret_cast<IObject*>(obj));
-}
+void ILightManager::setFallout(float fallout, Object& obj) { setFalloutI(fallout, obj); }
 
-void ILightManager::setPosition(const mathfu::vec3& pos, Object* obj)
-{
-    setPositionI(pos, reinterpret_cast<IObject*>(obj));
-}
+void ILightManager::setPosition(const mathfu::vec3& pos, Object& obj) { setPositionI(pos, obj); }
 
-void ILightManager::setTarget(const mathfu::vec3& target, Object* obj)
-{
-    setTargetI(target, reinterpret_cast<IObject*>(obj));
-}
+void ILightManager::setTarget(const mathfu::vec3& target, Object& obj) { setTargetI(target, obj); }
 
-void ILightManager::setColour(const mathfu::vec3& col, Object* obj)
-{
-    setColourI(col, reinterpret_cast<IObject*>(obj));
-}
+void ILightManager::setColour(const mathfu::vec3& col, Object& obj) { setColourI(col, obj); }
 
-void ILightManager::setFov(float fov, Object* obj)
-{
-    setFovI(fov, reinterpret_cast<IObject*>(obj));
-}
+void ILightManager::setFov(float fov, Object& obj) { setFovI(fov, obj); }
 
 } // namespace yave

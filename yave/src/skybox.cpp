@@ -41,6 +41,7 @@
 #include "vulkan-api/resource_cache.h"
 #include "vulkan-api/texture.h"
 #include "vulkan-api/utility.h"
+#include "yave/object_manager.h"
 #include "yave/texture_sampler.h"
 
 #include <image_utils/cubemap.h>
@@ -53,8 +54,11 @@ namespace yave
 
 ISkybox::ISkybox(IEngine& engine, IScene& scene) : engine_(engine)
 {
-    auto* rendManager = engine_.getRenderableManagerI();
-    skyboxObj_ = scene.createObjectI();
+    IRenderableManager* rendManager = engine_.getRenderableManagerI();
+    IObjectManager* objManager = engine_.getObjManagerI();
+    skyboxObj_ = objManager->createObjectI();
+    scene.addObject(skyboxObj_);
+
     material_ = rendManager->createMaterialI();
 }
 

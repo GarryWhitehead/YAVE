@@ -38,7 +38,7 @@
 namespace yave
 {
 // forward declerations
-class IObject;
+class Object;
 class IRenderable;
 struct TransformInfo;
 class ICamera;
@@ -49,10 +49,6 @@ class ISkybox;
 class IScene : public Scene
 {
 public:
-    // constant object values
-    constexpr static int MinimumFreeSlots = 256;
-    constexpr static int MinimumFreeIds = 100;
-
     static constexpr int ModelBufferInitialSize = 20;
 
     /**
@@ -74,7 +70,7 @@ public:
 
     void shutDown(vkapi::VkDriver& driver) noexcept;
 
-    VisibleCandidate buildRendCandidate(IObject* obj, const mathfu::mat4& worldMatrix);
+    VisibleCandidate buildRendCandidate(Object& obj, const mathfu::mat4& worldMatrix);
 
     void
     getVisibleRenderables(Frustum& frustum, std::vector<IScene::VisibleCandidate>& renderables);
@@ -92,14 +88,6 @@ public:
 
     void setCameraI(ICamera* cam) noexcept;
 
-    // ============= object functions ===================
-
-    IObject* createObjectI();
-
-    void destroyObject(IObject* obj);
-
-    const std::vector<std::unique_ptr<IObject>>& getObjectList() const noexcept { return objects_; }
-
     // ============== getters ============================
 
     ISkybox* getSkybox() noexcept { return skybox_; }
@@ -113,8 +101,8 @@ public:
     void setSkybox(Skybox* skybox) override;
     void setCamera(Camera* cam) override;
     Camera* getCurrentCamera() override;
-    Object* createObject() override;
-    void destroy(Object* obj) override;
+    void addObject(Object obj) override;
+    void destroyObject(Object obj) override;
 
 private:
     IEngine& engine_;
@@ -132,14 +120,10 @@ private:
     std::unique_ptr<UniformBuffer> transUbo_;
     std::unique_ptr<UniformBuffer> skinUbo_;
 
-    // ============== object management ==================
-    uint32_t nextId_ = 0;
-
     // the complete list of all objects associated with all registered scenes
-    std::vector<std::unique_ptr<IObject>> objects_;
-
-    // ids of objects which has been destroyed and can be re-used
-    std::deque<uint64_t> freeIds_;
+    // using a vector here dor iteration purposes but not great for erasing
+    // objects - find a more performant alternative?
+    std::vector<Object> objects_;
 };
 
 

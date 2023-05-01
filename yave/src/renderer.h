@@ -44,7 +44,7 @@ public:
     ~IRenderer();
 
     void shutDown(vkapi::VkDriver& driver) noexcept;
-   
+
     void createBackbufferRT() noexcept;
 
     void beginFrameI() noexcept;
