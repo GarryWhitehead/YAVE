@@ -53,6 +53,7 @@ class IRenderableManager;
 class ILightManager;
 class IMappedTexture;
 class ISkybox;
+class IIndirectLight;
 class ICamera;
 
 using SwapchainHandle = vkapi::SwapchainHandle;
@@ -79,12 +80,13 @@ public:
     IRenderable* createRenderableI() noexcept;
     IMappedTexture* createMappedTextureI() noexcept;
     ISkybox* createSkyboxI() noexcept;
+    IIndirectLight* createIndirectLightI() noexcept;
     ICamera* createCameraI() noexcept;
 
     void setCurrentSwapchainI(const SwapchainHandle& handle) noexcept;
     vkapi::Swapchain* getCurrentSwapchain() noexcept;
 
-    void createDefaultQuadBuffers() noexcept;
+    void init() noexcept;
 
     void flush();
 
@@ -120,6 +122,10 @@ public:
     auto getQuadBuffers() noexcept { return std::make_pair(&quadVertexBuffer_, &quadIndexBuffer_); }
     IRenderPrimitive* getQuadPrimitive() noexcept { return &quadPrimitive_; }
 
+    IMappedTexture* getDummyIrradianceMap() noexcept { return dummyIrradianceMap_; }
+    IMappedTexture* getDummySpecularMap() noexcept { return dummySpecularMap_; }
+    IMappedTexture* getDummyBrdfLut() noexcept { return dummyBrdfLut_; }
+
     // ==================== client api ========================
 
     Scene* createScene() override;
@@ -137,6 +143,7 @@ public:
     ObjectManager* getObjectManager() override;
     Texture* createTexture() override;
     Skybox* createSkybox() override;
+    IndirectLight* createIndirectLight() override;
     Camera* createCamera() override;
     void flushCmds() override;
 
@@ -166,6 +173,7 @@ private:
     std::unordered_set<IRenderable*> renderables_;
     std::unordered_set<IMappedTexture*> mappedTextures_;
     std::unordered_set<ISkybox*> skyboxes_;
+    std::unordered_set<IIndirectLight*> indirectLights_;
     std::unordered_set<ICamera*> cameras_;
     std::vector<vkapi::Swapchain*> swapchains_;
 
@@ -176,6 +184,11 @@ private:
     IVertexBuffer quadVertexBuffer_;
     IIndexBuffer quadIndexBuffer_;
     IRenderPrimitive quadPrimitive_;
+
+    // dummy textures
+    IMappedTexture* dummyIrradianceMap_;
+    IMappedTexture* dummySpecularMap_;
+    IMappedTexture* dummyBrdfLut_;
 
     // =========== vk backend ============================
 

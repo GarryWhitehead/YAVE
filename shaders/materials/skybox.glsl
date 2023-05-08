@@ -2,8 +2,8 @@
 
 void materialVertex(vec4 pos)
 {
-    mat4 viewMatrix = mat4(mat3(camera_ubo.view));
-    gl_Position = camera_ubo.project * viewMatrix * vec4(inPos.xyz, 1.0);
+    mat4 viewMatrix = mat4(mat3(scene_ubo.view));
+    gl_Position = scene_ubo.project * viewMatrix * vec4(inPos.xyz, 1.0);
 
     // ensure skybox is renderered on the far plane
     gl_Position.z = gl_Position.w;

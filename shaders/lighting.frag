@@ -2,7 +2,6 @@
 #include "include/pbr.h"
 
 layout(location = 0) in vec2 inUv;
-layout(location = 1) in vec3 inCameraPos;
 
 layout(location = 0) out vec4 outFrag;
 
@@ -15,10 +14,39 @@ layout(constant_id = 2) const int LightTypeDir = 2;
 // viable ights in the storage buffer.
 layout(constant_id = 3) const int BufferEndSignal = 255;
 
+#if defined(IBL_ENABLED)
+vec3 calculateIBL(vec3 N, float NdotV, float roughness, vec3 reflection, vec3 diffuseColour, vec3 specularColour)
+{	
+	vec3 bdrf = (texture(BrdfSampler, vec2(NdotV, 1.0 - roughness))).rgb;
+	
+	// specular contribution
+	const float maxLod = scene_ubo.iblMipLevels;
+	
+	float lod = maxLod * roughness;
+	float lodf = floor(lod);
+	float lodc = ceil(lod);
+	
+	vec3 a = textureLod(SpecularSampler, reflection, lodf).rgb;
+	vec3 b = textureLod(SpecularSampler, reflection, lodc).rgb;
+	vec3 specularLight = mix(a, b, lod - lodf);
+	
+	vec3 specular = specularLight * (specularColour * bdrf.x + bdrf.y);
+	
+	// diffuse contribution
+	vec3 diffuseLight = texture(IrradianceSampler, N).rgb;
+	vec3 diffuse = diffuseLight * diffuseColour;
+	
+	//diffuse *= push.IBLAmbient;
+	//specular *= push.IBLAmbient;
+	
+	return diffuse + specular;
+}
+#endif
+
 void main()
 {
     vec3 inPos = texture(PositionSampler, inUv).rgb;
-    vec3 baseColour = texture(BaseColourSampler, inUv).rgb;
+    vec3 baseColour = pow(texture(BaseColourSampler, inUv).rgb, vec3(2.2));
     float applyLightingFlag = texture(EmissiveSampler, inUv).a;
 
     // if lighting isn't applied to this fragment then
@@ -29,9 +57,9 @@ void main()
         return;
     }
 
-    vec3 V = normalize(inCameraPos.xyz - inPos);
+    vec3 V = normalize(scene_ubo.position.xyz - inPos);
     vec3 N = texture(NormalSampler, inUv).rgb;
-    vec3 R = normalize(-reflect(V, N));
+    vec3 R = reflect(-V, N);
 
     // get pbr information from G-buffer
     float metallic = texture(PbrSampler, inUv).x;
@@ -109,11 +137,41 @@ void main()
         }
     }
 
+#ifdef IBL_ENABLED
+
+    // add the ibl contribution to the fragment
+	float NdotV = max(dot(N, V), 0.0);
+	
+    vec3 F = FresnelRoughness(NdotV, F0, roughness);
+    
+    vec3 kS = F;
+    vec3 kD = 1.0 - kS;
+    kD *= 1.0 - metallic;	  
+    
+    vec3 irradiance = texture(IrradianceSampler, N).rgb;
+    vec3 diffuse = irradiance * baseColour;
+    
+    const float maxLod = scene_ubo.iblMipLevels;
+    vec3 prefilteredColor = textureLod(SpecularSampler, R,  roughness * maxLod).rgb;    
+    vec2 brdf = texture(BrdfSampler, vec2(max(dot(N, V), 0.0), roughness)).rg;
+    vec3 specular = prefilteredColor * (F * brdf.x + brdf.y);
+
+    vec3 ambient = (kD * diffuse + specular) * occlusion;
+    vec3 finalColour = colour + ambient;
+
+#else
     // occlusion
     vec3 finalColour = mix(colour, colour * occlusion, 1.0);
+#endif
 
     // emissive
     finalColour += emissive;
+
+    // TODO: this tonemapping code should be removed once this is
+    // added to the post-processing pipeline.
+    finalColour = finalColour / (finalColour + vec3(1.0));
+    // gamma correct
+    finalColour = pow(finalColour, vec3(1.0/2.2)); 
 
     outFrag = vec4(finalColour, 1.0);
 }

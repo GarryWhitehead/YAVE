@@ -36,7 +36,7 @@ namespace vkapi
 
 void ShaderProgram::addAttributeBlock(const std::string& block)
 {
-    attributeBlocks_.emplace_back(block);
+    attributeBlocks_.push_back(block);
 }
 
 std::string ShaderProgram::build()
@@ -119,6 +119,8 @@ void ShaderProgram::parseShader(const std::vector<std::string>& lines)
     }
 }
 
+void ShaderProgram::clearAttributes() noexcept { attributeBlocks_.clear(); }
+
 ShaderProgramBundle::ShaderProgramBundle()
     : shaderId_(0), pipelineLayout_(std::make_unique<PipelineLayout>())
 {
@@ -179,11 +181,9 @@ void ShaderProgramBundle::buildShader(std::string filename)
 
     // prefer the material shader filename as the hash key. If this isn't set,
     // use the main shader filename.
-    if (!shaderId_)
-    {
-        shaderId_ =
-            util::murmurHash3((const uint32_t*)absolutePath.filename().c_str(), filename.size(), 0);
-    }
+    shaderId_ = !shaderId_
+        ? util::murmurHash3((const uint32_t*)absolutePath.filename().c_str(), filename.size(), 0)
+        : shaderId_;
 
     // determine the shader stage from the filename extension - need to
     // add support for compute and tesselation shaders
@@ -194,10 +194,6 @@ void ShaderProgramBundle::buildShader(std::string filename)
     else if (shaderExt == ".vert")
     {
         shaderType = backend::ShaderStage::Vertex;
-    }
-    else if (shaderExt == ".geom")
-    {
-        shaderType = backend::ShaderStage::Geometry;
     }
     else
     {
@@ -233,6 +229,8 @@ ShaderProgram* ShaderProgramBundle::createProgram(const backend::ShaderStage& ty
 std::vector<vk::PipelineShaderStageCreateInfo> ShaderProgramBundle::getShaderStagesCreateInfo()
 {
     std::vector<vk::PipelineShaderStageCreateInfo> output;
+    output.reserve(6);
+
     for (size_t i = 0; i < static_cast<size_t>(backend::ShaderStage::Count); ++i)
     {
         if (!programs_[i])
@@ -265,6 +263,16 @@ ShaderProgram* ShaderProgramBundle::getProgram(backend::ShaderStage type) noexce
     }
     // If no program has been registered for this stage, create a new one.
     return createProgram(type);
+}
+
+bool ShaderProgramBundle::hasProgram(backend::ShaderStage type) noexcept
+{
+    ShaderProgram* prog = programs_[util::ecast(type)].get();
+    if (prog)
+    {
+        return true;
+    }
+    return false;
 }
 
 void ShaderProgramBundle::setTexture(
@@ -348,6 +356,20 @@ void ShaderProgramBundle::createPushBlock(size_t size, backend::ShaderStage stag
         pushBlock_[stageValue]->stage = Shader::getStageFlags(stage);
     }
     pushBlock_[stageValue]->size = size;
+}
+
+void ShaderProgramBundle::clear() noexcept
+{
+    descBindInfo_.clear();
+    pipelineLayout_->clearDescriptors();
+
+    for (size_t i = 0; i < util::ecast(backend::ShaderStage::Count); ++i)
+    {
+        if (programs_[i])
+        {
+            programs_[i]->clearAttributes();
+        }
+    }
 }
 
 PipelineLayout& ShaderProgramBundle::getPipelineLayout() noexcept { return *pipelineLayout_; }

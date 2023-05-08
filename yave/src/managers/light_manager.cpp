@@ -24,19 +24,22 @@
 
 #include "camera.h"
 #include "engine.h"
+#include "indirect_light.h"
 #include "object_instance.h"
 #include "render_graph/rendergraph_resource.h"
 #include "scene.h"
-#include "utility/assertion.h"
-#include "vulkan-api/driver.h"
-#include "vulkan-api/program_manager.h"
-#include "vulkan-api/sampler_cache.h"
 #include "yave/texture_sampler.h"
+
+#include <utility/assertion.h>
+#include <vulkan-api/driver.h>
+#include <vulkan-api/program_manager.h>
+#include <vulkan-api/sampler_cache.h>
 
 namespace yave
 {
 
-ILightManager::ILightManager(IEngine& engine) : engine_(engine), programBundle_(nullptr)
+ILightManager::ILightManager(IEngine& engine)
+    : engine_(engine), programBundle_(nullptr), currentScene_(nullptr)
 {
     ssbo_ = std::make_unique<StorageBuffer>(
         StorageBuffer::AccessType::ReadOnly,
@@ -45,8 +48,7 @@ ILightManager::ILightManager(IEngine& engine) : engine_(engine), programBundle_(
         "LightSsbo",
         "light_ssbo");
 
-    ssbo_->pushElement(
-        "params", backend::BufferElementType::Struct, sizeof(LightSsbo), nullptr, 0, "LightParams");
+    ssbo_->addElement("params", backend::BufferElementType::Struct, nullptr, 0, "LightParams");
     ssbo_->createGpuBuffer(engine_.driver(), MaxLightCount * sizeof(ILightManager::LightSsbo));
 
     // A sampler for each of the gbuffer render targets.
@@ -75,45 +77,71 @@ ILightManager::ILightManager(IEngine& engine) : engine_(engine), programBundle_(
         vkapi::PipelineCache::SamplerSetValue,
         SamplerEmissiveBinding,
         SamplerSet::SamplerType::e2d);
+    // If ibl isn't enabled these will be filled with dummy texture.
+    // Its easier than making these optional which means that the variant
+    // system needs to take this into account to.
+    samplerSets_.pushSampler(
+        "IrradianceSampler",
+        vkapi::PipelineCache::SamplerSetValue,
+        SamplerIrradianceBinding,
+        SamplerSet::SamplerType::Cube);
+    samplerSets_.pushSampler(
+        "SpecularSampler",
+        vkapi::PipelineCache::SamplerSetValue,
+        SamplerSpecularBinding,
+        SamplerSet::SamplerType::Cube);
+    samplerSets_.pushSampler(
+        "BrdfSampler",
+        vkapi::PipelineCache::SamplerSetValue,
+        SamplerBrdfBinding,
+        SamplerSet::SamplerType::e2d);
 }
 
 ILightManager::~ILightManager() {}
 
-void ILightManager::prepareI()
+void ILightManager::prepare(IScene* scene)
 {
-    // if we have already initialised, then let's not do it again.
-    if (programBundle_)
+    if (scene == currentScene_)
     {
+        ASSERT_LOG(programBundle_);
         return;
     }
+    currentScene_ = scene;
+
     auto& driver = engine_.driver();
     auto& manager = driver.progManager();
 
-    programBundle_ = manager.createProgramBundle();
-    programBundle_->buildShaders("lighting.vert", "lighting.frag");
+    // if we have already initialised but preparing for a different scene, let's not initialise
+    // again stuff that is common for all scenes
+    if (!programBundle_)
+    {
+        programBundle_ = manager.createProgramBundle();
+        programBundle_->buildShaders("lighting.vert", "lighting.frag");
 
-    IScene* scene = engine_.getCurrentScene();
+        // The render primitive - simple version which only states the vertex
+        // count for the full-screen quad. The vertex count is three as we
+        // draw a triangle which covers the screen with clipping.
+        programBundle_->addRenderPrimitive(3);
+    }
+
+    // clear the shader program data
+    programBundle_->clear();
+
     ICamera* camera = scene->getCurrentCameraI();
-
-    // The render primitive - simple version which only states the vertex
-    // count for the full-screen quad. The vertex count is three as we
-    // draw a triangle which covers the screen with clipping.
-    programBundle_->addRenderPrimitive(3);
 
     programBundle_->rasterState_.cullMode = vk::CullModeFlagBits::eFront;
     programBundle_->rasterState_.frontFace = vk::FrontFace::eCounterClockwise;
 
     // The camera uniform buffer required by the vertex shader.
     auto* vProgram = programBundle_->getProgram(backend::ShaderStage::Vertex);
-    vProgram->addAttributeBlock(camera->getUbo().createShaderStr());
-
-    // Add the samplers and push block code for the fragment shader.
     auto* fProgram = programBundle_->getProgram(backend::ShaderStage::Fragment);
+
     fProgram->addAttributeBlock(samplerSets_.createShaderStr());
     fProgram->addAttributeBlock(ssbo_->createShaderStr());
+    fProgram->addAttributeBlock(scene->getSceneUbo().get().createShaderStr());
 
     // Camera ubo
-    auto camUbo = camera->getUbo().getBufferParams(driver);
+    auto camUbo = scene->getSceneUbo().get().getBufferParams(driver);
     programBundle_->addDescriptorBinding(
         static_cast<uint32_t>(camUbo.size),
         camUbo.binding,
@@ -223,8 +251,13 @@ void ILightManager::update(const ICamera& camera)
         {}, backend::ShaderStage::Vertex, vk::PrimitiveTopology::eTriangleList, programBundle_);
     vProgram->addShader(vertexShader);
 
+    vkapi::VDefinitions defs = createShaderVariants();
     vkapi::Shader* fragShader = manager.findShaderVariantOrCreate(
-        {}, backend::ShaderStage::Fragment, vk::PrimitiveTopology::eTriangleList, programBundle_);
+        defs,
+        backend::ShaderStage::Fragment,
+        vk::PrimitiveTopology::eTriangleList,
+        programBundle_,
+        variants_.getUint64());
     fProgram->addShader(fragShader);
 }
 
@@ -275,6 +308,25 @@ void ILightManager::updateSsbo(std::vector<LightInstance*>& lights)
     ssbo_->mapGpuBuffer(driver, ssboBuffer_, mappedSize);
 }
 
+void ILightManager::setVariant(Variants variant) { variants_.setBit(variant); }
+
+void ILightManager::removeVariant(Variants variant) { variants_.resetBit(variant); }
+
+vkapi::VDefinitions ILightManager::createShaderVariants()
+{
+    vkapi::VDefinitions defs;
+    if (variants_.testBit(Variants::IblContribution))
+    {
+        defs.emplace("IBL_ENABLED", 1);
+    }
+    return defs;
+}
+
+void ILightManager::enableAmbientLight() noexcept
+{
+    setVariant(ILightManager::Variants::IblContribution);
+}
+
 LightInstance* ILightManager::getLightInstance(Object& obj)
 {
     ASSERT_FATAL(
@@ -323,7 +375,7 @@ void ILightManager::setFovI(float fov, Object& obj)
 void ILightManager::destroy(const Object& obj) { removeObject(obj); }
 
 rg::RenderGraphHandle ILightManager::render(
-    rg::RenderGraph& rGraph, uint32_t width, uint32_t height, vk::Format depthFormat)
+    rg::RenderGraph& rGraph, IScene& scene, uint32_t width, uint32_t height, vk::Format depthFormat)
 {
     struct LightPassData
     {
@@ -380,7 +432,8 @@ rg::RenderGraphHandle ILightManager::render(
             desc.dsLoadClearFlags = {backend::LoadClearFlags::Clear};
             data.rt = builder.createRenderTarget("lightRT", desc);
         },
-        [=](::vkapi::VkDriver& driver,
+        [=, &scene](
+            ::vkapi::VkDriver& driver,
             const LightPassData& data,
             const rg::RenderGraphResource& resources) {
             auto& cmds = driver.getCommands();
@@ -392,10 +445,10 @@ rg::RenderGraphHandle ILightManager::render(
             // use the gbuffer render targets as the samplers in this lighting
             // pass
             TextureSampler samplerParams(
-                backend::SamplerFilter::Linear,
-                backend::SamplerFilter::Linear,
+                backend::SamplerFilter::Nearest,
+                backend::SamplerFilter::Nearest,
                 backend::SamplerAddressMode::ClampToEdge,
-                8.0f);
+                1.0f);
             vk::Sampler sampler =
                 engine_.driver().getSamplerCache().createSampler(samplerParams.get());
             programBundle_->setTexture(
@@ -409,10 +462,40 @@ rg::RenderGraphHandle ILightManager::render(
             programBundle_->setTexture(
                 resources.getTextureHandle(data.emissive), SamplerEmissiveBinding, sampler);
 
+            TextureSampler iblSamplerParams(
+                backend::SamplerFilter::Linear,
+                backend::SamplerFilter::Linear,
+                backend::SamplerAddressMode::ClampToEdge,
+                16.0f);
+            vk::Sampler iblSampler =
+                engine_.driver().getSamplerCache().createSampler(iblSamplerParams.get());
+
+            IIndirectLight* il = scene.getIndirectLight();
+            if (il)
+            {
+                programBundle_->setTexture(
+                    il->getIrradianceMapHandle(), SamplerIrradianceBinding, iblSampler);
+                programBundle_->setTexture(
+                    il->getSpecularMapHandle(), SamplerSpecularBinding, iblSampler);
+                programBundle_->setTexture(il->getBrdfLutHandle(), SamplerBrdfBinding, iblSampler);
+            }
+            else
+            {
+                programBundle_->setTexture(
+                    engine_.getDummyIrradianceMap()->getBackendHandle(),
+                    SamplerIrradianceBinding,
+                    sampler);
+                programBundle_->setTexture(
+                    engine_.getDummySpecularMap()->getBackendHandle(),
+                    SamplerSpecularBinding,
+                    sampler);
+                programBundle_->setTexture(
+                    engine_.getDummyBrdfLut()->getBackendHandle(), SamplerBrdfBinding, sampler);
+            }
+
             driver.draw(cmdBuffer, *programBundle_);
 
             driver.endRenderpass(cmdBuffer);
-
             cmds.flush();
         });
 
@@ -428,8 +511,6 @@ void ILightManager::create(const CreateInfo& ci, Type type, Object& obj)
 {
     createLight(ci, obj, type);
 }
-
-void ILightManager::prepare() { prepareI(); }
 
 void ILightManager::setIntensity(float intensity, Object& obj) { setIntensityI(intensity, obj); }
 

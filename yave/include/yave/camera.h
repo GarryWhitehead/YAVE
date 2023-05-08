@@ -43,7 +43,7 @@ public:
         float far,
         ProjectionType = ProjectionType::Perspective) = 0;
 
-    virtual void setViewMatrix(mathfu::mat4 lookAt) = 0;
+    virtual void setViewMatrix(const mathfu::mat4& lookAt) = 0;
 
     virtual void setFov(float fovy) = 0;
 

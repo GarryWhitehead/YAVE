@@ -59,24 +59,20 @@ void Frustum::checkIntersection(
     size_t count,
     uint8_t* __restrict results) noexcept
 {
-    for (size_t i = 0; i < 6; ++i)
+    for (size_t i = 0; i < count; ++i)
     {
-        for (size_t i = 0; i < count; ++i)
-        {
-            bool visible = true;
+        bool visible = true;
 
 #pragma unroll
-            for (size_t j = 0; j < 6; ++j)
-            {
-                const float dot = planes_[j].x * centers[i].x -
-                    std::abs(planes_[j].x) * extents[i].x + planes_[j].y * centers[i].y -
-                    std::abs(planes_[j].y) * extents[i].y + planes_[j].z * centers[i].z -
-                    std::abs(planes_[j].z) * extents[i].z + planes_[j].w;
+        for (size_t j = 0; j < 6; ++j)
+        {
+            const float dot = planes_[j].x * centers[i].x - std::abs(planes_[j].x) * extents[i].x +
+                planes_[j].y * centers[i].y - std::abs(planes_[j].y) * extents[i].y +
+                planes_[j].z * centers[i].z - std::abs(planes_[j].z) * extents[i].z + planes_[j].w;
 
-                visible &= dot <= 0.0f;
-            }
-            results[i] = static_cast<uint8_t>(visible);
+            visible &= dot <= 0.0f;
         }
+        results[i] = static_cast<uint8_t>(visible);
     }
 }
 

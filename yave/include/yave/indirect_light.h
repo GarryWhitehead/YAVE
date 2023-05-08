@@ -19,49 +19,24 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
 #pragma once
 
 #include <cstdint>
-#include <string>
-#include <vector>
 
 namespace yave
 {
+class Texture;
 
-class SamplerSet
+class IndirectLight
 {
 public:
-    enum class SamplerType
-    {
-        e2d,
-        e3d,
-        Cube
-    };
+    ~IndirectLight();
 
-    struct SamplerInfo
-    {
-        std::string name;
-        // the set for this sampler
-        uint8_t set;
-        // binding of the sampler;
-        uint8_t binding;
-        // type of the sampler
-        SamplerType type;
-    };
+    virtual void setIrrandianceMap(Texture* irradianceMap) noexcept = 0;
 
-    SamplerSet() = default;
+    virtual void setSpecularMap(Texture* specularMap, Texture* brdfLut) = 0;
 
-    static std::string samplerTypeToStr(SamplerSet::SamplerType type);
-
-    void
-    pushSampler(const std::string& name, uint8_t set, uint8_t binding, SamplerType type) noexcept;
-
-    std::string createShaderStr() noexcept;
-
-    bool empty() const noexcept { return samplers_.empty(); }
-
-private:
-    std::vector<SamplerInfo> samplers_;
+protected:
+    IndirectLight();
 };
 } // namespace yave

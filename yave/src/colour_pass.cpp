@@ -63,7 +63,7 @@ void ColourPass::render(
             desc.format = vk::Format::eR8G8B8A8Unorm;
             data.colour = builder.createResource("colour", desc);
 
-            desc.format = vk::Format::eR8G8B8A8Unorm;
+            desc.format = vk::Format::eR16G16B16A16Sfloat;
             data.normal = builder.createResource("normal", desc);
 
             desc.format = vk::Format::eR16G16Sfloat;
@@ -108,7 +108,7 @@ void ColourPass::render(
             data.rt = builder.createRenderTarget("deferredTarget", passDesc);
         },
         [=, &scene, &engine](
-            ::vkapi::VkDriver& driver,
+            vkapi::VkDriver& driver,
             const ColourPassData& data,
             const rg::RenderGraphResource& resources) {
             auto& cmds = driver.getCommands();

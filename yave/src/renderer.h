@@ -51,10 +51,10 @@ public:
 
     void endFrameI() noexcept;
 
-    void renderI(vkapi::VkDriver& driver, IScene& scene);
+    void renderI(vkapi::VkDriver& driver, IScene* scene);
 
     // draws into a single render target
-    void renderSingleSceneI(vkapi::VkDriver& driver, IScene& scene, RenderTarget& rTarget);
+    void renderSingleSceneI(vkapi::VkDriver& driver, IScene* scene, RenderTarget& rTarget);
 
     // ================ client api =====================
 

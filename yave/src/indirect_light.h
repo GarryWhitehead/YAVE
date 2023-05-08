@@ -21,47 +21,37 @@
  */
 
 #pragma once
-
-#include <cstdint>
-#include <string>
-#include <vector>
+#include "mapped_texture.h"
+#include "yave/indirect_light.h"
 
 namespace yave
 {
-
-class SamplerSet
+class IIndirectLight : public IndirectLight
 {
 public:
-    enum class SamplerType
-    {
-        e2d,
-        e3d,
-        Cube
-    };
+    IIndirectLight();
+    ~IIndirectLight();
 
-    struct SamplerInfo
-    {
-        std::string name;
-        // the set for this sampler
-        uint8_t set;
-        // binding of the sampler;
-        uint8_t binding;
-        // type of the sampler
-        SamplerType type;
-    };
+    void setIrradianceMapI(IMappedTexture* cubeMap);
+    void setSpecularMapI(IMappedTexture* specCubeMap, IMappedTexture* brdfLut);
 
-    SamplerSet() = default;
+    vkapi::TextureHandle getIrradianceMapHandle() noexcept;
+    vkapi::TextureHandle getSpecularMapHandle() noexcept;
+    vkapi::TextureHandle getBrdfLutHandle() noexcept;
 
-    static std::string samplerTypeToStr(SamplerSet::SamplerType type);
+    uint32_t getMipLevels() const noexcept { return mipLevels_; }
 
-    void
-    pushSampler(const std::string& name, uint8_t set, uint8_t binding, SamplerType type) noexcept;
+    // ====================== client api ===============================
 
-    std::string createShaderStr() noexcept;
+    void setIrrandianceMap(Texture* irradianceMap) noexcept override;
 
-    bool empty() const noexcept { return samplers_.empty(); }
+    void setSpecularMap(Texture* specularMap, Texture* brdfLut) override;
 
 private:
-    std::vector<SamplerInfo> samplers_;
+    IMappedTexture* irradianceMap_;
+    IMappedTexture* specularMap_;
+    IMappedTexture* brdfLut_;
+
+    uint32_t mipLevels_;
 };
 } // namespace yave

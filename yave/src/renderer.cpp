@@ -103,13 +103,11 @@ void IRenderer::endFrameI() noexcept
     engine_->driver().endFrame(*swapchain);
 }
 
-void IRenderer::renderSingleSceneI(vkapi::VkDriver& driver, IScene& scene, RenderTarget& rTarget)
+void IRenderer::renderSingleSceneI(vkapi::VkDriver& driver, IScene* scene, RenderTarget& rTarget)
 {
-    ILightManager* lm = engine_->getLightManagerI();
-
     auto& cmds = driver.getCommands();
     auto& cmdBuffer = cmds.getCmdBuffer().cmdBuffer;
-    auto& queue = scene.getRenderQueue();
+    auto& queue = scene->getRenderQueue();
 
     vkapi::RenderPassData data;
     data.width = rTarget.getWidth();
@@ -124,15 +122,14 @@ void IRenderer::renderSingleSceneI(vkapi::VkDriver& driver, IScene& scene, Rende
         rTarget.getStoreFlags(),
         sizeof(backend::StoreClearFlags) * vkapi::RenderTarget::MaxAttachmentCount);
 
-    lm->prepare();
-    scene.update();
+    scene->update();
 
     driver.beginRenderpass(cmdBuffer, data, rTarget.getHandle());
-    queue.render(*engine_, scene, cmdBuffer, RenderQueue::Type::Colour);
+    queue.render(*engine_, *scene, cmdBuffer, RenderQueue::Type::Colour);
     driver.endRenderpass(cmdBuffer);
 }
 
-void IRenderer::renderI(vkapi::VkDriver& driver, IScene& scene)
+void IRenderer::renderI(vkapi::VkDriver& driver, IScene* scene)
 {
     rGraph_.reset();
 
@@ -141,7 +138,7 @@ void IRenderer::renderI(vkapi::VkDriver& driver, IScene& scene)
     uint32_t height = 1080;
 
     // update the renderable objects and lights
-    scene.update();
+    scene->update();
 
     // resource input which will be moved to the backbuffer RT
     rg::RenderGraphHandle input;
@@ -169,10 +166,10 @@ void IRenderer::renderI(vkapi::VkDriver& driver, IScene& scene)
 
     // fill the gbuffers - this can't be the final render target due
     // to the gBuffers requiring resolviong down to a single render target
-    ColourPass::render(*engine_, scene, rGraph_, width, height, depthFormat);
+    ColourPass::render(*engine_, *scene, rGraph_, width, height, depthFormat);
 
     ILightManager* lightManager = engine_->getLightManagerI();
-    input = lightManager->render(rGraph_, desc.width, desc.height, depthFormat);
+    input = lightManager->render(rGraph_, *scene, desc.width, desc.height, depthFormat);
 
     rGraph_.moveResource(input, backbufferRT);
     rGraph_.addPresentPass(backbufferRT);
@@ -204,13 +201,13 @@ void IRenderer::endFrame() { endFrameI(); }
 
 void IRenderer::render(Engine* engine, Scene* scene)
 {
-    renderI(reinterpret_cast<IEngine*>(engine)->driver(), *(reinterpret_cast<IScene*>(scene)));
+    renderI(reinterpret_cast<IEngine*>(engine)->driver(), reinterpret_cast<IScene*>(scene));
 };
 
 void IRenderer::renderSingleScene(Engine* engine, Scene* scene, RenderTarget& rTarget)
 {
     renderSingleSceneI(
-        reinterpret_cast<IEngine*>(engine)->driver(), *(reinterpret_cast<IScene*>(scene)), rTarget);
+        reinterpret_cast<IEngine*>(engine)->driver(), reinterpret_cast<IScene*>(scene), rTarget);
 }
 
 void RenderTarget::setColourTexture(Texture* tex, uint8_t attachIdx)

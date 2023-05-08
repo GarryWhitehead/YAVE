@@ -134,8 +134,7 @@ public:
         size_t size,
         void* value)
     {
-        pushBlock_[util::ecast(stage)]->pushElement(
-            elementName, type, static_cast<uint32_t>(size), (void*)value);
+        pushBlock_[util::ecast(stage)]->addElement(elementName, type, (void*)value);
     }
 
     void setSamplerParamI(const std::string& name, uint8_t binding, SamplerSet::SamplerType type)

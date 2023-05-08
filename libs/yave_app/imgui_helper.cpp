@@ -159,11 +159,14 @@ void ImGuiHelper::updateDrawCommands(ImDrawData* drawData, const ImGuiIO& io)
         primCount += drawData->CmdLists[idx]->CmdBuffer.size();
     }
     size_t currentSize = renderParams_.size();
-    renderParams_.resize(primCount);
-    for (size_t idx = currentSize; idx < primCount; ++idx)
+    if (currentSize != primCount)
     {
-        renderParams_[idx].material = rendManager->createMaterial();
-        renderParams_[idx].prim = engine_->createRenderPrimitive();
+        renderParams_.resize(primCount);
+        for (size_t idx = currentSize; idx < primCount; ++idx)
+        {
+            renderParams_[idx].material = rendManager->createMaterial();
+            renderParams_[idx].prim = engine_->createRenderPrimitive();
+        }
     }
 
     renderable_->setPrimitiveCount(primCount);

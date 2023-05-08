@@ -25,11 +25,12 @@
 #include "aabox.h"
 #include "managers/light_manager.h"
 #include "render_queue.h"
+#include "scene_ubo.h"
 #include "skybox.h"
-#include "vulkan-api/buffer.h"
 #include "yave/scene.h"
 
 #include <mathfu/glsl_mappings.h>
+#include <vulkan-api/buffer.h>
 
 #include <deque>
 #include <memory>
@@ -82,23 +83,26 @@ public:
         const size_t staticModelCount,
         const size_t skinnedModelCount);
 
-    void updateCameraBuffer();
-
     void setSkyboxI(ISkybox* skybox) noexcept;
+
+    void setIndirectLightI(IIndirectLight* il);
 
     void setCameraI(ICamera* cam) noexcept;
 
     // ============== getters ============================
 
     ISkybox* getSkybox() noexcept { return skybox_; }
+    IIndirectLight* getIndirectLight() noexcept { return indirectLight_; }
     ICamera* getCurrentCameraI() noexcept { return camera_; }
     RenderQueue& getRenderQueue() noexcept { return renderQueue_; }
     UniformBuffer& getTransUbo() noexcept { return *transUbo_; }
     UniformBuffer& getSkinUbo() noexcept { return *skinUbo_; }
+    SceneUbo& getSceneUbo() noexcept { return *sceneUbo_; }
 
     // ================== client api =======================
 
     void setSkybox(Skybox* skybox) override;
+    void setIndirectLight(IndirectLight* il) override;
     void setCamera(Camera* cam) override;
     Camera* getCurrentCamera() override;
     void addObject(Object obj) override;
@@ -113,12 +117,16 @@ private:
     // current skybox
     ISkybox* skybox_;
 
+    IIndirectLight* indirectLight_;
+
     std::vector<VisibleCandidate> candRenderableObjs_;
 
     RenderQueue renderQueue_;
 
     std::unique_ptr<UniformBuffer> transUbo_;
     std::unique_ptr<UniformBuffer> skinUbo_;
+
+    std::unique_ptr<SceneUbo> sceneUbo_;
 
     // the complete list of all objects associated with all registered scenes
     // using a vector here dor iteration purposes but not great for erasing

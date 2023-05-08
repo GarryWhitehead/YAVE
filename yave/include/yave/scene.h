@@ -28,6 +28,7 @@ namespace yave
 class Skybox;
 class Camera;
 class Object;
+class IndirectLight;
 
 class Scene
 {
@@ -35,6 +36,8 @@ public:
     virtual ~Scene();
 
     virtual void setSkybox(Skybox* skybox) = 0;
+
+    virtual void setIndirectLight(IndirectLight* il) = 0;
 
     virtual void setCamera(Camera* camera) = 0;
 

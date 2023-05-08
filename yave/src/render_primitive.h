@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include "aabox.h"
+
 #include <backend/convert_to_vk.h>
 #include <backend/enums.h>
 #include <model_parser/gltf/model_mesh.h>
@@ -55,12 +57,6 @@ public:
         size_t vertexCount = 0;
     };
 
-    struct Dimensions
-    {
-        mathfu::vec3 min {-1.0f};
-        mathfu::vec3 max {1.0f};
-    };
-
     IRenderPrimitive();
     ~IRenderPrimitive();
 
@@ -81,7 +77,7 @@ public:
 
     vk::PrimitiveTopology getTopology() const noexcept { return topology_; }
     bool getPrimRestartState() const noexcept { return primitiveRestart_; }
-    const Dimensions& getDimensions() const noexcept { return dims_; }
+    const AABBox& getDimensions() const noexcept { return box_; }
     const MeshDrawData& getDrawData() const noexcept { return drawData_; }
     util::BitSetEnum<Variants>& getVariantBits() noexcept { return variants_; }
 
@@ -104,7 +100,7 @@ private:
     bool primitiveRestart_;
 
     // The min and max extents of the primitive
-    Dimensions dims_;
+    AABBox box_;
 
     util::BitSetEnum<Variants> variants_;
 

@@ -43,6 +43,7 @@ class TransformManager;
 class LightManager;
 class Texture;
 class Skybox;
+class IndirectLight;
 class Camera;
 class Window;
 
@@ -83,6 +84,8 @@ public:
     virtual Texture* createTexture() = 0;
 
     virtual Skybox* createSkybox() = 0;
+
+    virtual IndirectLight* createIndirectLight() = 0;
 
     virtual Camera* createCamera() = 0;
 
