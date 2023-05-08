@@ -45,24 +45,28 @@
 namespace yave
 {
 
-IScene::IScene(IEngine& engine) : engine_(engine), camera_(nullptr), skybox_(nullptr)
+IScene::IScene(IEngine& engine)
+    : engine_(engine),
+      camera_(nullptr),
+      skybox_(nullptr),
+      indirectLight_(nullptr),
+      sceneUbo_(std::make_unique<SceneUbo>(engine_.driver()))
 {
     vkapi::VkDriver& driver = engine_.driver();
 
     transUbo_ = std::make_unique<UniformBuffer>(
         vkapi::PipelineCache::UboDynamicSetValue, 0, "TransformUbo", "mesh_ubo");
-    transUbo_->pushElement("modelMatrix", backend::BufferElementType::Mat4, sizeof(mathfu::mat4));
+    transUbo_->addElement("modelMatrix", backend::BufferElementType::Mat4);
     transUbo_->createGpuBuffer(driver, ModelBufferInitialSize * transUbo_->size());
 
     skinUbo_ = std::make_unique<UniformBuffer>(
         vkapi::PipelineCache::UboDynamicSetValue, 1, "skinUbo", "skin_ubo");
-    skinUbo_->pushElement(
+    skinUbo_->addElement(
         "jointMatrices",
         backend::BufferElementType::Mat4,
-        sizeof(mathfu::mat4),
         nullptr,
         ITransformManager::MaxBoneCount);
-    skinUbo_->pushElement("jointCount", backend::BufferElementType::Float, sizeof(float));
+    skinUbo_->addElement("jointCount", backend::BufferElementType::Float);
     skinUbo_->createGpuBuffer(driver, ModelBufferInitialSize * skinUbo_->size());
 }
 
@@ -76,20 +80,26 @@ void IScene::setSkyboxI(ISkybox* skybox) noexcept
     skybox_ = skybox;
 }
 
+void IScene::setIndirectLightI(IIndirectLight* il)
+{
+    indirectLight_ = il;
+
+    ILightManager* lm = engine_.getLightManagerI();
+    lm->enableAmbientLight();
+    // TODO: also deal with the indirect light being removed (set to null)
+}
+
 void IScene::setCameraI(ICamera* cam) noexcept
 {
     ASSERT_FATAL(cam, "The camera is nullptr.");
     camera_ = cam;
-
-    auto& driver = engine_.driver();
-    camera_->createUbo(driver);
 }
 
 bool IScene::update()
 {
-    ILightManager* lightManager = engine_.getLightManagerI();
-    IRenderableManager* rendManager = engine_.getRenderableManagerI();
-    IObjectManager* objManager = engine_.getObjManagerI();
+    ILightManager* lm = engine_.getLightManagerI();
+    IRenderableManager* rm = engine_.getRenderableManagerI();
+    IObjectManager* om = engine_.getObjManagerI();
 
     if (skybox_)
     {
@@ -106,7 +116,8 @@ bool IScene::update()
     frustum.projection(camera_->projMatrix() * camera_->viewMatrix());
 
     // Update the lights since we have not updated the camera for this frame.
-    lightManager->update(*camera_);
+    lm->prepare(this);
+    lm->update(*camera_);
 
     // At the moment we iterate through the list of objects
     // and find any that have a renderable or light component. If they are
@@ -119,22 +130,22 @@ bool IScene::update()
 
     for (Object& object : objects_)
     {
-        if (!objManager->isAlive(object))
+        if (!om->isAlive(object))
         {
             continue;
         }
 
-        ObjectHandle rHandle = rendManager->getObjIndex(object);
+        ObjectHandle rHandle = rm->getObjIndex(object);
         if (rHandle.valid())
         {
             VisibleCandidate candidate = {buildRendCandidate(object, worldTransform)};
             candRenderableObjs_.emplace_back(candidate);
         }
 
-        ObjectHandle lHandle = lightManager->getObjIndex(object);
+        ObjectHandle lHandle = lm->getObjIndex(object);
         if (lHandle.valid())
         {
-            candLightObjs.emplace_back(lightManager->getLightInstance(object));
+            candLightObjs.emplace_back(lm->getLightInstance(object));
         }
     }
 
@@ -194,13 +205,14 @@ bool IScene::update()
     renderQueue_.pushRenderables(queueRend, RenderQueue::Type::Colour);
 
     // ================== update ubos =================================
-    // camera buffer is updated every frame as we expect this to change a lot
-    updateCameraBuffer();
+    sceneUbo_->updateCamera(*camera_);
+    sceneUbo_->updateIbl(indirectLight_);
+    sceneUbo_->upload(engine_);
 
     // we also update the transforms every frame though could have a dirty flag
     updateTransformBuffer(candRenderableObjs_, staticModelCount, skinnedModelCount);
 
-    lightManager->updateSsbo(candLightObjs);
+    lm->updateSsbo(candLightObjs);
 
     return true;
 }
@@ -269,14 +281,6 @@ void IScene::getVisibleLights(Frustum& frustum, std::vector<LightInstance*>& lig
                 }
             }
         });
-}
-
-void IScene::updateCameraBuffer()
-{
-    // update everything in the buffer
-    void* uboData = camera_->updateUbo();
-    ASSERT_LOG(uboData);
-    camera_->getUbo().mapGpuBuffer(engine_.driver(), uboData);
 }
 
 void IScene::updateTransformBuffer(
@@ -363,6 +367,11 @@ Scene::Scene() {}
 Scene::~Scene() {}
 
 void IScene::setSkybox(Skybox* skybox) { setSkyboxI(reinterpret_cast<ISkybox*>(skybox)); }
+
+void IScene::setIndirectLight(IndirectLight* il)
+{
+    setIndirectLightI(reinterpret_cast<IIndirectLight*>(il));
+}
 
 void IScene::setCamera(Camera* cam) { setCameraI(reinterpret_cast<ICamera*>(cam)); }
 

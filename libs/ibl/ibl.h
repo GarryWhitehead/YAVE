@@ -39,6 +39,10 @@ public:
 
     Texture* getCubeMap() noexcept { return cubeMap_; }
 
+    Texture* getIrradianceMap() noexcept { return irradianceMap_; }
+    Texture* getSpecularMap() noexcept { return specularMap_; }
+    Texture* getBrdfLut() noexcept { return brdfLut_; }
+
 private:
     Engine* engine_;
 

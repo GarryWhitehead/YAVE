@@ -230,7 +230,6 @@ int main()
     yave::Object lightObj2 = objManager->createObject();
     scene->addObject(lightObj2);
     lightManager->create(ci, yave::LightManager::Type::Spot, lightObj2);
-    lightManager->prepare();
 
     app.run(renderer, scene);
 

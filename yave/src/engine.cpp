@@ -23,6 +23,7 @@
 #include "engine.h"
 
 #include "camera.h"
+#include "indirect_light.h"
 #include "managers/component_manager.h"
 #include "managers/light_manager.h"
 #include "managers/renderable_manager.h"
@@ -78,7 +79,7 @@ IEngine* IEngine::create(Window* win)
     // (requires the device to be init)
     engine->lightManager_ = std::make_unique<ILightManager>(*engine);
 
-    engine->createDefaultQuadBuffers();
+    engine->init();
 
     return engine;
 }
@@ -94,7 +95,7 @@ void IEngine::destroy(IEngine* engine)
 
 void IEngine::shutdown() { driver_->shutdown(); }
 
-void IEngine::createDefaultQuadBuffers() noexcept
+void IEngine::init() noexcept
 {
     // clang-format off
     float vertices[] = {
@@ -120,6 +121,40 @@ void IEngine::createDefaultQuadBuffers() noexcept
         backend::IndexBufferType::Uint32);
 
     quadPrimitive_.addMeshDrawData(indices.size(), 0, 0);
+
+    // initialise duumy ibl textures
+    dummyIrradianceMap_ = createMappedTextureI();
+    dummySpecularMap_ = createMappedTextureI();
+    dummyBrdfLut_ = createMappedTextureI();
+
+    uint32_t zeroBuffer[6] = {0};
+    dummyIrradianceMap_->setTextureI(
+        zeroBuffer,
+        sizeof(zeroBuffer),
+        1,
+        1,
+        1,
+        6,
+        Texture::TextureFormat::RGBA8,
+        backend::ImageUsage::Sampled);
+    dummySpecularMap_->setTextureI(
+        zeroBuffer,
+        sizeof(zeroBuffer),
+        1,
+        1,
+        1,
+        6,
+        Texture::TextureFormat::RGBA8,
+        backend::ImageUsage::Sampled);
+    dummyBrdfLut_->setTextureI(
+        zeroBuffer,
+        sizeof(zeroBuffer),
+        1,
+        1,
+        1,
+        1,
+        Texture::TextureFormat::RGBA8,
+        backend::ImageUsage::Sampled);
 }
 
 void IEngine::setCurrentSwapchainI(const SwapchainHandle& handle) noexcept
@@ -162,6 +197,8 @@ ISkybox* IEngine::createSkyboxI() noexcept
 {
     return createResource(skyboxes_, *this, *currentScene_);
 }
+
+IIndirectLight* IEngine::createIndirectLightI() noexcept { return createResource(indirectLights_); }
 
 ICamera* IEngine::createCameraI() noexcept { return createResource(cameras_); }
 
@@ -269,6 +306,11 @@ ObjectManager* IEngine::getObjectManager()
 Texture* IEngine::createTexture() { return reinterpret_cast<Texture*>(createMappedTextureI()); }
 
 Skybox* IEngine::createSkybox() { return reinterpret_cast<Skybox*>(createSkyboxI()); }
+
+IndirectLight* IEngine::createIndirectLight()
+{
+    return reinterpret_cast<IndirectLight*>(createIndirectLightI());
+}
 
 Camera* IEngine::createCamera() { return reinterpret_cast<Camera*>(createCameraI()); }
 

@@ -45,6 +45,45 @@ BufferBase::~BufferBase()
         }
     }
 }
+auto elementTypeSizeof(backend::BufferElementType type)
+{
+    int output;
+    switch (type)
+    {
+        case backend::BufferElementType::Int:
+            output = sizeof(int);
+            break;
+        case backend::BufferElementType::Int2:
+            output = sizeof(int) * 2;
+            break;
+        case backend::BufferElementType::Int3:
+            output = sizeof(int) * 3;
+            break;
+        case backend::BufferElementType::Float:
+            output = sizeof(float);
+            break;
+        case backend::BufferElementType::Float2:
+            output = sizeof(float) * 2;
+            break;
+        case backend::BufferElementType::Float3:
+            output = sizeof(float) * 3;
+            break;
+        case backend::BufferElementType::Float4:
+            output = sizeof(float) * 4;
+            break;
+        case backend::BufferElementType::Mat3:
+            output = sizeof(float) * 3 * 3;
+            break;
+        case backend::BufferElementType::Mat4:
+            output = sizeof(float) * 4 * 4;
+            break;
+        case backend::BufferElementType::Struct:
+            break;
+        default:
+            SPDLOG_CRITICAL("Unrecognised element type.");
+    }
+    return output;
+}
 
 auto elementTypeToStrAndSize(const BufferBase::Info& info)
 {
@@ -140,15 +179,14 @@ void* BufferBase::getBlockData() noexcept
     return (void*)bufferData_;
 }
 
-void BufferBase::pushElement(
+void BufferBase::addElement(
     const std::string& name,
     backend::BufferElementType type,
-    uint32_t size,
     void* value,
     uint32_t arraySize,
     const std::string& structName) noexcept
 {
-    uint32_t byteSize = size * arraySize;
+    uint32_t byteSize = elementTypeSizeof(type) * arraySize;
 
     // if an element of the same name is already associated with the
     // buffer, as long as the value type is identical, this is not considered
@@ -194,11 +232,10 @@ void BufferBase::updateElement(const std::string& name, void* data) noexcept
         iter != elements_.end(), "Uniform buffer name %s not found in elements list", name.c_str());
 
     size_t size = iter->size;
-    if (iter->value)
+    if (!iter->value)
     {
-        delete reinterpret_cast<uint8_t*>(iter->value);
+        iter->value = new uint8_t[size];
     }
-    iter->value = new uint8_t[size];
     memcpy(iter->value, data, size);
 }
 

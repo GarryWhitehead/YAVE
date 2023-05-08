@@ -64,6 +64,9 @@ public:
 
     void parseShader(const std::vector<std::string>& lines);
 
+    // doesn't clear the main shader code block
+    void clearAttributes() noexcept;
+
     friend class VkDriver;
 
 private:
@@ -72,7 +75,7 @@ private:
     std::string mainStageBlock_;
     // the attribute descriptors for the main code block
     std::string attributeDescriptorBlock_;
-    // addition code which is specific to the materal
+    // addition code which is specific to the material
     std::string materialShaderBlock_;
     // additional attributes (ubos, ssbos, samplers)
     std::vector<std::string> attributeBlocks_;
@@ -184,9 +187,12 @@ public:
     template <typename... ShaderArgs>
     void buildShaders(const std::string& filename, const ShaderArgs&... shaderArgs);
 
+    void clear() noexcept;
+
     // =================== getters ============================
 
     ShaderProgram* getProgram(backend::ShaderStage type) noexcept;
+    bool hasProgram(backend::ShaderStage type) noexcept;
 
     PipelineLayout& getPipelineLayout() noexcept;
 

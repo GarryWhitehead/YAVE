@@ -26,6 +26,7 @@
 #include "yave/light_manager.h"
 #include "yave/material.h"
 #include "yave/object.h"
+#include "yave/transform_manager.h"
 #include "yave_app/app.h"
 
 #include <model_parser/gltf/gltf_model.h>
@@ -46,7 +47,8 @@ public:
         const yave::GltfModel& model,
         yave::Engine* engine,
         yave::Scene* scene,
-        yave::AssetLoader& loader);
+        yave::AssetLoader& loader,
+        yave::ModelTransform& transform);
 
     void addLighting(yave::Engine* engine, yave::LightManager* lightManager, yave::Scene* scene);
 

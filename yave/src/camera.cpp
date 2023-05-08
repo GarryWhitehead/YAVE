@@ -39,8 +39,6 @@ ICamera::ICamera()
       far_(0.0f),
       aspect_(0.0f)
 {
-    ubo_ = std::make_unique<UniformBuffer>(
-        vkapi::PipelineCache::UboSetValue, 3, "CameraUbo", "camera_ubo");
 }
 
 ICamera::~ICamera() {}
@@ -70,7 +68,7 @@ void ICamera::setProjectionMatrixI(
 
 mathfu::mat4& ICamera::viewMatrix() { return view_; }
 
-void ICamera::setViewMatrix(mathfu::mat4& view) { view_ = view; }
+void ICamera::setViewMatrixI(const mathfu::mat4& view) { view_ = view; }
 
 void ICamera::setFovI(float fovy) noexcept
 {
@@ -78,35 +76,6 @@ void ICamera::setFovI(float fovy) noexcept
 }
 
 mathfu::vec3 ICamera::position() { return -view_.TranslationVector3D(); }
-
-size_t ICamera::createUbo(vkapi::VkDriver& driver) noexcept
-{
-    ubo_->pushElement("mvp", backend::BufferElementType::Mat4, sizeof(mathfu::mat4));
-    ubo_->pushElement("project", backend::BufferElementType::Mat4, sizeof(mathfu::mat4));
-    ubo_->pushElement("model", backend::BufferElementType::Mat4, sizeof(mathfu::mat4));
-    ubo_->pushElement("view", backend::BufferElementType::Mat4, sizeof(mathfu::mat4));
-    ubo_->pushElement("position", backend::BufferElementType::Float3, sizeof(mathfu::vec3));
-    ubo_->pushElement("padding", backend::BufferElementType::Float, sizeof(float));
-    ubo_->pushElement("zNear", backend::BufferElementType::Float, sizeof(float));
-    ubo_->pushElement("zFar", backend::BufferElementType::Float, sizeof(float));
-    ubo_->createGpuBuffer(driver);
-    return ubo_->size();
-}
-
-void* ICamera::updateUbo() noexcept
-{
-    mathfu::mat4 vp = projection_ * view_;
-    mathfu::vec3 pos = position();
-    ubo_->updateElement("mvp", &vp);
-    ubo_->updateElement("project", &projection_);
-    ubo_->updateElement("view", &view_);
-    ubo_->updateElement("position", &pos);
-    ubo_->updateElement("zNear", &near_);
-    ubo_->updateElement("zFar", &far_);
-    return ubo_->getBlockData();
-}
-
-UniformBuffer& ICamera::getUbo() noexcept { return *ubo_; }
 
 // ========================== client api =========================
 
@@ -118,7 +87,7 @@ void ICamera::setProjection(float fovy, float aspect, float near, float far, Pro
     setProjectionMatrixI(fovy, aspect, near, far, type);
 }
 
-void ICamera::setViewMatrix(mathfu::mat4 lookAt) { view_ = lookAt; }
+void ICamera::setViewMatrix(const mathfu::mat4& lookAt) { setViewMatrixI(lookAt); }
 
 void ICamera::setFov(float fovy) { setFovI(fovy); }
 

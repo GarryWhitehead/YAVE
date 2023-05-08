@@ -68,8 +68,6 @@ public:
 
     virtual void create(const CreateInfo& ci, Type type, Object& obj) = 0;
 
-    virtual void prepare() = 0;
-
     virtual void setIntensity(float intensity, Object& obj) = 0;
 
     virtual void setFallout(float fallout, Object& obj) = 0;

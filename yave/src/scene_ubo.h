@@ -22,46 +22,40 @@
 
 #pragma once
 
-#include <cstdint>
-#include <string>
-#include <vector>
+#include "uniform_buffer.h"
+
+#include <vulkan-api/driver.h>
+
+#include <memory>
 
 namespace yave
 {
+class IEngine;
+class ICamera;
+class IIndirectLight;
 
-class SamplerSet
+/* A all-in-one ne uniform buffer that holds all the dynamic information
+ *  that is required by the scene.
+ */
+class SceneUbo
 {
 public:
-    enum class SamplerType
-    {
-        e2d,
-        e3d,
-        Cube
-    };
+    static constexpr int SceneUboBindPoint = 3;
 
-    struct SamplerInfo
-    {
-        std::string name;
-        // the set for this sampler
-        uint8_t set;
-        // binding of the sampler;
-        uint8_t binding;
-        // type of the sampler
-        SamplerType type;
-    };
+    SceneUbo(vkapi::VkDriver& driver);
 
-    SamplerSet() = default;
+    void updateCamera(ICamera& camera);
 
-    static std::string samplerTypeToStr(SamplerSet::SamplerType type);
+    void updateIbl(IIndirectLight* il);
 
-    void
-    pushSampler(const std::string& name, uint8_t set, uint8_t binding, SamplerType type) noexcept;
+    void upload(IEngine& engine);
 
-    std::string createShaderStr() noexcept;
-
-    bool empty() const noexcept { return samplers_.empty(); }
+    UniformBuffer& get() noexcept { return *ubo_; }
 
 private:
-    std::vector<SamplerInfo> samplers_;
+    std::unique_ptr<UniformBuffer> ubo_;
+
+    uint32_t uboSize_;
 };
+
 } // namespace yave

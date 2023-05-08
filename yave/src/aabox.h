@@ -31,28 +31,29 @@ namespace yave
 
 struct AABBox
 {
-    /// 3D extents (min, max) of this box
-    mathfu::vec3 extents[2];
+    /// 3D extents (min, max) of this box in object space
+    mathfu::vec3 min {-1.0f};
+    mathfu::vec3 max {1.0f};
 
     static AABBox calculateRigidTransform(AABBox& box, mathfu::mat4 world)
     {
         AABBox ret;
         mathfu::mat3 rot = util::maths::ToRotationMatrix(world);
         mathfu::vec3 trans = world.TranslationVector3D();
-        ret.extents[0] = rot * box.extents[0] + trans;
-        ret.extents[1] = rot * box.extents[1] + trans;
+        ret.min = rot * box.min + trans;
+        ret.max = rot * box.max + trans;
         return ret;
     }
 
     /**
      * Calculates the center position of the box
      */
-    mathfu::vec3 getCenter() const { return (extents[1] + extents[0]) * mathfu::vec3 {0.5f}; }
+    mathfu::vec3 getCenter() const { return (max + min) * mathfu::vec3 {0.5f}; }
 
     /**
      * Calculates the half extent of the box
      */
-    mathfu::vec3 getHalfExtent() const { return (extents[1] - extents[0]) * mathfu::vec3 {0.5f}; }
+    mathfu::vec3 getHalfExtent() const { return (max - min) * mathfu::vec3 {0.5f}; }
 };
 
 } // namespace yave

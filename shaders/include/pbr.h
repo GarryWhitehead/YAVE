@@ -24,13 +24,12 @@ float GeometryShlickGGX(float NdotV, float NdotL, float roughness)
 vec3 FresnelSchlick(float VdotH, vec3 specReflectance, vec3 specReflectance90)
 {
     return specReflectance +
-        vec3(specReflectance90 - specReflectance) *
-        pow(clamp(1.0 - VdotH, 0.0, 1.0), 5.0);
+        vec3(specReflectance90 - specReflectance) * pow(clamp(1.0 - VdotH, 0.0, 1.0), 5.0);
 }
 
-vec3 FresnelRoughness(float VdotH, vec3 F0, float roughness)
+vec3 FresnelRoughness(float cosTheta, vec3 F0, float roughness)
 {
-    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - VdotH, 5.0);
+    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }
 
 vec3 specularContribution(

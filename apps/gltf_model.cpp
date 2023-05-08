@@ -27,6 +27,7 @@
 #include "backend/enums.h"
 #include "yave/camera.h"
 #include "yave/index_buffer.h"
+#include "yave/indirect_light.h"
 #include "yave/object_manager.h"
 #include "yave/render_primitive.h"
 #include "yave/renderable.h"
@@ -35,7 +36,6 @@
 #include "yave/skybox.h"
 #include "yave/texture.h"
 #include "yave/texture_sampler.h"
-#include "yave/transform_manager.h"
 #include "yave/vertex_buffer.h"
 
 #include <ibl/ibl.h>
@@ -52,7 +52,8 @@ yave::Object GltfModelApp::buildModel(
     const yave::GltfModel& model,
     yave::Engine* engine,
     yave::Scene* scene,
-    yave::AssetLoader& loader)
+    yave::AssetLoader& loader,
+    yave::ModelTransform& transform)
 {
     yave::RenderableManager* rendManager = engine->getRenderManager();
     yave::Renderable* renderable = engine->createRenderable();
@@ -151,7 +152,7 @@ yave::Object GltfModelApp::buildModel(
         prim->setMaterial(mat);
         renderable->setPrimitive(prim, primIdx);
 
-        rendManager->build(renderable, obj, {});
+        rendManager->build(renderable, obj, transform);
     }
 
     return obj;
@@ -169,8 +170,6 @@ void GltfModelApp::addLighting(
     spotLightObj = objManager->createObject();
     scene->addObject(spotLightObj);
     lightManager->create(spotLightParams, yave::LightManager::Type::Spot, spotLightObj);
-
-    lightManager->prepare();
 }
 
 void GltfModelApp::uiCallback(yave::Engine* engine)
@@ -231,6 +230,10 @@ int main()
     {
         exit(1);
     }
+    yave::IndirectLight* il = engine->createIndirectLight();
+    il->setIrrandianceMap(ibl.getIrradianceMap());
+    il->setSpecularMap(ibl.getSpecularMap(), ibl.getBrdfLut());
+    scene->setIndirectLight(il);
 
     engine->setCurrentScene(scene);
 
@@ -241,7 +244,6 @@ int main()
     yave::Skybox* skybox = engine->createSkybox();
     skybox->setTexture(ibl.getCubeMap());
     skybox->build(app.getWindow()->getCamera());
-
     scene->setSkybox(skybox);
 
     // create the renderer used to draw to the backbuffer
@@ -258,7 +260,9 @@ int main()
     }
     model.build();
 
-    app.buildModel(model, engine, scene, loader);
+    yave::ModelTransform transform;
+    transform.translation = {0.0f, 0.2f, -2.0f};
+    app.buildModel(model, engine, scene, loader, transform);
 
     auto lightManager = engine->getLightManager();
 

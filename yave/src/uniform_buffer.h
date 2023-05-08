@@ -65,10 +65,9 @@ public:
     BufferBase();
     virtual ~BufferBase();
 
-    void pushElement(
+    void addElement(
         const std::string& name,
         backend::BufferElementType type,
-        uint32_t size,
         void* value = nullptr,
         uint32_t arraySize = 1,
         const std::string& structName = "") noexcept;
@@ -102,7 +101,7 @@ public:
         uint32_t set,
         uint32_t binding,
         const std::string& memberName,
-        const std::string& aliasName = "");
+        const std::string& aliasName);
     ~UniformBuffer();
 
     std::string createShaderStr() noexcept override;
@@ -118,6 +117,7 @@ public:
     BackendBufferParams getBufferParams(vkapi::VkDriver& driver) noexcept override;
 
     uint8_t getBinding() const noexcept { return binding_; }
+    std::string& getAliasName() noexcept { return aliasName_; }
 
 protected:
     std::string memberName_;
@@ -145,7 +145,7 @@ public:
         uint32_t set,
         uint32_t binding,
         const std::string& memberName,
-        const std::string& aliasName = "");
+        const std::string& aliasName);
 
     ~StorageBuffer();
 
@@ -162,7 +162,7 @@ private:
 class PushBlock : public BufferBase
 {
 public:
-    PushBlock(const std::string memberName, const std::string& aliasName = "");
+    PushBlock(const std::string memberName, const std::string& aliasName);
     ~PushBlock();
 
     std::string createShaderStr() noexcept override;

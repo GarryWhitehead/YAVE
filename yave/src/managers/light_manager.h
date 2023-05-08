@@ -44,6 +44,8 @@ class IEngine;
 class IVertexBuffer;
 class IIndexBuffer;
 class IRenderPrimitive;
+class IIndirectLight;
+class IScene;
 
 struct LightInstance
 {
@@ -83,6 +85,9 @@ public:
     static constexpr int SamplerNormalBinding = 2;
     static constexpr int SamplerPbrBinding = 3;
     static constexpr int SamplerEmissiveBinding = 4;
+    static constexpr int SamplerIrradianceBinding = 5;
+    static constexpr int SamplerSpecularBinding = 6;
+    static constexpr int SamplerBrdfBinding = 7;
 
     // This must mirror the lighting struct on the shader.
     struct LightSsbo
@@ -97,12 +102,22 @@ public:
         float offset;
     };
 
+    enum class Variants
+    {
+        IblContribution,
+        __SENTINEL__
+    };
+
     ILightManager(IEngine& engine);
     ~ILightManager();
 
     void update(const ICamera& camera);
 
-    void prepareI();
+    void setVariant(Variants variant);
+    void removeVariant(Variants variant);
+    vkapi::VDefinitions createShaderVariants();
+
+    void prepare(IScene* scene);
 
     void updateSsbo(std::vector<LightInstance*>& lights);
 
@@ -125,16 +140,20 @@ public:
 
     LightInstance* getLightInstance(Object& obj);
 
+    void enableAmbientLight() noexcept;
+
     void destroy(const Object& handle);
 
-    rg::RenderGraphHandle
-    render(rg::RenderGraph& rGraph, uint32_t width, uint32_t height, vk::Format depthFormat);
+    rg::RenderGraphHandle render(
+        rg::RenderGraph& rGraph,
+        IScene& scene,
+        uint32_t width,
+        uint32_t height,
+        vk::Format depthFormat);
 
     // =================== client api ========================
 
     void create(const CreateInfo& ci, Type type, Object& obj) override;
-
-    void prepare() override;
 
     void setIntensity(float intensity, Object& obj) override;
     void setFallout(float fallout, Object& obj) override;
@@ -154,6 +173,11 @@ private:
 
     // Used for generating the ssbo light data per frame.
     LightSsbo ssboBuffer_[MaxLightCount + 1];
+
+    util::BitSetEnum<Variants> variants_;
+
+    // keep track of the scene the light manager was last prepared for
+    IScene* currentScene_;
 
     // ================= vulkan backend =======================
 

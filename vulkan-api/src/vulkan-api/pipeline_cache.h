@@ -46,7 +46,7 @@ class PipelineCache
 public:
     constexpr static uint32_t InitialDescriptorPoolSize = 1000;
 
-    constexpr static uint8_t MaxSamplerBindCount = 6;
+    constexpr static uint8_t MaxSamplerBindCount = 10;
     constexpr static uint8_t MaxUboBindCount = 6;
     constexpr static uint8_t MaxUboDynamicBindCount = 4;
     constexpr static uint8_t MaxSsboBindCount = 4;

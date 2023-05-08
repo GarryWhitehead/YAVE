@@ -111,7 +111,11 @@ void CameraView::updateKeyEvents(float dt)
     updateView();
 }
 
-void CameraView::setPosition(const mathfu::vec3& pos) { eye_ = pos; }
+void CameraView::setPosition(const mathfu::vec3& pos)
+{
+    eye_ = pos;
+    updateView();
+}
 
 mathfu::mat4 CameraView::getLookAt() const noexcept { return view_; }
 

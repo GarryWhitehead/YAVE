@@ -239,11 +239,18 @@ void IMaterial::build(
     auto& manager = engine.driver().progManager();
     auto& driver = engine.driver();
 
-    IScene* scene = engine.getCurrentScene();
+    // if we have already built the shader programs for this material, then
+    // don't waste time rebuilding everything.
+    if (!programBundle_->hasProgram(backend::ShaderStage::Vertex) &&
+        !programBundle_->hasProgram(backend::ShaderStage::Fragment))
+    {
+        // create the material shaders to start.
+        programBundle_->parseMaterialShader(matShader);
+        programBundle_->buildShaders("material.vert", "material.frag");
+    }
+    programBundle_->clear();
 
-    // create the material shaders to start.
-    programBundle_->parseMaterialShader(matShader);
-    programBundle_->buildShaders("material.vert", "material.frag");
+    IScene* scene = engine.getCurrentScene();
 
     // add any additional buffer elemnts, push blocks or image samplers
     // to the appropiate shader before building
@@ -251,7 +258,7 @@ void IMaterial::build(
     auto* fProgram = programBundle_->getProgram(backend::ShaderStage::Fragment);
 
     // default ubo buffers - camera and mesh transform
-    addBuffer(&scene->getCurrentCameraI()->getUbo(), backend::ShaderStage::Vertex);
+    addBuffer(&scene->getSceneUbo().get(), backend::ShaderStage::Vertex);
     addBuffer(&scene->getTransUbo(), backend::ShaderStage::Vertex);
 
     for (const auto& [stage, buffer] : buffers_)
@@ -382,8 +389,7 @@ void IMaterial::addUboParamI(
     backend::ShaderStage stage,
     void* value)
 {
-    ubos_[util::ecast(stage)]->pushElement(
-        elementName, type, static_cast<uint32_t>(size), (void*)value, arrayCount);
+    ubos_[util::ecast(stage)]->addElement(elementName, type, (void*)value, arrayCount);
 }
 
 void IMaterial::setDoubleSidedStateI(bool state)

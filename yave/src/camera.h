@@ -37,19 +37,11 @@ public:
     ICamera();
     ~ICamera();
 
-    void update();
-
     void shutDown(vkapi::VkDriver& driver) noexcept;
 
     void setProjectionMatrixI(float fovy, float aspect, float near, float far, ProjectionType type);
 
     void setFovI(float fovy) noexcept;
-
-    size_t createUbo(vkapi::VkDriver& driver) noexcept;
-
-    void* updateUbo() noexcept;
-
-    UniformBuffer& getUbo() noexcept;
 
 
     // ============== getters ==========================
@@ -63,7 +55,7 @@ public:
 
     // =============== setters =========================
 
-    void setViewMatrix(mathfu::mat4& view);
+    void setViewMatrixI(const mathfu::mat4& view);
 
     // =============== client api =======================
 
@@ -74,7 +66,7 @@ public:
         float far,
         ProjectionType type = ProjectionType::Perspective) override;
 
-    void setViewMatrix(mathfu::mat4 lookAt) override;
+    void setViewMatrix(const mathfu::mat4& lookAt) override;
     void setFov(float fovy) override;
 
 private:
@@ -86,8 +78,6 @@ private:
     float near_;
     float far_;
     float aspect_;
-
-    std::unique_ptr<UniformBuffer> ubo_;
 };
 
 
