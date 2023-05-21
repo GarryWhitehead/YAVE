@@ -48,7 +48,7 @@ public:
     Compute(IEngine& engine);
     ~Compute();
 
-    void Compute::addSamplerTexture(
+    void addSamplerTexture(
         vkapi::VkDriver& driver,
         const std::string& name,
         const vkapi::TextureHandle& handle,

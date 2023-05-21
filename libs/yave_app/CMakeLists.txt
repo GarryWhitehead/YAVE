@@ -17,7 +17,7 @@ target_link_libraries(
     mathfu::mathfu
     imgui::imgui
     stb::stb
-    ktx::libktx
+    KTX::ktx
     YaveUtility
 )
 
