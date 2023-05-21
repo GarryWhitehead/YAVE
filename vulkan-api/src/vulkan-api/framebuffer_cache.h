@@ -52,6 +52,7 @@ public:
 
     struct RPassKey
     {
+        vk::ImageLayout initialLayout[RenderTarget::MaxColourAttachCount];
         vk::ImageLayout finalLayout[RenderTarget::MaxColourAttachCount];
         vk::Format colourFormats[RenderTarget::MaxColourAttachCount];
         backend::LoadClearFlags loadOp[RenderTarget::MaxColourAttachCount];

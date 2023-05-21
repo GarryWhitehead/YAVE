@@ -38,8 +38,6 @@ public:
 
     virtual void skipVisibilityChecks() = 0;
 
-    virtual void disableGBuffer() noexcept = 0;
-
 protected:
     Renderable();
 };

@@ -94,7 +94,7 @@ bool Ibl::loadEqirectImage(const std::filesystem::path& path)
         dataSizeBytes,
         static_cast<uint32_t>(width),
         static_cast<uint32_t>(height),
-        backend::TextureFormat::RGBA32,
+        backend::TextureFormat::RGBA32F,
         backend::ImageUsage::Sampled};
     tex->setTexture(params);
 

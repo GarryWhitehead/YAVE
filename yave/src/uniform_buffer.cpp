@@ -45,11 +45,15 @@ BufferBase::~BufferBase()
         }
     }
 }
+
 auto elementTypeSizeof(backend::BufferElementType type)
 {
     int output;
     switch (type)
     {
+        case backend::BufferElementType::Uint:
+            output = sizeof(uint32_t);
+            break;
         case backend::BufferElementType::Int:
             output = sizeof(int);
             break;
@@ -90,6 +94,9 @@ auto elementTypeToStrAndSize(const BufferBase::Info& info)
     std::pair<std::string, int> output;
     switch (info.type)
     {
+        case backend::BufferElementType::Uint:
+            output = std::make_pair("uint", 4);
+            break;
         case backend::BufferElementType::Int:
             output = std::make_pair("int", 4);
             break;
@@ -334,12 +341,7 @@ void UniformBuffer::createGpuBuffer(vkapi::VkDriver& driver, size_t size) noexce
 
 void UniformBuffer::createGpuBuffer(vkapi::VkDriver& driver) noexcept
 {
-    ASSERT_FATAL(elements_.size() > 0, "This uniform has no elements added.");
-    if (accumSize_ > currentGpuBufferSize_)
-    {
-        createGpuBuffer(driver, accumSize_);
-        currentGpuBufferSize_ = accumSize_;
-    }
+    createGpuBuffer(driver, accumSize_);
 }
 
 void UniformBuffer::mapGpuBuffer(vkapi::VkDriver& driver, void* data, size_t size) noexcept
@@ -388,6 +390,7 @@ std::string StorageBuffer::createShaderStr() noexcept
     {
         const auto& [type, size] = elementTypeToStrAndSize(element);
         output += "\t" + type + " " + element.name;
+
         // An array size of zero denotes this as a unlimited array.
         if (!element.arraySize)
         {
@@ -408,7 +411,27 @@ void StorageBuffer::createGpuBuffer(vkapi::VkDriver& driver, uint32_t size) noex
 {
     ASSERT_FATAL(elements_.size() > 0, "This storage buffer has no elements added.");
     ASSERT_LOG(size > 0);
-    vkHandle_ = driver.addUbo(size, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT);
+
+    if (size > currentGpuBufferSize_)
+    {
+        vkHandle_ = driver.addUbo(size, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT);
+        currentGpuBufferSize_ = size;
+    }
+}
+
+void StorageBuffer::createGpuBuffer(vkapi::VkDriver& driver) noexcept
+{
+    createGpuBuffer(driver, accumSize_);
+}
+
+void StorageBuffer::copyFrom(const StorageBuffer& other) noexcept
+{
+    elements_ = other.elements_;
+    bufferData_ = other.bufferData_;
+    currentBufferSize_ = other.currentBufferSize_;
+    accumSize_ = other.accumSize_;
+    currentGpuBufferSize_ = other.currentGpuBufferSize_;
+    vkHandle_ = other.vkHandle_;
 }
 
 BufferBase::BackendBufferParams StorageBuffer::getBufferParams(vkapi::VkDriver& driver) noexcept

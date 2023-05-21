@@ -91,7 +91,7 @@ public:
 
     virtual void endFrame() = 0;
 
-    virtual void render(Engine* engine, Scene* scene) = 0;
+    virtual void render(Engine* engine, Scene* scene, float dt, bool clearSwap = true) = 0;
 
     virtual void renderSingleScene(Engine* engine, Scene* scene, RenderTarget& rTarget) = 0;
 

@@ -53,15 +53,17 @@ IRenderableManager::IRenderableManager(IEngine& engine) : engine_(engine)
 IRenderableManager::~IRenderableManager() {}
 
 void IRenderableManager::buildI(
+    IScene& scene,
     IRenderable* renderable,
     Object& obj,
     const ModelTransform& transform,
-    const std::string& matShader)
+    const std::string& matShader,
+    const std::string& mainShaderPath)
 {
     for (const auto& prim : renderable->primitives_)
     {
         ASSERT_FATAL(prim->getMaterial(), "Material must be initialised for a render primitive.");
-        prim->getMaterial()->build(engine_, *renderable, prim, matShader);
+        prim->getMaterial()->build(engine_, scene, *renderable, prim, matShader, mainShaderPath);
     }
 
     engine_.getTransformManager()->addModelTransform(transform, obj);
@@ -118,12 +120,18 @@ RenderableManager::RenderableManager() {}
 RenderableManager::~RenderableManager() {}
 
 void IRenderableManager::build(
+    Scene* scene,
     Renderable* renderable,
     Object& obj,
     const ModelTransform& transform,
     const std::string& matShader)
 {
-    buildI(reinterpret_cast<IRenderable*>(renderable), obj, transform, matShader);
+    buildI(
+        *(reinterpret_cast<IScene*>(scene)),
+        reinterpret_cast<IRenderable*>(renderable),
+        obj,
+        transform,
+        matShader);
 }
 
 Material* IRenderableManager::createMaterial() noexcept

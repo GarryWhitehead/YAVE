@@ -135,7 +135,11 @@ bool ShaderCompiler::compile(bool optimise)
 
     if (optimise)
     {
-        options.SetOptimizationLevel(shaderc_optimization_level_size);
+        options.SetOptimizationLevel(shaderc_optimization_level_performance);
+    }
+    else
+    {
+        options.SetOptimizationLevel(shaderc_optimization_level_zero);
     }
 
     options.SetSourceLanguage(shaderc_source_language_glsl);
@@ -407,6 +411,21 @@ void Shader::reflect(const uint32_t* shaderCode, uint32_t size)
         desc.set = set;
         desc.binding = binding;
         desc.type = vk::DescriptorType::eCombinedImageSampler;
+        desc.name = ::util::CString {sample.name.c_str()};
+        desc.stage = getStageFlags(type_);
+        resourceBinding_.descLayouts.emplace_back(desc);
+    }
+    // storage images
+    for (auto& sample : resources.storage_images)
+    {
+        const uint32_t set = glsl.get_decoration(sample.id, spv::DecorationDescriptorSet);
+        ASSERT_LOG(PipelineCache::StorageImageSetValue == set);
+
+        const uint32_t binding = glsl.get_decoration(sample.id, spv::DecorationBinding);
+        ShaderBinding::DescriptorLayout desc;
+        desc.set = set;
+        desc.binding = binding;
+        desc.type = vk::DescriptorType::eStorageImage;
         desc.name = ::util::CString {sample.name.c_str()};
         desc.stage = getStageFlags(type_);
         resourceBinding_.descLayouts.emplace_back(desc);

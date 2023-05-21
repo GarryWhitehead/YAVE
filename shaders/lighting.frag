@@ -36,9 +36,6 @@ vec3 calculateIBL(vec3 N, float NdotV, float roughness, vec3 reflection, vec3 di
 	vec3 diffuseLight = texture(IrradianceSampler, N).rgb;
 	vec3 diffuse = diffuseLight * diffuseColour;
 	
-	//diffuse *= push.IBLAmbient;
-	//specular *= push.IBLAmbient;
-	
 	return diffuse + specular;
 }
 #endif
@@ -46,7 +43,7 @@ vec3 calculateIBL(vec3 N, float NdotV, float roughness, vec3 reflection, vec3 di
 void main()
 {
     vec3 inPos = texture(PositionSampler, inUv).rgb;
-    vec3 baseColour = pow(texture(BaseColourSampler, inUv).rgb, vec3(2.2));
+    vec3 baseColour = texture(BaseColourSampler, inUv).rgb;
     float applyLightingFlag = texture(EmissiveSampler, inUv).a;
 
     // if lighting isn't applied to this fragment then
@@ -166,12 +163,6 @@ void main()
 
     // emissive
     finalColour += emissive;
-
-    // TODO: this tonemapping code should be removed once this is
-    // added to the post-processing pipeline.
-    finalColour = finalColour / (finalColour + vec3(1.0));
-    // gamma correct
-    finalColour = pow(finalColour, vec3(1.0/2.2)); 
 
     outFrag = vec4(finalColour, 1.0);
 }

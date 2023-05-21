@@ -99,8 +99,13 @@ bool Application::run(Renderer* renderer, Scene* scene)
         // user define pre-render callback
         this->preRenderCallback();
 
-        // begin the rendering for this frame
-        renderer->render(engine_, scene);
+        // begin the rendering for this frame - render the main scene
+        renderer->render(engine_, scene, timeStep);
+        // and render the UI over this
+        if (showUI_)
+        {
+            renderer->render(engine_, imgui_->getScene(), timeStep, false);
+        }
 
         // user defined post-render callback to be added here
         this->postRenderCallback();

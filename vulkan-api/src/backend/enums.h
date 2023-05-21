@@ -117,6 +117,7 @@ enum class PrimitiveTopology
 
 enum class BufferElementType
 {
+    Uint,
     Int,
     Int2,
     Int3,
@@ -144,17 +145,17 @@ enum class ShaderStage
 enum class TextureFormat
 {
     R8,
-    R16,
-    R32,
+    R16F,
+    R32F,
     RG8,
-    RG16,
-    RG32,
+    RG16F,
+    RG32F,
     RGB8,
-    RGB16,
-    RGB32,
+    RGB16F,
+    RGB32F,
     RGBA8,
-    RGBA16,
-    RGBA32,
+    RGBA16F,
+    RGBA32F,
     Undefined
 };
 

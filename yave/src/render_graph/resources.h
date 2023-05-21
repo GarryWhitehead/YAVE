@@ -197,6 +197,7 @@ public:
             backend::LoadClearFlags::DontCare};
         backend::StoreClearFlags storeClearFlags[vkapi::RenderTarget::MaxAttachmentCount] = {};
 
+        std::array<vk::ImageLayout, vkapi::RenderTarget::MaxAttachmentCount> initialLayouts = {};
         std::array<vk::ImageLayout, vkapi::RenderTarget::MaxAttachmentCount> finalLayouts = {};
 
         vk::ImageUsageFlags usage;

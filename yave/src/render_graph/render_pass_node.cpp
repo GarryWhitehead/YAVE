@@ -82,7 +82,7 @@ void RenderPassInfo::bake(const RenderGraph& rGraph)
                 reinterpret_cast<TextureResource*>(rGraph.getResource(attachment));
             depthStencilInfo[i].handle = texture->handle();
             ASSERT_FATAL(texture->handle(), "Invalid handle for depth/stencil attchment.");
-            // also fill the layer and level from the subresource of the texture
+            // TODO: also fill the layer and level from the subresource of the texture
         }
     }
 
@@ -265,6 +265,7 @@ void RenderPassNode::build()
             rPassData.width = importedTarget->desc.width;
             rPassData.height = importedTarget->desc.height;
             rPassData.finalLayouts = importedTarget->desc.finalLayouts;
+            rPassData.initialLayouts = importedTarget->desc.initialLayouts;
             renderPassTarget.desc.vkBackend.rtHandle = importedTarget->rtHandle;
             renderPassTarget.imported = true;
 

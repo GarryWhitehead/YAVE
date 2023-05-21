@@ -61,10 +61,12 @@ public:
     IRenderable* getMesh(const Object& obj);
 
     void buildI(
+        IScene& scene,
         IRenderable* renderable,
         Object& obj,
         const ModelTransform& transform,
-        const std::string& matShader);
+        const std::string& matShader,
+        const std::string& mainShaderPath = "material");
 
     IMaterial* createMaterialI() noexcept;
 
@@ -75,6 +77,7 @@ public:
     // ===================== client api ==================================
 
     void build(
+        Scene* scene,
         Renderable* renderable,
         Object& obj,
         const ModelTransform& transform,

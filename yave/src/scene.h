@@ -98,6 +98,8 @@ public:
     UniformBuffer& getTransUbo() noexcept { return *transUbo_; }
     UniformBuffer& getSkinUbo() noexcept { return *skinUbo_; }
     SceneUbo& getSceneUbo() noexcept { return *sceneUbo_; }
+    bool withPostProcessing() const noexcept { return usePostProcessing_; }
+    bool withGbuffer() const noexcept { return useGbuffer_; }
 
     // ================== client api =======================
 
@@ -107,6 +109,13 @@ public:
     Camera* getCurrentCamera() override;
     void addObject(Object obj) override;
     void destroyObject(Object obj) override;
+    void usePostProcessing(bool state) override;
+    void useGbuffer(bool state) override;
+
+    void setBloomOptions(const BloomOptions& bloom) override;
+    void setGbufferOptions(const GbufferOptions& gb) override;
+    BloomOptions& getBloomOptions() override;
+    GbufferOptions& getGbufferOptions() override;
 
 private:
     IEngine& engine_;
@@ -132,6 +141,13 @@ private:
     // using a vector here dor iteration purposes but not great for erasing
     // objects - find a more performant alternative?
     std::vector<Object> objects_;
+
+    // options
+    BloomOptions bloomOptions_;
+    GbufferOptions gbufferOptions_;
+
+    bool usePostProcessing_;
+    bool useGbuffer_;
 };
 
 

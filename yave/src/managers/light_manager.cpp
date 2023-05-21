@@ -404,7 +404,7 @@ rg::RenderGraphHandle ILightManager::render(
             auto gbDepth = blackboard->get("gbufferDepth");
 
             rg::TextureResource::Descriptor texDesc;
-            texDesc.format = vk::Format::eR8G8B8A8Unorm;
+            texDesc.format = vk::Format::eR16G16B16A16Unorm;
             texDesc.width = width;
             texDesc.height = height;
             data.light = builder.createResource("light", texDesc);
@@ -412,7 +412,9 @@ rg::RenderGraphHandle ILightManager::render(
             texDesc.format = depthFormat;
             data.depth = builder.createResource("lightDepth", texDesc);
 
-            data.light = builder.addWriter(data.light, vk::ImageUsageFlagBits::eColorAttachment);
+            data.light = builder.addWriter(
+                data.light,
+                vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eStorage);
             data.depth =
                 builder.addWriter(data.depth, vk::ImageUsageFlagBits::eDepthStencilAttachment);
 
@@ -496,7 +498,7 @@ rg::RenderGraphHandle ILightManager::render(
             driver.draw(cmdBuffer, *programBundle_);
 
             driver.endRenderpass(cmdBuffer);
-            cmds.flush();
+            // cmds.flush();
         });
 
     return rg.getData().light;

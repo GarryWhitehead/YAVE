@@ -60,40 +60,19 @@ public:
 
     bool createInstance(const char** instanceExt, uint32_t count);
 
-    /// initialises the vulkan driver - includes creating the abstract device,
-    /// physical device, queues, etc.
+    // initialises the vulkan driver - includes creating the abstract device,
+    // physical device, queues, etc.
     bool init(const vk::SurfaceKHR surface);
 
     /// Make sure you call this before closing down the engine!
     void shutdown();
 
-    //  ======= Functions for creating buffers and adding resource data to the
-    //  backend ======
-
-    /**
-     * @brief This is for adding persistant uniform buffers to the backend.
-     * These will remain in the backend until the user calls the appropiate
-     * destroy function. This function also creates and updates a descriptor set
-     * which will be associated with this buffer..
-     * @param id This is a string id used to hash and retrieve this buffer
-     * @param size The size of the buffer in bytes
-     * @param usage Vulkan usage flags depict what this buffer will be used for
-     */
     BufferHandle addUbo(const size_t size, VkBufferUsageFlags usage);
 
-    /**
-     * @brief Adds a vertex buffer to the vulkan back end. This function also
-     * generates the vertex attribute bindings in preperation to using with the
-     * relevant pipeline
-     */
     VertexBufferHandle addVertexBuffer(const size_t size, void* data);
 
     void mapVertexBuffer(const VertexBufferHandle& handle, size_t count, void* data);
 
-    /**
-     * @brief Similiar to the **addVertexBuffer** function, adds a index buffer
-     * to the vulkan backend. Note: it is presumed to be of the type uint32_t.
-     */
     IndexBufferHandle addIndexBuffer(const size_t size, void* data);
 
     void mapIndexBuffer(const IndexBufferHandle& handle, size_t count, void* data);
@@ -139,7 +118,7 @@ public:
 
     void generateMipMaps(const TextureHandle& handle, const vk::CommandBuffer& cmdBuffer);
 
-    // ============= retrieve and delete  resources ============================
+    // ============= retrieve and delete resources ============================
 
     void mapTexture(const TextureHandle& handle, void* data, uint32_t dataSize, size_t* offsets);
 
@@ -167,6 +146,13 @@ public:
         vk::VertexInputAttributeDescription* vertexAttr = nullptr,
         vk::VertexInputBindingDescription* vertexBinding = nullptr,
         const std::vector<uint32_t>& dynamicOffsets = {});
+
+    void dispatchCompute(
+        vk::CommandBuffer& cmd,
+        ShaderProgramBundle* bundle,
+        uint32_t xWorkCount,
+        uint32_t yWorkCount,
+        uint32_t zWorkCount);
 
     uint32_t getCurrentPresentIndex() const noexcept
     {

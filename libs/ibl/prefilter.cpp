@@ -47,7 +47,7 @@ namespace yave
 PreFilter::PreFilter(Engine* engine, const Options& options) : engine_(engine), options_(options)
 {
     scene_ = engine_->createScene();
-    engine_->setCurrentScene(scene_);
+    scene_->useGbuffer(false);
 
     camera_ = engine->createCamera();
     camera_->setProjection(90.0f, 1.0f, 1.0f, 512.0f);
@@ -114,16 +114,15 @@ Texture* PreFilter::eqirectToCubemap(Texture* hdrImage)
     render->setPrimitiveCount(1);
     render->setPrimitive(prim_, 0);
     render->skipVisibilityChecks();
-    render->disableGBuffer();
 
-    rManager->build(render, obj, {}, "eqirect_to_cubemap.glsl");
+    rManager->build(scene_, render, obj, {}, "eqirect_to_cubemap.glsl");
 
     // create the cube texture to render into
     Texture* cubeTex = engine_->createTexture();
     cubeTex->setEmptyTexture(
         512,
         512,
-        backend::TextureFormat::RGBA32,
+        backend::TextureFormat::RGBA32F,
         backend::ImageUsage::ColourAttach | backend::ImageUsage::Sampled,
         0xFFFF,
         6);
@@ -171,16 +170,15 @@ Texture* PreFilter::createBrdfLut()
     render->setPrimitiveCount(1);
     render->setPrimitive(fullscreenPrim, 0);
     render->skipVisibilityChecks();
-    render->disableGBuffer();
 
-    rManager->build(render, obj, {}, "brdf.glsl");
+    rManager->build(scene_, render, obj, {}, "brdf.glsl");
 
     // create the cube texture to render into
     Texture* outputTex = engine_->createTexture();
     outputTex->setEmptyTexture(
         512,
         512,
-        backend::TextureFormat::RGBA16,
+        backend::TextureFormat::RGBA16F,
         backend::ImageUsage::ColourAttach | backend::ImageUsage::Sampled);
 
     // set the empty cube map as the render target for our draws
@@ -230,16 +228,15 @@ Texture* PreFilter::createIrradianceEnvMap(Texture* cubeMap)
     render->setPrimitiveCount(1);
     render->setPrimitive(prim_, 0);
     render->skipVisibilityChecks();
-    render->disableGBuffer();
 
-    rManager->build(render, obj, {}, "irradiance.glsl");
+    rManager->build(scene_, render, obj, {}, "irradiance.glsl");
 
     // create the irradiance cubemap texture to render into
     Texture* cubeTex = engine_->createTexture();
     cubeTex->setEmptyTexture(
         64,
         64,
-        backend::TextureFormat::RGBA32,
+        backend::TextureFormat::RGBA32F,
         backend::ImageUsage::ColourAttach | backend::ImageUsage::Sampled,
         1,
         6);
@@ -303,16 +300,15 @@ Texture* PreFilter::createSpecularEnvMap(Texture* cubeMap)
     render->setPrimitiveCount(1);
     render->setPrimitive(prim_, 0);
     render->skipVisibilityChecks();
-    render->disableGBuffer();
 
-    rManager->build(render, obj, {}, "specular.glsl");
+    rManager->build(scene_, render, obj, {}, "specular.glsl");
 
     // create the irradiance cubemap texture to render into
     Texture* cubeTex = engine_->createTexture();
     cubeTex->setEmptyTexture(
         512,
         512,
-        backend::TextureFormat::RGBA16,
+        backend::TextureFormat::RGBA16F,
         backend::ImageUsage::ColourAttach | backend::ImageUsage::Sampled,
         options_.specularLevelCount,
         6);

@@ -32,7 +32,6 @@
 #include "yave/render_primitive.h"
 #include "yave/renderable.h"
 #include "yave/renderable_manager.h"
-#include "yave/scene.h"
 #include "yave/skybox.h"
 #include "yave/texture.h"
 #include "yave/texture_sampler.h"
@@ -49,17 +48,13 @@
 #include <memory>
 
 yave::Object GltfModelApp::buildModel(
-    const yave::GltfModel& model,
-    yave::Engine* engine,
-    yave::Scene* scene,
-    yave::AssetLoader& loader,
-    yave::ModelTransform& transform)
+    const yave::GltfModel& model, yave::AssetLoader& loader, yave::ModelTransform& transform)
 {
-    yave::RenderableManager* rendManager = engine->getRenderManager();
-    yave::Renderable* renderable = engine->createRenderable();
-    yave::ObjectManager* objManager = engine->getObjectManager();
+    yave::RenderableManager* rendManager = engine_->getRenderManager();
+    yave::Renderable* renderable = engine_->createRenderable();
+    yave::ObjectManager* objManager = engine_->getObjectManager();
     yave::Object obj = objManager->createObject();
-    scene->addObject(obj);
+    scene_->addObject(obj);
 
     size_t primCount = 0;
     for (auto& node : model.nodes)
@@ -107,12 +102,12 @@ yave::Object GltfModelApp::buildModel(
         {
             yave::Texture* tex =
                 loader.loadFromFile(info.texturePath, backend::TextureFormat::RGBA8);
-            mat->addTexture(engine, tex, mat->convertImageType(info.type), sampler);
+            mat->addTexture(engine_, tex, mat->convertImageType(info.type), sampler);
         }
 
-        yave::VertexBuffer* vBuffer = engine->createVertexBuffer();
-        yave::IndexBuffer* iBuffer = engine->createIndexBuffer();
-        yave::RenderPrimitive* prim = engine->createRenderPrimitive();
+        yave::VertexBuffer* vBuffer = engine_->createVertexBuffer();
+        yave::IndexBuffer* iBuffer = engine_->createIndexBuffer();
+        yave::RenderPrimitive* prim = engine_->createRenderPrimitive();
 
         vBuffer->addAttribute(
             yave::VertexBuffer::BindingType::Position, backend::BufferElementType::Float3);
@@ -138,9 +133,12 @@ yave::Object GltfModelApp::buildModel(
             vBuffer->addAttribute(
                 yave::VertexBuffer::BindingType::Bones, backend::BufferElementType::Float4);
         }
-        vBuffer->build(engine, mesh->vertices_.size, mesh->vertices_.data);
+        vBuffer->build(engine_, mesh->vertices_.size, mesh->vertices_.data);
         iBuffer->build(
-            engine, mesh->indices_.size(), mesh->indices_.data(), backend::IndexBufferType::Uint32);
+            engine_,
+            mesh->indices_.size(),
+            mesh->indices_.data(),
+            backend::IndexBufferType::Uint32);
         prim->setVertexBuffer(vBuffer);
         prim->setIndexBuffer(iBuffer);
 
@@ -152,29 +150,30 @@ yave::Object GltfModelApp::buildModel(
         prim->setMaterial(mat);
         renderable->setPrimitive(prim, primIdx);
 
-        rendManager->build(renderable, obj, transform);
+        rendManager->build(scene_, renderable, obj, transform);
     }
 
     return obj;
 }
 
-void GltfModelApp::addLighting(
-    yave::Engine* engine, yave::LightManager* lightManager, yave::Scene* scene)
+void GltfModelApp::addLighting(yave::LightManager* lightManager)
 {
-    yave::ObjectManager* objManager = engine->getObjectManager();
+    yave::ObjectManager* objManager = engine_->getObjectManager();
 
     dirLightObj = objManager->createObject();
-    scene->addObject(dirLightObj);
+    scene_->addObject(dirLightObj);
     lightManager->create(dirLightParams, yave::LightManager::Type::Directional, dirLightObj);
 
     spotLightObj = objManager->createObject();
-    scene->addObject(spotLightObj);
+    scene_->addObject(spotLightObj);
     lightManager->create(spotLightParams, yave::LightManager::Type::Spot, spotLightObj);
 }
 
 void GltfModelApp::uiCallback(yave::Engine* engine)
 {
     auto* lightManager = engine->getLightManager();
+
+    yave::BloomOptions& bloomOptions = scene_->getBloomOptions();
 
     ImGui::SetNextWindowSize(ImVec2(300.0f, 500.0f));
     ImGui::Begin("Example settings");
@@ -200,6 +199,14 @@ void GltfModelApp::uiCallback(yave::Engine* engine)
             ImGui::SliderFloat3("Position##spotlight", &spotLightParams.position.x, 0.0f, 50.0f);
             ImGui::Unindent();
         }
+        if (ImGui::CollapsingHeader("Bloom options"))
+        {
+            ImGui::Indent();
+            ImGui::SliderFloat("MinLuminance", &bloomOptions.minLuminanceLog, -30.0f, 30.0f);
+            ImGui::SliderFloat("LuminanceRange", &bloomOptions.invLuminanceRange, 0.0f, 30.0f);
+            ImGui::SliderFloat("gamma", &bloomOptions.gamma, 0.0f, 5.0f);
+            ImGui::Unindent();
+        }
     }
     ImGui::End();
 
@@ -221,35 +228,33 @@ int main()
     yave::AppParams params {"gltf model", 1920, 1080};
     GltfModelApp app(params, true);
 
-    yave::Engine* engine = app.getEngine();
-    yave::Scene* scene = app.getScene();
+    app.engine_ = app.getEngine();
+    app.scene_ = app.getScene();
 
     // create irradiance/specular maps
-    yave::Ibl ibl(engine, YAVE_ASSETS_DIRECTORY);
+    yave::Ibl ibl(app.engine_, YAVE_ASSETS_DIRECTORY);
     if (!ibl.loadEqirectImage("hdr/monoLake.hdr"))
     {
         exit(1);
     }
-    yave::IndirectLight* il = engine->createIndirectLight();
+    yave::IndirectLight* il = app.engine_->createIndirectLight();
     il->setIrrandianceMap(ibl.getIrradianceMap());
     il->setSpecularMap(ibl.getSpecularMap(), ibl.getBrdfLut());
-    scene->setIndirectLight(il);
+    app.scene_->setIndirectLight(il);
 
-    engine->setCurrentScene(scene);
-
-    yave::AssetLoader loader(engine);
+    yave::AssetLoader loader(app.engine_);
     loader.setAssetFolder(YAVE_ASSETS_DIRECTORY);
 
     // add the skybox to the scene
-    yave::Skybox* skybox = engine->createSkybox();
+    yave::Skybox* skybox = app.engine_->createSkybox(app.scene_);
     skybox->setTexture(ibl.getCubeMap());
-    skybox->build(app.getWindow()->getCamera());
-    scene->setSkybox(skybox);
+    skybox->build(app.scene_, app.getWindow()->getCamera());
+    app.scene_->setSkybox(skybox);
 
     // create the renderer used to draw to the backbuffer
-    auto handle = engine->createSwapchain(app.getWindow());
-    engine->setCurrentSwapchain(handle);
-    auto renderer = engine->createRenderer();
+    auto handle = app.engine_->createSwapchain(app.getWindow());
+    app.engine_->setCurrentSwapchain(handle);
+    auto renderer = app.engine_->createRenderer();
 
     // add a gltf model to the scene
     yave::GltfModel model;
@@ -262,16 +267,16 @@ int main()
 
     yave::ModelTransform transform;
     transform.translation = {0.0f, 0.2f, -2.0f};
-    app.buildModel(model, engine, scene, loader, transform);
+    app.buildModel(model, loader, transform);
 
-    auto lightManager = engine->getLightManager();
+    auto lightManager = app.engine_->getLightManager();
 
     // add some lighting to the scene
-    app.addLighting(engine, lightManager, scene);
+    app.addLighting(lightManager);
 
-    app.run(renderer, scene);
+    app.run(renderer, app.scene_);
 
-    yave::Engine::destroy(engine);
+    yave::Engine::destroy(app.engine_);
 
     exit(0);
 }

@@ -84,7 +84,7 @@ AttachmentHandle RenderPass::addAttachment(const RenderPass::Attachment& attachI
 {
     vk::AttachmentDescription attachDescr;
     attachDescr.format = attachInfo.format;
-    attachDescr.initialLayout = vk::ImageLayout::eUndefined;
+    attachDescr.initialLayout = attachInfo.initialLayout;
     attachDescr.finalLayout = attachInfo.finalLayout;
 
     // samples

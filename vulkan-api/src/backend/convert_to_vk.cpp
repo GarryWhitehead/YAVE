@@ -274,37 +274,37 @@ vk::Format textureFormatToVk(backend::TextureFormat type)
         case backend::TextureFormat::R8:
             output = vk::Format::eR8Unorm;
             break;
-        case backend::TextureFormat::R16:
+        case backend::TextureFormat::R16F:
             output = vk::Format::eR16Sfloat;
             break;
-        case backend::TextureFormat::R32:
-            output = vk::Format::eR32Uint;
+        case backend::TextureFormat::R32F:
+            output = vk::Format::eR32Sfloat;
             break;
         case backend::TextureFormat::RG8:
             output = vk::Format::eR8G8Unorm;
             break;
-        case backend::TextureFormat::RG16:
+        case backend::TextureFormat::RG16F:
             output = vk::Format::eR16G16Sfloat;
             break;
-        case backend::TextureFormat::RG32:
-            output = vk::Format::eR32G32Uint;
+        case backend::TextureFormat::RG32F:
+            output = vk::Format::eR32G32Sfloat;
             break;
         case backend::TextureFormat::RGB8:
             output = vk::Format::eR8G8B8Unorm;
             break;
-        case backend::TextureFormat::RGB16:
+        case backend::TextureFormat::RGB16F:
             output = vk::Format::eR16G16B16Sfloat;
             break;
-        case backend::TextureFormat::RGB32:
-            output = vk::Format::eR32G32B32Uint;
+        case backend::TextureFormat::RGB32F:
+            output = vk::Format::eR32G32B32Sfloat;
             break;
         case backend::TextureFormat::RGBA8:
             output = vk::Format::eR8G8B8A8Unorm;
             break;
-        case backend::TextureFormat::RGBA16:
+        case backend::TextureFormat::RGBA16F:
             output = vk::Format::eR16G16B16A16Sfloat;
             break;
-        case backend::TextureFormat::RGBA32:
+        case backend::TextureFormat::RGBA32F:
             output = vk::Format::eR32G32B32A32Sfloat;
             break;
     }

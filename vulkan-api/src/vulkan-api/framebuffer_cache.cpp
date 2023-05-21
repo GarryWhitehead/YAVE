@@ -42,6 +42,13 @@ bool FramebufferCache::RPassKey::operator==(const RPassKey& rhs) const noexcept
         return false;
     }
     if (memcmp(
+            initialLayout,
+            rhs.initialLayout,
+            sizeof(vk::ImageLayout) * RenderTarget::MaxColourAttachCount) != 0)
+    {
+        return false;
+    }
+    if (memcmp(
             finalLayout,
             rhs.finalLayout,
             sizeof(vk::ImageLayout) * RenderTarget::MaxColourAttachCount) != 0)
@@ -103,6 +110,7 @@ RenderPass* FramebufferCache::findOrCreateRenderPass(const RPassKey& key)
             ASSERT_LOG(key.finalLayout[idx] != vk::ImageLayout::eUndefined);
             RenderPass::Attachment attach;
             attach.format = key.colourFormats[idx];
+            attach.initialLayout = key.initialLayout[idx];
             attach.finalLayout = key.finalLayout[idx];
             attach.loadOp = key.loadOp[idx];
             attach.storeOp = key.storeOp[idx];
@@ -115,6 +123,7 @@ RenderPass* FramebufferCache::findOrCreateRenderPass(const RPassKey& key)
     {
         RenderPass::Attachment attach;
         attach.format = key.depth;
+        attach.initialLayout = vk::ImageLayout::eUndefined;
         attach.finalLayout = vk::ImageLayout::eDepthStencilReadOnlyOptimal;
         attach.loadOp = key.dsLoadOp[0];
         attach.storeOp = key.dsStoreOp[0];

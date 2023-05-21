@@ -37,8 +37,9 @@ class ShaderProgramBundle;
 class RenderPass;
 class FrameBuffer;
 class VkContext;
-class Pipeline;
+class GraphicsPipeline;
 class PipelineLayout;
+class ComputePipeline;
 
 
 class PipelineCache
@@ -51,13 +52,15 @@ public:
     constexpr static uint8_t MaxUboDynamicBindCount = 4;
     constexpr static uint8_t MaxSsboBindCount = 4;
     constexpr static uint8_t MaxVertexAttributeCount = 8;
+    constexpr static uint8_t MaxStorageImageBindCount = 4;
 
     // shader set values for each descriptor type
     constexpr static uint8_t UboSetValue = 0;
     constexpr static uint8_t UboDynamicSetValue = 1;
     constexpr static uint8_t SsboSetValue = 2;
     constexpr static uint8_t SamplerSetValue = 3;
-    constexpr static uint8_t MaxDescriptorTypeCount = 4;
+    constexpr static uint8_t StorageImageSetValue = 4;
+    constexpr static uint8_t MaxDescriptorTypeCount = 5;
 
     PipelineCache(VkContext& context, VkDriver& driver);
     ~PipelineCache();
@@ -109,7 +112,7 @@ public:
         vk::BlendOp alphaBlendOp;
     };
 
-    struct PipelineKey
+    struct GraphicsPlineKey
     {
         RasterStateBlock rasterState;
         DepthStencilBlock dsBlock;
@@ -119,11 +122,11 @@ public:
         vk::VertexInputAttributeDescription vertAttrDesc[MaxVertexAttributeCount];
         vk::VertexInputBindingDescription vertBindDesc[MaxVertexAttributeCount];
 
-        bool operator==(const PipelineKey& rhs) const noexcept;
+        bool operator==(const GraphicsPlineKey& rhs) const noexcept;
     };
 
     static_assert(
-        std::is_trivially_copyable<PipelineKey>::value,
+        std::is_trivially_copyable<GraphicsPlineKey>::value,
         "PipelineKey must be a POD for the hashing to work correctly");
     static_assert(
         std::is_trivially_copyable<RasterStateBlock>::value,
@@ -132,7 +135,22 @@ public:
         std::is_trivially_copyable<DepthStencilBlock>::value,
         "DepthStencilBlock must be a POD for the hashing to work correctly");
 
-    using PLineHasher = util::Murmur3Hasher<PipelineKey>;
+    using PLineHasher = util::Murmur3Hasher<GraphicsPlineKey>;
+
+    // ================ compute shaders ====================
+
+    struct ComputePlineKey
+    {
+        vk::PipelineShaderStageCreateInfo shader;
+
+        bool operator==(const ComputePlineKey& rhs) const noexcept;
+    };
+
+    static_assert(
+        std::is_trivially_copyable<ComputePlineKey>::value,
+        "ComputeKey must be a POD for the hashing to work correctly");
+
+    using ComputePlineHasher = util::Murmur3Hasher<ComputePlineKey>;
 
     // =============== descriptor hasher ===================
 
@@ -153,6 +171,7 @@ public:
         size_t dynamicBufferSizes[MaxUboDynamicBindCount];
         size_t ssboBufferSizes[MaxSsboBindCount];
         DescriptorImage samplers[MaxSamplerBindCount];
+        DescriptorImage storageImages[MaxStorageImageBindCount];
 
         bool operator==(const DescriptorKey& rhs) const noexcept;
     };
@@ -165,7 +184,6 @@ public:
     static_assert(
         std::is_trivially_copyable<DescriptorImage>::value,
         "DescriptorKey must be a POD for the hashing to work correctly");
-
     using DescriptorHasher = util::Murmur3Hasher<DescriptorKey>;
 
     struct DescriptorSetInfo
@@ -175,18 +193,15 @@ public:
         uint64_t frameLastUsed;
     };
 
-    // =============== pipelines ====================
-    /**
-     * @brief Checks whether a piepline exsists based on the specified hash.
-     * Returns a pointer to the pipeline if it does, otherwise nullptr
-     */
-    Pipeline* findOrCreatePipeline(PipelineLayout& pipelineLayout);
+    // =============== graphic pipelines ====================
+
+    GraphicsPipeline* findOrCreateGraphicsPipeline(PipelineLayout& pipelineLayout);
 
     void setPipelineKeyToDefault() noexcept;
 
-    void bindPipeline(vk::CommandBuffer& cmdBuffer, PipelineLayout& pipelineLayout);
+    void bindGraphicsPipeline(vk::CommandBuffer& cmdBuffer, PipelineLayout& pipelineLayout);
 
-    void bindShaderModules(ShaderProgramBundle& prog);
+    void bindGraphicsShaderModules(ShaderProgramBundle& prog);
 
     void bindRenderPass(const vk::RenderPass& rpass);
 
@@ -201,6 +216,12 @@ public:
     void bindColourAttachCount(uint32_t count) noexcept;
     void bindBlendFactorBlock(const BlendFactorBlock& block) noexcept;
 
+    // =============== compute pipelines =============
+
+    ComputePipeline* findOrCreateComputePipeline(PipelineLayout& pipelineLayout);
+    void bindComputePipeline(vk::CommandBuffer& cmdBuffer, PipelineLayout& pipelineLayout);
+    void bindComputeShaderModules(ShaderProgramBundle& prog);
+
     // ============ descriptor sets ==================
 
     void bindVertexInput(
@@ -208,45 +229,42 @@ public:
         vk::VertexInputBindingDescription* vertBindDesc);
 
     void bindUbo(uint8_t bindValue, vk::Buffer buffer, uint32_t size);
-
     void bindUboDynamic(uint8_t bindValue, vk::Buffer buffer, uint32_t size);
-
     void bindSsbo(uint8_t bindValue, vk::Buffer buffer, uint32_t size);
 
     void bindScissor(vk::CommandBuffer cmdBuffer, const vk::Rect2D& newScissor);
-
     void bindViewport(vk::CommandBuffer cmdBuffer, const vk::Viewport& newViewPort);
-
     void bindSampler(DescriptorImage descImages[MaxSamplerBindCount]);
+    void bindStorageImage(DescriptorImage descImages[MaxStorageImageBindCount]);
+
 
     void bindDescriptors(
         vk::CommandBuffer& cmdBuffer,
         PipelineLayout& pipelineLayout,
-        const std::vector<uint32_t>& dynamicOffsets = {});
+        const std::vector<uint32_t>& dynamicOffsets = {},
+        vk::PipelineBindPoint plineBindPoint = vk::PipelineBindPoint::eGraphics);
 
     void createDescriptorSets(PipelineLayout& pipelineLayout, DescriptorSetInfo& descSetInfo);
-
     void allocDescriptorSets(vk::DescriptorSetLayout* descLayouts, vk::DescriptorSet* descSets);
-
     void createDescriptorPools();
-
     void increasePoolCapacity();
 
     void cleanCache(uint64_t currentFrame);
-
     void clear() noexcept;
 
     using PipelineCacheMap =
-        std::unordered_map<PipelineKey, std::unique_ptr<Pipeline>, PLineHasher>;
+        std::unordered_map<GraphicsPlineKey, std::unique_ptr<GraphicsPipeline>, PLineHasher>;
     using DescriptorSetCache =
         std::unordered_map<DescriptorKey, DescriptorSetInfo, DescriptorHasher>;
+    using ComputePlineCacheMap =
+        std::unordered_map<ComputePlineKey, std::unique_ptr<ComputePipeline>, ComputePlineHasher>;
 
 private:
     VkContext& context_;
     VkDriver& driver_;
 
     PipelineCacheMap pipelines_;
-
+    ComputePlineCacheMap computePipelines_;
     DescriptorSetCache descriptorSets_;
 
     /// the main descriptor pool
@@ -258,10 +276,12 @@ private:
     DescriptorKey boundDescriptor_;
 
     /// current bound pipeline.
-    PipelineKey boundPipeline_;
+    GraphicsPlineKey boundGraphicsPline_;
+    ComputePlineKey boundComputePline_;
 
-    /// the requirements of the current descriptor and pipeline
-    PipelineKey pipelineRequires_;
+    /// the requirements of the current descriptor and pipelines
+    GraphicsPlineKey graphicsPlineRequires_;
+    ComputePlineKey computePlineRequires_;
     DescriptorKey descRequires_;
 
     /// A pool of descriptor sets for each descriptor type.

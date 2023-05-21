@@ -33,15 +33,9 @@
 #include "renderable.h"
 #include "scene.h"
 #include "utility/assertion.h"
-#include "utility/murmurhash.h"
 #include "vertex_buffer.h"
-#include "vulkan-api/image.h"
-#include "vulkan-api/pipeline.h"
-#include "vulkan-api/program_manager.h"
-#include "vulkan-api/resource_cache.h"
-#include "vulkan-api/texture.h"
-#include "vulkan-api/utility.h"
 #include "yave/object_manager.h"
+#include "yave/scene.h"
 #include "yave/texture_sampler.h"
 
 #include <image_utils/cubemap.h>
@@ -54,18 +48,18 @@ namespace yave
 
 ISkybox::ISkybox(IEngine& engine, IScene& scene) : engine_(engine)
 {
-    IRenderableManager* rendManager = engine_.getRenderableManagerI();
-    IObjectManager* objManager = engine_.getObjManagerI();
-    skyboxObj_ = objManager->createObjectI();
+    IRenderableManager* rm = engine_.getRenderableManagerI();
+    IObjectManager* om = engine_.getObjManagerI();
+    skyboxObj_ = om->createObjectI();
     scene.addObject(skyboxObj_);
 
-    material_ = rendManager->createMaterialI();
+    material_ = rm->createMaterialI();
 }
 
-void ISkybox::buildI(ICamera& cam)
+void ISkybox::buildI(IScene& scene, ICamera& cam)
 {
     auto& driver = engine_.driver();
-    auto* rendManager = engine_.getRenderableManagerI();
+    IRenderableManager* rm = engine_.getRenderableManagerI();
 
     TextureSampler sampler(
         backend::SamplerFilter::Linear,
@@ -76,10 +70,10 @@ void ISkybox::buildI(ICamera& cam)
     material_->addImageTexture(
         engine_.driver(), cubeTexture_, Material::ImageType::BaseColour, sampler.get(), 0);
 
-    auto render = engine_.createRenderableI();
-    auto vBuffer = engine_.createVertexBufferI();
-    auto iBuffer = engine_.createIndexBufferI();
-    auto prim = engine_.createRenderPrimitiveI();
+    IRenderable* render = engine_.createRenderableI();
+    IVertexBuffer* vBuffer = engine_.createVertexBufferI();
+    IIndexBuffer* iBuffer = engine_.createIndexBufferI();
+    IRenderPrimitive* prim = engine_.createRenderPrimitiveI();
     render->setPrimitiveCount(1);
     render->skipVisibilityChecks();
 
@@ -101,7 +95,7 @@ void ISkybox::buildI(ICamera& cam)
     material_->setViewLayer(0x4);
     prim->setMaterialI(material_);
 
-    rendManager->buildI(render, skyboxObj_, {}, "skybox.glsl");
+    rm->buildI(scene, render, skyboxObj_, {}, "skybox.glsl");
 }
 
 ISkybox& ISkybox::setCubeMap(IMappedTexture* cubeTexture)
@@ -124,6 +118,9 @@ void ISkybox::setTexture(Texture* texture) noexcept
     setCubeMap(reinterpret_cast<IMappedTexture*>(texture));
 }
 
-void ISkybox::build(Camera* camera) { buildI(*(reinterpret_cast<ICamera*>(camera))); }
+void ISkybox::build(Scene* scene, Camera* camera)
+{
+    buildI(*(reinterpret_cast<IScene*>(scene)), *(reinterpret_cast<ICamera*>(camera)));
+}
 
 } // namespace yave

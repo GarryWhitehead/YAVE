@@ -38,6 +38,7 @@ target_sources(
     include/yave/index_buffer.h
     include/yave/object_manager.h
     include/yave/indirect_light.h
+    include/yave/options.h
     
     PRIVATE
     src/engine.cpp
@@ -59,6 +60,8 @@ target_sources(
     src/object_manager.cpp
     src/indirect_light.cpp
     src/scene_ubo.cpp
+    src/post_process.cpp
+    src/compute.cpp
     src/managers/renderable_manager.cpp
     src/managers/component_manager.cpp
     src/managers/renderable_manager.cpp
@@ -95,6 +98,8 @@ target_sources(
     src/object_manager.h
     src/indirect_light.h
     src/scene_ubo.h
+    src/post_process.h
+    src/compute.h
     src/managers/component_manager.h
     src/managers/renderable_manager.h
     src/managers/transform_manager.h

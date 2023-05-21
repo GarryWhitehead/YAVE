@@ -137,7 +137,7 @@ public:
     enum class AccessType
     {
         ReadOnly,
-        ReadWrite
+        ReadWrite,
     };
 
     StorageBuffer(
@@ -152,6 +152,10 @@ public:
     virtual std::string createShaderStr() noexcept override;
 
     void createGpuBuffer(vkapi::VkDriver& driver, uint32_t size) noexcept;
+
+    void createGpuBuffer(vkapi::VkDriver& driver) noexcept;
+
+    void copyFrom(const StorageBuffer& other) noexcept;
 
     BackendBufferParams getBufferParams(vkapi::VkDriver& driver) noexcept override;
 

@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include <vulkan-api/common.h>
+
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -29,6 +31,7 @@
 namespace yave
 {
 
+// Groups combined image samplers used by the graphics pipeline
 class SamplerSet
 {
 public:
@@ -52,16 +55,78 @@ public:
 
     SamplerSet() = default;
 
-    static std::string samplerTypeToStr(SamplerSet::SamplerType type);
+    static std::string samplerTypeToStr(SamplerType type);
 
     void
     pushSampler(const std::string& name, uint8_t set, uint8_t binding, SamplerType type) noexcept;
 
     std::string createShaderStr() noexcept;
 
+    uint32_t getSamplerBinding(const std::string& name);
+
     bool empty() const noexcept { return samplers_.empty(); }
 
 private:
     std::vector<SamplerInfo> samplers_;
 };
+
+// Groups storage image samplers used by the compute pipeline
+class ImageStorageSet
+{
+public:
+    enum class SamplerType
+    {
+        e2d,
+        e3d,
+        Cube
+    };
+
+    enum class StorageType
+    {
+        WriteOnly,
+        ReadOnly,
+        ReadWrite
+    };
+
+    struct SamplerInfo
+    {
+        std::string name;
+        // the set for this sampler
+        uint8_t set;
+        // binding of the sampler;
+        uint8_t binding;
+        // type of the sampler
+        SamplerType type;
+        // whether the image is read or write
+        StorageType storageType;
+        // the texture formmat i.e. rgba8
+        std::string formatLayout;
+    };
+
+    ImageStorageSet() = default;
+
+    static std::string samplerTypeToStr(SamplerType type);
+
+    static std::string storageTypeToStr(ImageStorageSet::StorageType type);
+
+    static std::string texFormatToFormatLayout(vk::Format format);
+
+    void addStorageImage(
+        const std::string& name,
+        uint8_t set,
+        uint8_t binding,
+        SamplerType type,
+        StorageType storageType,
+        const std::string& formatLayout) noexcept;
+
+    std::string createShaderStr() noexcept;
+
+    uint32_t getSamplerBinding(const std::string& name);
+
+    bool empty() const noexcept { return samplers_.empty(); }
+
+private:
+    std::vector<SamplerInfo> samplers_;
+};
+
 } // namespace yave

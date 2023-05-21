@@ -28,6 +28,7 @@
 #include "managers/light_manager.h"
 #include "managers/renderable_manager.h"
 #include "mapped_texture.h"
+#include "post_process.h"
 #include "renderable.h"
 #include "scene.h"
 #include "skybox.h"
@@ -49,7 +50,6 @@ IEngine::IEngine()
       rendManager_(std::make_unique<IRenderableManager>(*this)),
       transformManager_(std::make_unique<ITransformManager>(*this)),
       objManager_(std::make_unique<IObjectManager>()),
-      currentScene_(nullptr),
       currentSwapchain_(nullptr),
       driver_(nullptr)
 {
@@ -75,9 +75,10 @@ IEngine* IEngine::create(Window* win)
     engine->currentWindow_ = win;
     engine->driver_ = std::unique_ptr<vkapi::VkDriver>(driver);
 
-    // its safe to initialise the lighting manager now
+    // its safe to initialise the lighting manager and post process now
     // (requires the device to be init)
     engine->lightManager_ = std::make_unique<ILightManager>(*engine);
+    engine->postProcess_ = std::make_unique<PostProcess>(*engine);
 
     engine->init();
 
@@ -193,9 +194,9 @@ IMappedTexture* IEngine::createMappedTextureI() noexcept
     return createResource(mappedTextures_, *this);
 }
 
-ISkybox* IEngine::createSkyboxI() noexcept
+ISkybox* IEngine::createSkyboxI(IScene& scene) noexcept
 {
-    return createResource(skyboxes_, *this, *currentScene_);
+    return createResource(skyboxes_, *this, scene);
 }
 
 IIndirectLight* IEngine::createIndirectLightI() noexcept { return createResource(indirectLights_); }
@@ -281,8 +282,6 @@ Renderable* IEngine::createRenderable()
 
 void IEngine::setCurrentSwapchain(const SwapchainHandle& handle) { setCurrentSwapchainI(handle); }
 
-void IEngine::setCurrentScene(Scene* scene) { setCurrentSceneI(reinterpret_cast<IScene*>(scene)); }
-
 RenderableManager* IEngine::getRenderManager()
 {
     return reinterpret_cast<RenderableManager*>(getRenderableManagerI());
@@ -305,7 +304,10 @@ ObjectManager* IEngine::getObjectManager()
 
 Texture* IEngine::createTexture() { return reinterpret_cast<Texture*>(createMappedTextureI()); }
 
-Skybox* IEngine::createSkybox() { return reinterpret_cast<Skybox*>(createSkyboxI()); }
+Skybox* IEngine::createSkybox(Scene* scene)
+{
+    return reinterpret_cast<Skybox*>(createSkyboxI(*(reinterpret_cast<IScene*>(scene))));
+}
 
 IndirectLight* IEngine::createIndirectLight()
 {
