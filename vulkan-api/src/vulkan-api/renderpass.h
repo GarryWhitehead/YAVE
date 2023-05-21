@@ -90,6 +90,7 @@ public:
     {
         vk::Format format;
         uint32_t sampleCount = 1;
+        vk::ImageLayout initialLayout;
         vk::ImageLayout finalLayout;
         backend::LoadClearFlags loadOp;
         backend::StoreClearFlags storeOp;
@@ -163,6 +164,10 @@ struct RenderPassData
         backend::LoadClearFlags::DontCare};
     std::array<backend::StoreClearFlags, RenderTarget::MaxAttachmentCount> storeClearFlags = {
         backend::StoreClearFlags::DontCare};
+    // initial layout is usually undefined, but needs to be the layout used in the previous pass
+    // when load-clear flags are set to 'load'
+    std::array<vk::ImageLayout, RenderTarget::MaxAttachmentCount> initialLayouts = {
+        vk::ImageLayout::eUndefined};
     std::array<vk::ImageLayout, RenderTarget::MaxAttachmentCount> finalLayouts = {
         vk::ImageLayout::eShaderReadOnlyOptimal};
     util::Colour4 clearCol;

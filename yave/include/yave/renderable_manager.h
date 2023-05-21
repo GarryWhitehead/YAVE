@@ -30,6 +30,7 @@ class Object;
 class Material;
 class RenderPrimitive;
 struct ModelTransform;
+class Scene;
 
 class RenderableManager
 {
@@ -37,6 +38,7 @@ public:
     virtual ~RenderableManager();
 
     virtual void build(
+        Scene* scene,
         Renderable* renderable,
         Object& obj,
         const ModelTransform& transform,

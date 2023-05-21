@@ -86,6 +86,8 @@ public:
         const vk::ImageLayout& oldLayout,
         const vk::ImageLayout& newLayout,
         const vk::CommandBuffer& cmdBuff,
+        vk::PipelineStageFlags srcStage = vk::PipelineStageFlagBits::eAllCommands,
+        vk::PipelineStageFlags dstStage = vk::PipelineStageFlagBits::eAllCommands,
         uint32_t baseMipMapLevel = UINT32_MAX);
 
     static void blit(const Image& srcImage, const Image& dstImage, Commands& cmd);

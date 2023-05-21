@@ -50,7 +50,9 @@ IScene::IScene(IEngine& engine)
       camera_(nullptr),
       skybox_(nullptr),
       indirectLight_(nullptr),
-      sceneUbo_(std::make_unique<SceneUbo>(engine_.driver()))
+      sceneUbo_(std::make_unique<SceneUbo>(engine_.driver())),
+      usePostProcessing_(true),
+      useGbuffer_(true)
 {
     vkapi::VkDriver& driver = engine_.driver();
 
@@ -97,6 +99,8 @@ void IScene::setCameraI(ICamera* cam) noexcept
 
 bool IScene::update()
 {
+    ASSERT_FATAL(camera_, "No camera has been set.");
+
     ILightManager* lm = engine_.getLightManagerI();
     IRenderableManager* rm = engine_.getRenderableManagerI();
     IObjectManager* om = engine_.getObjManagerI();
@@ -390,5 +394,17 @@ void IScene::destroyObject(Object obj)
         "scene");
     objects_.erase(iter);
 }
+
+void IScene::usePostProcessing(bool state) { usePostProcessing_ = state; }
+
+void IScene::useGbuffer(bool state) { useGbuffer_ = state; }
+
+void IScene::setBloomOptions(const BloomOptions& bloom) { bloomOptions_ = bloom; }
+
+BloomOptions& IScene::getBloomOptions() { return bloomOptions_; }
+
+void IScene::setGbufferOptions(const GbufferOptions& gb) { gbufferOptions_ = gb; }
+
+GbufferOptions& IScene::getGbufferOptions() { return gbufferOptions_; }
 
 } // namespace yave

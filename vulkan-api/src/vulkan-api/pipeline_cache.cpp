@@ -45,7 +45,7 @@ PipelineCache::PipelineCache(VkContext& context, VkDriver& driver)
 
 PipelineCache::~PipelineCache() {}
 
-bool PipelineCache::PipelineKey::operator==(const PipelineKey& rhs) const noexcept
+bool PipelineCache::GraphicsPlineKey::operator==(const GraphicsPlineKey& rhs) const noexcept
 {
     // this compare could be one big memcpy but for debugging purposes its
     // easier to split the comparisons into their component parts.
@@ -73,6 +73,15 @@ bool PipelineCache::PipelineKey::operator==(const PipelineKey& rhs) const noexce
         }
     }
     if (renderPass != rhs.renderPass)
+    {
+        return false;
+    }
+    return true;
+}
+
+bool PipelineCache::ComputePlineKey::operator==(const ComputePlineKey& rhs) const noexcept
+{
+    if (rhs.shader != shader)
     {
         return false;
     }
@@ -112,6 +121,15 @@ bool PipelineCache::DescriptorKey::operator==(const DescriptorKey& rhs) const no
             return false;
         }
     }
+    for (int idx = 0; idx < MaxStorageImageBindCount; ++idx)
+    {
+        if (storageImages[idx].imageLayout != rhs.storageImages[idx].imageLayout ||
+            storageImages[idx].imageSampler != rhs.storageImages[idx].imageSampler ||
+            storageImages[idx].imageView != rhs.storageImages[idx].imageView)
+        {
+            return false;
+        }
+    }
     return true;
 }
 
@@ -142,11 +160,15 @@ void PipelineCache::resetKeys() noexcept
     {
         descRequires_.samplers[i] = {};
     }
+    for (int i = 0; i < MaxStorageImageBindCount; ++i)
+    {
+        descRequires_.storageImages[i] = {};
+    }
 }
 
 void PipelineCache::setPipelineKeyToDefault() noexcept
 {
-    RasterStateBlock& rsBlock = pipelineRequires_.rasterState;
+    RasterStateBlock& rsBlock = graphicsPlineRequires_.rasterState;
     rsBlock.cullMode = vk::CullModeFlagBits::eFront;
     rsBlock.polygonMode = vk::PolygonMode::eFill;
     rsBlock.frontFace = vk::FrontFace::eCounterClockwise;
@@ -156,7 +178,7 @@ void PipelineCache::setPipelineKeyToDefault() noexcept
     rsBlock.colorWriteMask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
         vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
 
-    BlendFactorBlock bfBlock = pipelineRequires_.blendState;
+    BlendFactorBlock bfBlock = graphicsPlineRequires_.blendState;
     bfBlock.srcColorBlendFactor = vk::BlendFactor::eZero;
     bfBlock.dstColorBlendFactor = vk::BlendFactor::eZero;
     bfBlock.colorBlendOp = vk::BlendOp::eAdd;
@@ -165,7 +187,7 @@ void PipelineCache::setPipelineKeyToDefault() noexcept
     bfBlock.alphaBlendOp = vk::BlendOp::eAdd;
     bfBlock.blendEnable = VK_FALSE;
 
-    DepthStencilBlock& dsBlock = pipelineRequires_.dsBlock;
+    DepthStencilBlock& dsBlock = graphicsPlineRequires_.dsBlock;
     dsBlock.stencilTestEnable = VK_FALSE;
     dsBlock.compareOp = vk::CompareOp::eLessOrEqual;
     dsBlock.stencilFailOp = vk::StencilOp::eZero;
@@ -177,40 +199,41 @@ void PipelineCache::setPipelineKeyToDefault() noexcept
 
     for (int i = 0; i < util::ecast(backend::ShaderStage::Count); ++i)
     {
-        pipelineRequires_.shaders[i].pName = nullptr;
+        graphicsPlineRequires_.shaders[i].pName = nullptr;
     }
     for (int i = 0; i < MaxVertexAttributeCount; ++i)
     {
-        pipelineRequires_.vertAttrDesc[i].format = vk::Format::eUndefined;
+        graphicsPlineRequires_.vertAttrDesc[i].format = vk::Format::eUndefined;
     }
 }
 
-void PipelineCache::bindPipeline(vk::CommandBuffer& cmdBuffer, PipelineLayout& pipelineLayout)
+void PipelineCache::bindGraphicsPipeline(
+    vk::CommandBuffer& cmdBuffer, PipelineLayout& pipelineLayout)
 {
     // check if the required pipeline is already bound. If so, nothing to do
     // here.
-    //    if (boundPipeline_ == pipelineRequires_)
+    //    if ( boundGraphicsPline_ ==  graphicsPlineRequires_)
     //  {
-    //     pipelines_[boundPipeline_]->lastUsedFrameStamp_ = driver_.getCurrentFrame();
+    //     pipelines_[ boundGraphicsPline_]->lastUsedFrameStamp_ = driver_.getCurrentFrame();
     //     setPipelineKeyToDefault();
     //     return;
     // }
 
-    Pipeline* pline = findOrCreatePipeline(pipelineLayout);
+    GraphicsPipeline* pline = findOrCreateGraphicsPipeline(pipelineLayout);
     ASSERT_FATAL(pline, "When trying to find or create pipeline, returned nullptr.");
 
     pline->lastUsedFrameStamp_ = driver_.getCurrentFrame();
 
-    vk::PipelineBindPoint bindPoint = Pipeline::createBindPoint(pline->getType());
+    vk::PipelineBindPoint bindPoint = vk::PipelineBindPoint::eGraphics;
     cmdBuffer.bindPipeline(bindPoint, pline->get());
 
-    boundPipeline_ = pipelineRequires_;
+    boundGraphicsPline_ = graphicsPlineRequires_;
     setPipelineKeyToDefault();
 }
 
-Pipeline* PipelineCache::findOrCreatePipeline(PipelineLayout& pipelineLayout)
+GraphicsPipeline* PipelineCache::findOrCreateGraphicsPipeline(PipelineLayout& pipelineLayout)
 {
-    auto iter = pipelines_.find(pipelineRequires_);
+    auto iter = pipelines_.find(graphicsPlineRequires_);
 
     // if the pipeline has already has an instance return this
     if (iter != pipelines_.end())
@@ -220,77 +243,117 @@ Pipeline* PipelineCache::findOrCreatePipeline(PipelineLayout& pipelineLayout)
 
     // else create a new pipeline - If we are in a threaded environemt then we
     // can't add to the list until we are out of the thread
-    std::unique_ptr<Pipeline> pline =
-        std::make_unique<Pipeline>(context_, Pipeline::Type::Graphics);
-    Pipeline* output = pline.get();
-    pline->create(pipelineRequires_, const_cast<PipelineLayout&>(pipelineLayout));
-    pipelines_.emplace(pipelineRequires_, std::move(pline));
+    std::unique_ptr<GraphicsPipeline> pline = std::make_unique<GraphicsPipeline>(context_);
+    GraphicsPipeline* output = pline.get();
+    pline->create(graphicsPlineRequires_, const_cast<PipelineLayout&>(pipelineLayout));
+    pipelines_.emplace(graphicsPlineRequires_, std::move(pline));
 
     return output;
 }
 
-void PipelineCache::bindShaderModules(ShaderProgramBundle& prog)
+void PipelineCache::bindGraphicsShaderModules(ShaderProgramBundle& prog)
 {
     memcpy(
-        pipelineRequires_.shaders,
+        graphicsPlineRequires_.shaders,
         prog.getShaderStagesCreateInfo().data(),
         sizeof(vk::PipelineShaderStageCreateInfo) * util::ecast(backend::ShaderStage::Count));
+}
+
+ComputePipeline* PipelineCache::findOrCreateComputePipeline(PipelineLayout& pipelineLayout)
+{
+    auto iter = computePipelines_.find(computePlineRequires_);
+
+    // if the pipeline has already has an instance return this
+    if (iter != computePipelines_.end())
+    {
+        return iter->second.get();
+    }
+
+    std::unique_ptr<ComputePipeline> pline = std::make_unique<ComputePipeline>(context_);
+    ComputePipeline* output = pline.get();
+    pline->create(computePlineRequires_, const_cast<PipelineLayout&>(pipelineLayout));
+    computePipelines_.emplace(computePlineRequires_, std::move(pline));
+
+    return output;
+}
+
+void PipelineCache::bindComputeShaderModules(ShaderProgramBundle& prog)
+{
+    auto shader = prog.getShaderStagesCreateInfo();
+    computePlineRequires_.shader = shader[util::ecast(backend::ShaderStage::Compute)];
+}
+
+void PipelineCache::bindComputePipeline(
+    vk::CommandBuffer& cmdBuffer, PipelineLayout& pipelineLayout)
+{
+    if (boundComputePline_ == computePlineRequires_)
+    {
+        return;
+    }
+
+    ComputePipeline* pline = findOrCreateComputePipeline(pipelineLayout);
+    ASSERT_FATAL(pline, "When trying to find or create compute pipeline, returned nullptr.");
+
+    vk::PipelineBindPoint bindPoint = vk::PipelineBindPoint::eCompute;
+    cmdBuffer.bindPipeline(bindPoint, pline->get());
+
+    boundComputePline_ = computePlineRequires_;
 }
 
 void PipelineCache::bindRenderPass(const vk::RenderPass& rpass)
 {
     ASSERT_LOG(rpass);
-    pipelineRequires_.renderPass = rpass;
+    graphicsPlineRequires_.renderPass = rpass;
 }
 
 void PipelineCache::bindCullMode(vk::CullModeFlagBits cullMode)
 {
-    pipelineRequires_.rasterState.cullMode = cullMode;
+    graphicsPlineRequires_.rasterState.cullMode = cullMode;
 }
 
 void PipelineCache::bindPolygonMode(vk::PolygonMode polyMode)
 {
-    pipelineRequires_.rasterState.polygonMode = polyMode;
+    graphicsPlineRequires_.rasterState.polygonMode = polyMode;
 }
 
 void PipelineCache::bindFrontFace(vk::FrontFace frontFace)
 {
-    pipelineRequires_.rasterState.frontFace = frontFace;
+    graphicsPlineRequires_.rasterState.frontFace = frontFace;
 }
 
 void PipelineCache::bindTopology(vk::PrimitiveTopology topo)
 {
-    pipelineRequires_.rasterState.topology = topo;
+    graphicsPlineRequires_.rasterState.topology = topo;
 }
 
 void PipelineCache::bindPrimRestart(bool state)
 {
-    pipelineRequires_.rasterState.primRestart = state;
+    graphicsPlineRequires_.rasterState.primRestart = state;
 }
 
 void PipelineCache::bindDepthTestEnable(bool state)
 {
-    pipelineRequires_.rasterState.depthTestEnable = state;
+    graphicsPlineRequires_.rasterState.depthTestEnable = state;
 }
 
 void PipelineCache::bindDepthWriteEnable(bool state)
 {
-    pipelineRequires_.rasterState.depthWriteEnable = state;
+    graphicsPlineRequires_.rasterState.depthWriteEnable = state;
 }
 
 void PipelineCache::bindDepthStencilBlock(const DepthStencilBlock& dsBlock)
 {
-    pipelineRequires_.dsBlock = dsBlock;
+    graphicsPlineRequires_.dsBlock = dsBlock;
 }
 
 void PipelineCache::bindColourAttachCount(uint32_t count) noexcept
 {
-    pipelineRequires_.rasterState.colourAttachCount = count;
+    graphicsPlineRequires_.rasterState.colourAttachCount = count;
 }
 
 void PipelineCache::bindBlendFactorBlock(const BlendFactorBlock& block) noexcept
 {
-    pipelineRequires_.blendState = block;
+    graphicsPlineRequires_.blendState = block;
 }
 
 void PipelineCache::bindVertexInput(
@@ -300,11 +363,11 @@ void PipelineCache::bindVertexInput(
     ASSERT_LOG(vertAttrDesc);
     ASSERT_LOG(vertBindDesc);
     memcpy(
-        pipelineRequires_.vertAttrDesc,
+        graphicsPlineRequires_.vertAttrDesc,
         vertAttrDesc,
         sizeof(vk::VertexInputAttributeDescription) * PipelineCache::MaxVertexAttributeCount);
     memcpy(
-        pipelineRequires_.vertBindDesc,
+        graphicsPlineRequires_.vertBindDesc,
         vertBindDesc,
         sizeof(vk::VertexInputBindingDescription) * PipelineCache::MaxVertexAttributeCount);
 }
@@ -359,10 +422,19 @@ void PipelineCache::bindSampler(DescriptorImage descImages[MaxSamplerBindCount])
     memcpy(&descRequires_.samplers, descImages, sizeof(DescriptorImage) * MaxSamplerBindCount);
 }
 
+void PipelineCache::bindStorageImage(DescriptorImage descImages[MaxStorageImageBindCount])
+{
+    memcpy(
+        &descRequires_.storageImages,
+        descImages,
+        sizeof(DescriptorImage) * MaxStorageImageBindCount);
+}
+
 void PipelineCache::bindDescriptors(
     vk::CommandBuffer& cmdBuffer,
     PipelineLayout& pipelineLayout,
-    const std::vector<uint32_t>& dynamicOffsets)
+    const std::vector<uint32_t>& dynamicOffsets,
+    vk::PipelineBindPoint plineBindPoint)
 {
     // check if the required descriptor set is already bound. If so, nothing to
     // do here.
@@ -379,8 +451,8 @@ void PipelineCache::bindDescriptors(
     auto iter = descriptorSets_.find(descRequires_);
     if (iter != descriptorSets_.end())
     {
-        descSetInfo = iter->second;
         descSetInfo.frameLastUsed = driver_.getCurrentFrame();
+        descSetInfo = iter->second;
     }
     else
     {
@@ -390,9 +462,8 @@ void PipelineCache::bindDescriptors(
         descriptorSets_.emplace(descRequires_, descSetInfo);
     }
 
-    vk::PipelineBindPoint bindPoint = Pipeline::createBindPoint(Pipeline::Type::Graphics);
     cmdBuffer.bindDescriptorSets(
-        bindPoint,
+        plineBindPoint,
         pipelineLayout.get(),
         0,
         static_cast<uint32_t>(MaxDescriptorTypeCount),
@@ -430,106 +501,118 @@ void PipelineCache::createDescriptorSets(
     std::array<vk::DescriptorBufferInfo, MaxUboBindCount> dynamicBufferInfos;
     std::array<vk::DescriptorBufferInfo, MaxSsboBindCount> ssboInfos;
     std::array<vk::DescriptorImageInfo, MaxSamplerBindCount> samplerInfos;
+    std::array<vk::DescriptorImageInfo, MaxStorageImageBindCount> storageImageInfos;
 
+    auto writeBufferDescSet = [&writeSets](
+                                  vk::DescriptorSet set,
+                                  vk::DescriptorBufferInfo& bufferInfo,
+                                  vk::Buffer buffer,
+                                  size_t range,
+                                  vk::DescriptorType type,
+                                  size_t bind) {
+        ASSERT_FATAL(set, "Descriptor set is NULL.");
+
+        bufferInfo.buffer = buffer;
+        bufferInfo.offset = 0;
+        bufferInfo.range = range;
+
+        writeSets.push_back(
+            {set, static_cast<uint32_t>(bind), 0, 1, type, nullptr, &bufferInfo, nullptr});
+    };
+
+    // ==================== buffer descriptor writes ===============
+    //
     // unoform buffers
-    for (uint8_t i = 0; i < MaxUboBindCount; ++i)
+    for (uint8_t bind = 0; bind < MaxUboBindCount; ++bind)
     {
-        if (descRequires_.ubos[i])
+        if (descRequires_.ubos[bind])
         {
-            ASSERT_FATAL(descSetInfo.descrSets[UboSetValue], "UBO Descriptor set is NULL.");
-
-            vk::DescriptorBufferInfo& bufferInfo = bufferInfos[i];
-            bufferInfo.buffer = descRequires_.ubos[i];
-            bufferInfo.offset = 0;
-            bufferInfo.range = descRequires_.bufferSizes[i];
-
-            writeSets.push_back(
-                {descSetInfo.descrSets[UboSetValue],
-                 i,
-                 0,
-                 1,
-                 vk::DescriptorType::eUniformBuffer,
-                 nullptr,
-                 &bufferInfo,
-                 nullptr});
+            vk::DescriptorBufferInfo& bufferInfo = bufferInfos[bind];
+            writeBufferDescSet(
+                descSetInfo.descrSets[UboSetValue],
+                bufferInfo,
+                descRequires_.ubos[bind],
+                descRequires_.bufferSizes[bind],
+                vk::DescriptorType::eUniformBuffer,
+                bind);
         }
     }
     // dynamic uniform buffers
-    for (uint8_t i = 0; i < MaxUboDynamicBindCount; ++i)
+    for (uint8_t bind = 0; bind < MaxUboDynamicBindCount; ++bind)
     {
-        if (descRequires_.dynamicUbos[i])
+        if (descRequires_.dynamicUbos[bind])
         {
-            ASSERT_FATAL(
-                descSetInfo.descrSets[UboDynamicSetValue], "Dynamic UBO Descriptor set is NULL.");
-
-            vk::DescriptorBufferInfo& bufferInfo = dynamicBufferInfos[i];
-            bufferInfo.buffer = descRequires_.dynamicUbos[i];
-            bufferInfo.offset = 0;
-            bufferInfo.range = descRequires_.dynamicBufferSizes[i];
-
-            writeSets.push_back(
-                {descSetInfo.descrSets[UboDynamicSetValue],
-                 i,
-                 0,
-                 1,
-                 vk::DescriptorType::eUniformBufferDynamic,
-                 nullptr,
-                 &bufferInfo,
-                 nullptr});
+            vk::DescriptorBufferInfo& bufferInfo = dynamicBufferInfos[bind];
+            writeBufferDescSet(
+                descSetInfo.descrSets[UboDynamicSetValue],
+                bufferInfo,
+                descRequires_.dynamicUbos[bind],
+                descRequires_.dynamicBufferSizes[bind],
+                vk::DescriptorType::eUniformBufferDynamic,
+                bind);
         }
     }
     // storage buffers
-    for (uint8_t i = 0; i < MaxSsboBindCount; ++i)
+    for (uint8_t bind = 0; bind < MaxSsboBindCount; ++bind)
     {
-        if (descRequires_.ssbos[i])
+        if (descRequires_.ssbos[bind])
         {
-            ASSERT_FATAL(descSetInfo.descrSets[SsboSetValue], "SSBO Descriptor set is NULL.");
-
-            vk::DescriptorBufferInfo& bufferInfo = ssboInfos[i];
-            bufferInfo.buffer = descRequires_.ssbos[i];
-            bufferInfo.offset = 0;
-            bufferInfo.range = descRequires_.ssboBufferSizes[i];
-
-            writeSets.push_back(
-                {descSetInfo.descrSets[SsboSetValue],
-                 i,
-                 0,
-                 1,
-                 vk::DescriptorType::eStorageBuffer,
-                 nullptr,
-                 &bufferInfo,
-                 nullptr});
+            vk::DescriptorBufferInfo& bufferInfo = ssboInfos[bind];
+            writeBufferDescSet(
+                descSetInfo.descrSets[SsboSetValue],
+                bufferInfo,
+                descRequires_.ssbos[bind],
+                descRequires_.ssboBufferSizes[bind],
+                vk::DescriptorType::eStorageBuffer,
+                bind);
         }
     }
-    // samplers
-    for (uint8_t i = 0; i < MaxSamplerBindCount; ++i)
+
+    //  =============== image descriptor writes =======================
+
+    auto writeDescSet = [&writeSets](
+                            const DescriptorImage& desc,
+                            vk::DescriptorType type,
+                            vk::DescriptorImageInfo& imageInfo,
+                            vk::DescriptorSet set,
+                            size_t binding) -> void {
+        ASSERT_FATAL(desc.imageSampler, "Image sampler not set for descriptor binding %d", binding);
+        ASSERT_FATAL(desc.imageView, "Image view not set for descriptor binding %d", binding);
+        ASSERT_FATAL(set, "Descriptor set is NULL.");
+
+
+        imageInfo.imageLayout = desc.imageLayout;
+        imageInfo.imageView = desc.imageView;
+        imageInfo.sampler = desc.imageSampler;
+
+        writeSets.push_back(
+            {set, static_cast<uint32_t>(binding), 0, 1, type, &imageInfo, nullptr, nullptr});
+    };
+
+    for (uint8_t bind = 0; bind < MaxSamplerBindCount; ++bind)
     {
-        if (descRequires_.samplers[i].imageSampler)
+        if (descRequires_.samplers[bind].imageSampler)
         {
-            ASSERT_FATAL(
-                descRequires_.samplers[i].imageSampler,
-                "Image sampler not set for descriptor binding %d",
-                i);
-            ASSERT_FATAL(
-                descRequires_.samplers[i].imageView,
-                "Image view not set for descriptor binding %d",
-                i);
-            ASSERT_FATAL(descSetInfo.descrSets[SamplerSetValue], "Descriptor set is NULL.");
-
-            vk::DescriptorImageInfo& imageInfo = samplerInfos[i];
-            imageInfo.imageLayout = descRequires_.samplers[i].imageLayout;
-            imageInfo.imageView = descRequires_.samplers[i].imageView;
-            imageInfo.sampler = descRequires_.samplers[i].imageSampler;
-
-            writeSets.push_back(
-                {descSetInfo.descrSets[SamplerSetValue],
-                 i,
-                 0,
-                 1,
-                 vk::DescriptorType::eCombinedImageSampler,
-                 &imageInfo,
-                 nullptr,
-                 nullptr});
+            vk::DescriptorImageInfo& imageInfo = samplerInfos[bind];
+            writeDescSet(
+                descRequires_.samplers[bind],
+                vk::DescriptorType::eCombinedImageSampler,
+                imageInfo,
+                descSetInfo.descrSets[SamplerSetValue],
+                bind);
+        }
+    }
+    for (uint8_t bind = 0; bind < MaxStorageImageBindCount; ++bind)
+    {
+        if (descRequires_.storageImages[bind].imageSampler)
+        {
+            vk::DescriptorImageInfo& imageInfo = storageImageInfos[bind];
+            writeDescSet(
+                descRequires_.storageImages[bind],
+                vk::DescriptorType::eStorageImage,
+                imageInfo,
+                descSetInfo.descrSets[StorageImageSetValue],
+                bind);
         }
     }
     // TODO: add input attachments
@@ -561,6 +644,8 @@ void PipelineCache::createDescriptorPools()
         vk::DescriptorType::eCombinedImageSampler, currentDescPoolSize_ * MaxSamplerBindCount};
     pools[3] = vk::DescriptorPoolSize {
         vk::DescriptorType::eStorageBuffer, currentDescPoolSize_ * MaxSsboBindCount};
+    pools[4] = vk::DescriptorPoolSize {
+        vk::DescriptorType::eStorageImage, currentDescPoolSize_ * MaxStorageImageBindCount};
 
     vk::DescriptorPoolCreateInfo createInfo(
         vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet,
@@ -592,7 +677,8 @@ void PipelineCache::cleanCache(uint64_t currentFrame)
     for (auto iter = pipelines_.begin(); iter != pipelines_.end();)
     {
         vk::Pipeline pl = iter->second->get();
-        uint64_t collectionFrame = iter->second->lastUsedFrameStamp_ + Pipeline::LifetimeFrameCount;
+        uint64_t collectionFrame =
+            iter->second->lastUsedFrameStamp_ + GraphicsPipeline::LifetimeFrameCount;
         if (pl && collectionFrame < currentFrame)
         {
             context_.device().destroy(pl);
@@ -611,18 +697,22 @@ void PipelineCache::cleanCache(uint64_t currentFrame)
     for (auto iter = descriptorSets_.begin(); iter != descriptorSets_.end();)
     {
         DescriptorSetInfo info = iter->second;
-        uint64_t collectionFrame = info.frameLastUsed + Pipeline::LifetimeFrameCount;
+        uint64_t collectionFrame = info.frameLastUsed + GraphicsPipeline::LifetimeFrameCount;
         if (collectionFrame < currentFrame)
         {
             for (int i = 0; i < MaxDescriptorTypeCount; ++i)
             {
                 if (info.layout[i])
                 {
+                    // TODO: we cant destroy the set layouts as they are used
+                    // by pipelinelayouts and doing so results in a crash
+                    // So need to add a ref to the pipeline layout when creating
+                    // the desc sets and delete evrything.
                     // context_.device().destroy(info.layout[i]);
                 }
-                // context_.device().freeDescriptorSets(
-                //     descriptorPool_, MaxDescriptorTypeCount, info.descrSets);
             }
+            context_.device().freeDescriptorSets(
+                descriptorPool_, MaxDescriptorTypeCount, info.descrSets);
             iter = descriptorSets_.erase(iter);
         }
         else
@@ -635,7 +725,7 @@ void PipelineCache::cleanCache(uint64_t currentFrame)
     if (!descSetsForDeletion_.empty())
     {
         uint64_t collectionFrame =
-            descSetsForDeletion_[0].frameLastUsed + Pipeline::LifetimeFrameCount;
+            descSetsForDeletion_[0].frameLastUsed + GraphicsPipeline::LifetimeFrameCount;
         if (collectionFrame < currentFrame)
         {
             for (auto const& pool : descPoolsForDeletion_)

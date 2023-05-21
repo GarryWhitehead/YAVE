@@ -1,0 +1,41 @@
+#define GROUP_SIZE 256
+
+shared uint histogramShared[GROUP_SIZE];
+
+layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+uint colourToBin(vec3 hdrColour) 
+{
+  vec3 rgbToLum = vec3(0.2125, 0.7154, 0.0721);
+  float lum = dot(hdrColour, rgbToLum);
+
+  if (lum < 0.005) 
+  {
+    return 0;
+  }
+
+  float logLum = clamp((log2(lum) - compute_ubo.minLuminanceLog) * compute_ubo.invLuminanceRange, 0.0, 1.0);
+  return uint(logLum * 254.0 + 1.0);
+}
+
+void main() 
+{
+  histogramShared[gl_LocalInvocationIndex] = 0;
+  barrier();
+
+  uvec2 dim = imageSize(ColourSampler).xy;
+
+  if (gl_GlobalInvocationID.x < dim.x && gl_GlobalInvocationID.y < dim.y) 
+  {
+    vec3 hdrColor = imageLoad(ColourSampler, ivec2(gl_GlobalInvocationID.xy)).rgb;
+    uint binIndex = colourToBin(hdrColor);
+
+    atomicAdd(histogramShared[binIndex], 1);
+  }
+
+  // Wait for all threads in the work group to reach this point before adding our
+  // local histogram to the global one
+  barrier();
+
+  atomicAdd(output_ssbo.histogram[gl_LocalInvocationIndex], histogramShared[gl_LocalInvocationIndex]);
+}

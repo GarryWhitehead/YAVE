@@ -79,14 +79,11 @@ public:
     uint32_t getMeshDynamicOffset() const noexcept;
     uint32_t getSkinDynamicOffset() const noexcept;
 
-    bool useGBuffer() const noexcept { return useGBuffer_; }
-
     // ================ client api ==========================
 
     void setPrimitiveCount(size_t count) noexcept override;
     void setPrimitive(RenderPrimitive* prim, size_t idx) override;
     void skipVisibilityChecks() override;
-    void disableGBuffer() noexcept override;
 
     friend class IRenderableManager;
 
@@ -103,8 +100,6 @@ private:
     uint32_t skinDynamicOffset_;
 
     std::vector<IRenderPrimitive*> primitives_;
-
-    bool useGBuffer_;
 };
 
 } // namespace yave

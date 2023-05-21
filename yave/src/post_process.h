@@ -22,40 +22,82 @@
 
 #pragma once
 
+#include "backend/enums.h"
 #include "render_graph/render_graph.h"
+#include "yave/object.h"
+
+#include <vulkan-api/driver.h>
+
+#include <memory>
+#include <string>
 
 namespace yave
 {
-class IScene;
 class IEngine;
+class IMaterial;
+class Object;
+class IMappedTexture;
+class Compute;
+struct BloomOptions;
+class IScene;
 
-struct ColourPass
+class PostProcess
 {
-    struct ColourPassData
+private:
+    using ElementType = backend::BufferElementType;
+
+    struct PpRegister
     {
-        rg::RenderGraphHandle rt;
-        rg::RenderGraphHandle position;
-        rg::RenderGraphHandle colour;
-        rg::RenderGraphHandle normal;
-        rg::RenderGraphHandle pbr;
-        rg::RenderGraphHandle emissive;
-        rg::RenderGraphHandle depth;
+        struct UboParams
+        {
+            std::string name;
+            ElementType type;
+            size_t arrayCount = 1;
+        };
+        std::string shader;
+        std::vector<UboParams> uboElements;
+        std::vector<std::string> samplers;
     };
 
-    static rg::RenderGraphHandle render(
-        IEngine& engine,
-        IScene& scene,
+    struct PpMaterial
+    {
+        IMaterial* material = nullptr;
+        Object obj;
+    };
+
+public:
+    // bloom
+    struct BloomData
+    {
+        float gamma = 2.2f;
+        rg::RenderGraphHandle bloom;
+        rg::RenderGraphHandle rt;
+        // inputs
+        rg::RenderGraphHandle light;
+    };
+
+    PostProcess(IEngine& engine);
+    ~PostProcess();
+
+    void init(IScene& scene);
+
+    PpMaterial getMaterial(const std::string& name);
+
+    rg::RenderGraphHandle bloom(
         rg::RenderGraph& rGraph,
         uint32_t width,
         uint32_t height,
-        vk::Format depthFormat);
+        const BloomOptions& options,
+        float dt);
 
-    static void drawCallback(
-        IEngine& engine,
-        IScene& scene,
-        const vk::CommandBuffer& cmdBuffer,
-        void* data,
-        void* primitiveData);
+private:
+    IEngine& engine_;
+
+    std::unordered_map<std::string, PpMaterial> materials_;
+
+    IMappedTexture* averageLumLut_;
+    std::unique_ptr<Compute> lumCompute_;
+    std::unique_ptr<Compute> avgCompute_;
 };
 
 } // namespace yave

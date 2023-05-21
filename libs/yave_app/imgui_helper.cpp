@@ -23,6 +23,7 @@
 #include "imgui_helper.h"
 
 #include "app.h"
+#include "yave/camera.h"
 #include "yave/engine.h"
 #include "yave/index_buffer.h"
 #include "yave/material.h"
@@ -42,9 +43,17 @@
 namespace yave
 {
 
-ImGuiHelper::ImGuiHelper(Engine* engine, Scene* scene, std::filesystem::path& fontPath)
+ImGuiHelper::ImGuiHelper(Engine* engine, std::filesystem::path& fontPath)
     : context_(ImGui::CreateContext()), engine_(engine), texture_(nullptr)
 {
+    scene_ = engine->createScene();
+    scene_->usePostProcessing(false);
+    scene_->useGbuffer(false);
+
+    camera_ = engine->createCamera();
+    camera_->setProjection(90.0f, 1.0f, 1.0f, 512.0f);
+    scene_->setCamera(camera_);
+
     ImGuiIO& io = ImGui::GetIO();
 
     if (!fontPath.empty() && std::filesystem::exists(fontPath))
@@ -72,7 +81,7 @@ ImGuiHelper::ImGuiHelper(Engine* engine, Scene* scene, std::filesystem::path& fo
 
     ObjectManager* objManager = engine->getObjectManager();
     rendObj_ = objManager->createObject();
-    scene->addObject(rendObj_);
+    scene_->addObject(rendObj_);
     renderable_ = engine_->createRenderable();
 
     ImGui::StyleColorsDark();
@@ -235,7 +244,7 @@ void ImGuiHelper::updateDrawCommands(ImDrawData* drawData, const ImGuiIO& io)
         }
     }
 
-    rendManager->build(renderable_, rendObj_, {}, "ui.glsl");
+    rendManager->build(scene_, renderable_, rendObj_, {}, "ui.glsl");
 }
 
 } // namespace yave

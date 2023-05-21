@@ -43,11 +43,12 @@ class Material;
 class Renderable;
 class RenderPrimitive;
 class Scene;
+class Camera;
 
 class ImGuiHelper
 {
 public:
-    ImGuiHelper(Engine* engine, Scene* scene, std::filesystem::path& fontPath);
+    ImGuiHelper(Engine* engine, std::filesystem::path& fontPath);
     ~ImGuiHelper();
 
     void beginFrame(Application& app) noexcept;
@@ -57,6 +58,8 @@ public:
     void updateDrawCommands(ImDrawData* drawData, const ImGuiIO& io);
 
     void setDisplaySize(float winWidth, float winHeight, float scaleX, float scaleY);
+
+    Scene* getScene() noexcept { return scene_; }
 
 private:
     struct PushConstant
@@ -68,6 +71,8 @@ private:
     ImGuiContext* context_;
 
     Engine* engine_;
+    Scene* scene_;
+    Camera* camera_;
 
     Object rendObj_;
     Renderable* renderable_;

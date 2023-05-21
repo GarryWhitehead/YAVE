@@ -50,6 +50,7 @@ class IScene;
 class Window;
 class IRenderable;
 class IRenderableManager;
+class PostProcess;
 class ILightManager;
 class IMappedTexture;
 class ISkybox;
@@ -72,14 +73,13 @@ public:
     SwapchainHandle createSwapchainI(Window* win);
     IRenderer* createRendererI();
     IScene* createSceneI();
-    void setCurrentSceneI(IScene* scene) { currentScene_ = scene; }
 
     IVertexBuffer* createVertexBufferI() noexcept;
     IIndexBuffer* createIndexBufferI() noexcept;
     IRenderPrimitive* createRenderPrimitiveI() noexcept;
     IRenderable* createRenderableI() noexcept;
     IMappedTexture* createMappedTextureI() noexcept;
-    ISkybox* createSkyboxI() noexcept;
+    ISkybox* createSkyboxI(IScene& scene) noexcept;
     IIndirectLight* createIndirectLightI() noexcept;
     ICamera* createCameraI() noexcept;
 
@@ -112,12 +112,12 @@ public:
 
     vkapi::VkDriver& driver() noexcept { return *driver_; }
     const vkapi::VkDriver& driver() const noexcept { return *driver_; }
-    IScene* getCurrentScene() noexcept { return currentScene_; }
 
     IRenderableManager* getRenderableManagerI() noexcept { return rendManager_.get(); }
     ITransformManager* getTransformManagerI() noexcept { return transformManager_.get(); }
     ILightManager* getLightManagerI() noexcept { return lightManager_.get(); }
     IObjectManager* getObjManagerI() noexcept { return objManager_.get(); }
+    PostProcess* getPostProcess() noexcept { return postProcess_.get(); }
 
     auto getQuadBuffers() noexcept { return std::make_pair(&quadVertexBuffer_, &quadIndexBuffer_); }
     IRenderPrimitive* getQuadPrimitive() noexcept { return &quadPrimitive_; }
@@ -136,13 +136,12 @@ public:
     RenderPrimitive* createRenderPrimitive() override;
     Renderable* createRenderable() override;
     void setCurrentSwapchain(const SwapchainHandle& handle) override;
-    void setCurrentScene(Scene* scene) override;
     RenderableManager* getRenderManager() override;
     TransformManager* getTransformManager() override;
     LightManager* getLightManager() override;
     ObjectManager* getObjectManager() override;
     Texture* createTexture() override;
-    Skybox* createSkybox() override;
+    Skybox* createSkybox(Scene* scene) override;
     IndirectLight* createIndirectLight() override;
     Camera* createCamera() override;
     void flushCmds() override;
@@ -164,6 +163,7 @@ private:
     std::unique_ptr<ITransformManager> transformManager_;
     std::unique_ptr<ILightManager> lightManager_;
     std::unique_ptr<IObjectManager> objManager_;
+    std::unique_ptr<PostProcess> postProcess_;
 
     std::unordered_set<IVertexBuffer*> vBuffers_;
     std::unordered_set<IIndexBuffer*> iBuffers_;
@@ -177,7 +177,6 @@ private:
     std::unordered_set<ICamera*> cameras_;
     std::vector<vkapi::Swapchain*> swapchains_;
 
-    IScene* currentScene_;
     vkapi::Swapchain* currentSwapchain_;
 
     // default quad verices/indices buffers

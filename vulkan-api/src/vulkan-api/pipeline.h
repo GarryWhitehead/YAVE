@@ -96,29 +96,17 @@ private:
 };
 
 
-class Pipeline
+class GraphicsPipeline
 {
 public:
     static constexpr int LifetimeFrameCount = 10;
 
-    enum class Type
-    {
-        Graphics,
-        Compute
-    };
+    GraphicsPipeline(VkContext& context);
+    ~GraphicsPipeline();
 
-    Pipeline(VkContext& context, const Pipeline::Type type);
-    ~Pipeline();
+    static vk::PipelineBindPoint createBindPoint();
 
-    static vk::PipelineBindPoint createBindPoint(Pipeline::Type type);
-
-    /**
-     * Creates a pipeline using render data from the shader program and
-     * associates it with the declared renderpass
-     */
-    void create(const PipelineCache::PipelineKey& key, PipelineLayout& pipelineLayout);
-
-    Pipeline::Type getType() const { return type_; }
+    void create(const PipelineCache::GraphicsPlineKey& key, PipelineLayout& pipelineLayout);
 
     const vk::Pipeline& get() const { return pipeline_; }
 
@@ -132,7 +120,21 @@ private:
     std::vector<vk::DynamicState> dynamicStates_ {
         vk::DynamicState::eViewport, vk::DynamicState::eScissor};
 
-    Type type_;
+    vk::Pipeline pipeline_;
+};
+
+class ComputePipeline
+{
+public:
+    ComputePipeline(VkContext& context);
+    ~ComputePipeline();
+
+    void create(const PipelineCache::ComputePlineKey& key, PipelineLayout& pipelineLayout);
+
+    const vk::Pipeline& get() const { return pipeline_; }
+
+private:
+    VkContext& context_;
 
     vk::Pipeline pipeline_;
 };

@@ -44,23 +44,23 @@ uint32_t AssetLoader::compSizeFromFormat(backend::TextureFormat format)
     uint32_t output;
     switch (format)
     {
-        case backend::TextureFormat::R16:
-        case backend::TextureFormat::R32:
+        case backend::TextureFormat::R16F:
+        case backend::TextureFormat::R32F:
         case backend::TextureFormat::R8:
             output = 1;
             break;
-        case backend::TextureFormat::RG16:
-        case backend::TextureFormat::RG32:
+        case backend::TextureFormat::RG16F:
+        case backend::TextureFormat::RG32F:
         case backend::TextureFormat::RG8:
             output = 2;
             break;
-        case backend::TextureFormat::RGB16:
-        case backend::TextureFormat::RGB32:
+        case backend::TextureFormat::RGB16F:
+        case backend::TextureFormat::RGB32F:
         case backend::TextureFormat::RGB8:
             output = 3;
             break;
-        case backend::TextureFormat::RGBA16:
-        case backend::TextureFormat::RGBA32:
+        case backend::TextureFormat::RGBA16F:
+        case backend::TextureFormat::RGBA32F:
         case backend::TextureFormat::RGBA8:
             output = 4;
             break;

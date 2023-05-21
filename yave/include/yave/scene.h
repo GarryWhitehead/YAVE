@@ -21,6 +21,8 @@
  */
 #pragma once
 
+#include "options.h"
+
 #include <memory>
 
 namespace yave
@@ -45,6 +47,15 @@ public:
 
     virtual void addObject(Object obj) = 0;
     virtual void destroyObject(Object obj) = 0;
+
+    virtual void usePostProcessing(bool state) = 0;
+
+    virtual void useGbuffer(bool state) = 0;
+
+    virtual void setBloomOptions(const BloomOptions& bloom) = 0;
+    virtual void setGbufferOptions(const GbufferOptions& gb) = 0;
+    virtual BloomOptions& getBloomOptions() = 0;
+    virtual GbufferOptions& getGbufferOptions() = 0;
 
 protected:
     Scene();

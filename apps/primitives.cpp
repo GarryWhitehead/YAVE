@@ -117,7 +117,7 @@ void PrimitiveApp::buildPrimitive(
     transform.translation = position;
     transform.rot = rotation;
     transform.scale = scale;
-    rendManager->build(render, obj, transform);
+    rendManager->build(scene, render, obj, transform);
 }
 
 void PrimitiveApp::uiCallback(yave::Engine* engine)
@@ -190,16 +190,16 @@ int main()
     yave::AssetLoader loader(engine);
     loader.setAssetFolder(YAVE_ASSETS_DIRECTORY);
     yave::Texture* skyboxTexture =
-        loader.loadFromFile("textures/uffizi_rgba16f_cube.ktx", backend::TextureFormat::RGBA16);
+        loader.loadFromFile("textures/uffizi_rgba16f_cube.ktx", backend::TextureFormat::RGBA16F);
     if (!skyboxTexture)
     {
         exit(1);
     }
 
     // add the skybox to the scene
-    yave::Skybox* skybox = engine->createSkybox();
+    yave::Skybox* skybox = engine->createSkybox(scene);
     skybox->setTexture(skyboxTexture);
-    skybox->build(app.getWindow()->getCamera());
+    skybox->build(scene, app.getWindow()->getCamera());
 
     scene->setSkybox(skybox);
 

@@ -126,33 +126,14 @@ void PipelineLayout::addDescriptorLayout(
 }
 
 // ================== pipeline =======================
-Pipeline::Pipeline(VkContext& context, const Pipeline::Type type)
-    : lastUsedFrameStamp_(0), context_(context), type_(type)
+GraphicsPipeline::GraphicsPipeline(VkContext& context) : lastUsedFrameStamp_(0), context_(context)
 {
 }
 
-Pipeline::~Pipeline() {}
+GraphicsPipeline::~GraphicsPipeline() {}
 
-vk::PipelineBindPoint Pipeline::createBindPoint(Pipeline::Type type)
-{
-    vk::PipelineBindPoint bindPoint;
-
-    switch (type)
-    {
-        case Type::Graphics:
-            bindPoint = vk::PipelineBindPoint::eGraphics;
-            break;
-        case Type::Compute:
-            bindPoint = vk::PipelineBindPoint::eCompute;
-            break;
-        default:
-            LOGGER_ERROR("Unrecognised pipeline type; type id: %i", static_cast<int>(type));
-    }
-
-    return bindPoint;
-}
-
-void Pipeline::create(const PipelineCache::PipelineKey& key, PipelineLayout& pipelineLayout)
+void GraphicsPipeline::create(
+    const PipelineCache::GraphicsPlineKey& key, PipelineLayout& pipelineLayout)
 {
     // sort the vertex attribute descriptors so only ones that are used
     // are applied to the pipeline
@@ -276,6 +257,17 @@ void Pipeline::create(const PipelineCache::PipelineKey& key, PipelineLayout& pip
 
     VK_CHECK_RESULT(
         context_.device().createGraphicsPipelines({}, 1, &createInfo, nullptr, &pipeline_));
+}
+
+ComputePipeline::ComputePipeline(VkContext& context) : context_(context) {}
+ComputePipeline::~ComputePipeline() {}
+
+void ComputePipeline::create(
+    const PipelineCache::ComputePlineKey& key, PipelineLayout& pipelineLayout)
+{
+    ASSERT_FATAL(pipelineLayout.get(), "The pipeline layout must be initialised.");
+    vk::ComputePipelineCreateInfo createInfo {{}, key.shader, pipelineLayout.get()};
+    context_.device().createComputePipelines({}, 1, &createInfo, nullptr, &pipeline_);
 }
 
 } // namespace vkapi

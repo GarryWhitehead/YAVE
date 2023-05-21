@@ -195,6 +195,10 @@ void ShaderProgramBundle::buildShader(std::string filename)
     {
         shaderType = backend::ShaderStage::Vertex;
     }
+    else if (shaderExt == ".comp")
+    {
+        shaderType = backend::ShaderStage::Compute;
+    }
     else
     {
         throw std::runtime_error("Shader extension " + shaderExt + "is not supported.");
@@ -440,11 +444,6 @@ Shader* ProgramManager::findShaderVariantOrCreate(
         {
             throw std::runtime_error("Error whilst compiling shader.");
         }
-        SPDLOG_INFO("Created shader (id={}): {}", bundle->getShaderId(), fmt::ptr(shader));
-    }
-    else
-    {
-        SPDLOG_INFO("Using cached shader(id={}): {}", bundle->getShaderId(), fmt::ptr(shader));
     }
 
     // update the pipeline layout

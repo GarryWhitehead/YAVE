@@ -47,16 +47,16 @@ uint32_t IMappedTexture::getFormatByteSize(backend::TextureFormat format)
         case backend::TextureFormat::RGBA8:
             output = 1;
             break;
-        case backend::TextureFormat::R16:
-        case backend::TextureFormat::RG16:
-        case backend::TextureFormat::RGB16:
-        case backend::TextureFormat::RGBA16:
+        case backend::TextureFormat::R16F:
+        case backend::TextureFormat::RG16F:
+        case backend::TextureFormat::RGB16F:
+        case backend::TextureFormat::RGBA16F:
             output = 4;
             break;
-        case backend::TextureFormat::R32:
-        case backend::TextureFormat::RG32:
-        case backend::TextureFormat::RGB32:
-        case backend::TextureFormat::RGBA32:
+        case backend::TextureFormat::R32F:
+        case backend::TextureFormat::RG32F:
+        case backend::TextureFormat::RGB32F:
+        case backend::TextureFormat::RGBA32F:
             output = 8;
             break;
     }

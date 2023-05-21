@@ -19,58 +19,23 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
 #pragma once
-
-#include "render_graph/render_graph.h"
-#include "render_primitive.h"
-#include "samplerset.h"
-#include "uniform_buffer.h"
-#include "vulkan-api/driver.h"
-#include "vulkan-api/program_manager.h"
-#include "yave/camera.h"
-#include "yave/object.h"
-#include "yave/scene.h"
-#include "yave/skybox.h"
-#include "yave/texture.h"
-
-#include <cstdint>
 
 namespace yave
 {
-class IEngine;
-class IMappedTexture;
-class IScene;
-class ICamera;
-class IMaterial;
 
-class ISkybox : public Skybox
+struct BloomOptions
 {
-public:
-    ISkybox(IEngine& engine, IScene& scene);
+    bool enabled = true;
+    float minLuminanceLog = -3.0f;
+    float invLuminanceRange = 0.08f;
+    float gamma = 2.2f;
+};
 
-    void buildI(IScene& scene, ICamera& camera);
-
-    void update(ICamera& cam) noexcept;
-
-    ISkybox& setCubeMap(IMappedTexture* cubeMap);
-
-    // ============= getters =====================
-
-    IMappedTexture* getCubeMap() noexcept { return cubeTexture_; }
-
-    // =============== client api ===================
-
-    void setTexture(Texture* texture) noexcept override;
-    void build(Scene* scene, Camera* camera) override;
-
-private:
-    IEngine& engine_;
-
-    IMappedTexture* cubeTexture_;
-
-    IMaterial* material_;
-    Object skyboxObj_;
+struct GbufferOptions
+{
+    size_t width = 2048;
+    size_t height = 2048;
 };
 
 } // namespace yave

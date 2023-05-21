@@ -61,6 +61,10 @@ public:
     RenderGraphPass<Data, ExecuteFunc>&
     addPass(const util::CString& name, SetupFunc setup, ExecuteFunc&& execute);
 
+    // similar to addPass but only executes and is not culled
+    template <typename ExecuteFunc>
+    void addExecutorPass(const util::CString& name, ExecuteFunc&& execute);
+
     void addPresentPass(const RenderGraphHandle& input);
     void createPassNode(const util::CString& name, RenderGraphPassBase* rgPass);
 
@@ -147,6 +151,22 @@ RenderGraph::addPass(const util::CString& name, SetupFunc setup, ExecuteFunc&& e
     auto& output = *rPass.get();
     rGraphPasses_.emplace_back(std::move(rPass));
     return output;
+}
+
+template <typename ExecuteFunc>
+void RenderGraph::addExecutorPass(const util::CString& name, ExecuteFunc&& execute)
+{
+    struct Empty
+    {
+    };
+
+    addPass<Empty>(
+        name,
+        [](RenderGraphBuilder& builder, Empty&) { builder.addSideEffect(); },
+        [execute](
+            vkapi::VkDriver& driver, const Empty& data, const rg::RenderGraphResource& resources) {
+            execute(driver);
+        });
 }
 
 } // namespace rg

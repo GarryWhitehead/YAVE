@@ -1,25 +1,18 @@
---- libshaderc_util/src/resources.cc	2021-06-21 22:12:39.000000000 +0100
-+++ libshaderc_util/src/resources.cc	2023-04-14 14:34:47.461147238 +0100
-@@ -125,20 +125,7 @@
+--- libshaderc_util/src/resources.cc	2023-05-21 15:20:53.530259500 +0100
++++ libshaderc_util/src/resources.cc	2023-05-12 21:25:18.908605600 +0100
+@@ -125,6 +125,15 @@
      /* .maxTaskWorkGroupSizeY_NV = */ 1,
      /* .maxTaskWorkGroupSizeZ_NV = */ 1,
      /* .maxMeshViewCountNV = */ 4,
--    /* .maxDualSourceDrawBuffersEXT = */ 1,
--    // This is the glslang TLimits structure.
--    // It defines whether or not the following features are enabled.
--    // We want them to all be enabled.
--    /*.limits = */ {
--        /*.nonInductiveForLoops = */ 1,
--        /*.whileLoops = */ 1,
--        /*.doWhileLoops = */ 1,
--        /*.generalUniformIndexing = */ 1,
--        /*.generalAttributeMatrixVectorIndexing = */ 1,
--        /*.generalVaryingIndexing = */ 1,
--        /*.generalSamplerIndexing = */ 1,
--        /*.generalVariableIndexing = */ 1,
--        /*.generalConstantMatrixVectorIndexing = */ 1,
--    }};
-+    /* .maxDualSourceDrawBuffersEXT = */ 1
-+};
- 
- }  // namespace shaderc_util
++    /* maxMeshOutputVerticesEXT = */ 1,
++    /* maxMeshOutputPrimitivesEXT = */ 1,
++    /* maxMeshWorkGroupSizeX_EXT = */ 1,
++    /* maxMeshWorkGroupSizeY_EXT = */ 1,
++    /* maxMeshWorkGroupSizeZ_EXT = */ 1,
++    /* maxTaskWorkGroupSizeX_EXT = */ 1,
++    /* maxTaskWorkGroupSizeY_EXT = */ 1,
++    /* maxTaskWorkGroupSizeZ_EXT = */ 1,
++    /* maxMeshViewCountEXT = */ 1,
+     /* .maxDualSourceDrawBuffersEXT = */ 1,
+     // This is the glslang TLimits structure.
+     // It defines whether or not the following features are enabled.

@@ -80,6 +80,20 @@ public:
 
     void map(VkDriver& driver, void* data, uint32_t dataSize, size_t* offsets);
 
+    void transition(
+        vk::ImageLayout oldLayout,
+        vk::ImageLayout newLayout,
+        vk::CommandBuffer cmdBuffer,
+        vk::PipelineStageFlagBits srcStage,
+        vk::PipelineStageFlagBits dstStage);
+
+    void memoryBarrier(
+        vk::CommandBuffer cmdBuffer,
+        vk::AccessFlags srcBarrier,
+        vk::AccessFlags dstBarrier,
+        vk::PipelineStageFlagBits srcStage,
+        vk::PipelineStageFlagBits dstStage);
+
     // ================= getters =======================
 
     ImageView* getImageView(uint32_t level = 0) const;

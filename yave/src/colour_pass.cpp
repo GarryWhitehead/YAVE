@@ -42,7 +42,7 @@
 namespace yave
 {
 
-void ColourPass::render(
+rg::RenderGraphHandle ColourPass::render(
     IEngine& engine,
     IScene& scene,
     rg::RenderGraph& rGraph,
@@ -57,41 +57,48 @@ void ColourPass::render(
             rg::TextureResource::Descriptor desc;
             desc.width = width;
             desc.height = height;
-            desc.format = vk::Format::eR16G16B16A16Sfloat;
-            data.position = builder.createResource("position", desc);
 
             desc.format = vk::Format::eR8G8B8A8Unorm;
             data.colour = builder.createResource("colour", desc);
-
-            desc.format = vk::Format::eR16G16B16A16Sfloat;
-            data.normal = builder.createResource("normal", desc);
-
-            desc.format = vk::Format::eR16G16Sfloat;
-            data.pbr = builder.createResource("pbr", desc);
-
-            desc.format = vk::Format::eR16G16B16A16Sfloat;
-            data.emissive = builder.createResource("emissive", desc);
 
             desc.format = depthFormat;
             data.depth = builder.createResource("depth", desc);
 
             auto* blackboard = rGraph.getBlackboard();
+
             // store all the gbuffer resource handles for sampling in a later
             // pass
-            blackboard->add("position", data.position);
             blackboard->add("colour", data.colour);
-            blackboard->add("normal", data.normal);
-            blackboard->add("emissive", data.emissive);
-            blackboard->add("pbr", data.pbr);
-            blackboard->add("gbufferDepth", data.depth);
+            if (scene.withGbuffer())
+            {
+                desc.format = vk::Format::eR16G16B16A16Sfloat;
+                data.position = builder.createResource("position", desc);
 
-            data.position =
-                builder.addWriter(data.position, vk::ImageUsageFlagBits::eColorAttachment);
+                desc.format = vk::Format::eR16G16B16A16Sfloat;
+                data.normal = builder.createResource("normal", desc);
+
+                desc.format = vk::Format::eR16G16Sfloat;
+                data.pbr = builder.createResource("pbr", desc);
+
+                desc.format = vk::Format::eR16G16B16A16Sfloat;
+                data.emissive = builder.createResource("emissive", desc);
+
+                blackboard->add("position", data.position);
+                blackboard->add("normal", data.normal);
+                blackboard->add("emissive", data.emissive);
+                blackboard->add("pbr", data.pbr);
+                blackboard->add("gbufferDepth", data.depth);
+
+                data.position =
+                    builder.addWriter(data.position, vk::ImageUsageFlagBits::eColorAttachment);
+                data.normal =
+                    builder.addWriter(data.normal, vk::ImageUsageFlagBits::eColorAttachment);
+                data.pbr = builder.addWriter(data.pbr, vk::ImageUsageFlagBits::eColorAttachment);
+                data.emissive =
+                    builder.addWriter(data.emissive, vk::ImageUsageFlagBits::eColorAttachment);
+            }
+
             data.colour = builder.addWriter(data.colour, vk::ImageUsageFlagBits::eColorAttachment);
-            data.normal = builder.addWriter(data.normal, vk::ImageUsageFlagBits::eColorAttachment);
-            data.pbr = builder.addWriter(data.pbr, vk::ImageUsageFlagBits::eColorAttachment);
-            data.emissive =
-                builder.addWriter(data.emissive, vk::ImageUsageFlagBits::eColorAttachment);
             data.depth =
                 builder.addWriter(data.depth, vk::ImageUsageFlagBits::eDepthStencilAttachment);
 
@@ -99,10 +106,13 @@ void ColourPass::render(
 
             rg::PassDescriptor passDesc;
             passDesc.attachments.attach.colour[0] = data.colour;
-            passDesc.attachments.attach.colour[1] = data.position;
-            passDesc.attachments.attach.colour[2] = data.normal;
-            passDesc.attachments.attach.colour[3] = data.emissive;
-            passDesc.attachments.attach.colour[4] = data.pbr;
+            if (scene.withGbuffer())
+            {
+                passDesc.attachments.attach.colour[1] = data.position;
+                passDesc.attachments.attach.colour[2] = data.normal;
+                passDesc.attachments.attach.colour[3] = data.emissive;
+                passDesc.attachments.attach.colour[4] = data.pbr;
+            }
             passDesc.attachments.attach.depth = {data.depth};
             passDesc.dsLoadClearFlags = {backend::LoadClearFlags::Clear};
             data.rt = builder.createRenderTarget("deferredTarget", passDesc);
@@ -121,8 +131,10 @@ void ColourPass::render(
             queue.render(engine, scene, cmdBuffer, RenderQueue::Type::Colour);
             driver.endRenderpass(cmdBuffer);
 
-            cmds.flush();
+            // cmds.flush();
         });
+
+    return rg.getData().colour;
 }
 
 void ColourPass::drawCallback(

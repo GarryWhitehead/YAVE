@@ -49,6 +49,7 @@ class IEngine;
 class IRenderable;
 class IMappedTexture;
 class IRenderPrimitive;
+class IScene;
 
 using MaterialHandle = util::Handle<IMaterial>;
 
@@ -104,11 +105,21 @@ public:
         backend::TextureSamplerParams& params,
         uint32_t binding);
 
+    // use this override when the sampler details have already been
+    // added for the shader and no variant is required (image type variant)
+    void addImageTexture(
+        const std::string& samplerName,
+        vkapi::VkDriver& driver,
+        const vkapi::TextureHandle& handle,
+        const backend::TextureSamplerParams& params);
+
     void build(
         IEngine& engine,
+        IScene& scene,
         IRenderable& renderable,
         IRenderPrimitive* prim,
-        const std::string& matShader);
+        const std::string& matShader,
+        const std::string& mainShaderPath);
 
     void update(IEngine& engine) noexcept;
 
@@ -117,7 +128,6 @@ public:
     void addUboParamI(
         const std::string& elementName,
         backend::BufferElementType type,
-        size_t size,
         size_t arrayCount,
         backend::ShaderStage stage,
         void* value);
@@ -168,6 +178,8 @@ public:
 
     // defines the draw ordering of the material
     void setViewLayerI(uint8_t layer);
+
+    void withDynamicMeshTransformUbo(bool state) noexcept { withDynMeshTransformUbo_ = state; }
 
     // ================= getters ===========================
 
@@ -257,6 +269,9 @@ private:
     SamplerSet samplerSet_;
 
     bool doubleSided_;
+
+    // states whether to add the dynamic mesh transform buffer to the shader
+    bool withDynMeshTransformUbo_;
 
     // used for the sorting key
     // pipeline id is a hash of the pipeline key

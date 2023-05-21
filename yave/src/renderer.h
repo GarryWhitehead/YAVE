@@ -51,7 +51,7 @@ public:
 
     void endFrameI() noexcept;
 
-    void renderI(vkapi::VkDriver& driver, IScene* scene);
+    void renderI(vkapi::VkDriver& driver, IScene* scene, float dt, bool clearSwap = true);
 
     // draws into a single render target
     void renderSingleSceneI(vkapi::VkDriver& driver, IScene* scene, RenderTarget& rTarget);
@@ -60,7 +60,7 @@ public:
 
     void beginFrame() override;
     void endFrame() override;
-    void render(Engine* engine, Scene* scene) override;
+    void render(Engine* engine, Scene* scene, float dt, bool clearSwap) override;
     void renderSingleScene(Engine* engine, Scene* scene, RenderTarget& rTarget) override;
 
 private:

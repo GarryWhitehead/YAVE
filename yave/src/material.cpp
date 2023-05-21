@@ -42,7 +42,8 @@
 namespace yave
 {
 
-IMaterial::IMaterial(IEngine& engine) : doubleSided_(false), pipelineId_(0), viewLayer_(0x2)
+IMaterial::IMaterial(IEngine& engine)
+    : doubleSided_(false), pipelineId_(0), viewLayer_(0x2), withDynMeshTransformUbo_(true)
 {
     pushBlock_[util::ecast(backend::ShaderStage::Vertex)] =
         std::make_unique<PushBlock>("VertexPushBlock", "push_params");
@@ -227,6 +228,16 @@ void IMaterial::addImageTexture(
         texture->getBackendHandle(), binding, driver.getSamplerCache().createSampler(params));
 }
 
+void IMaterial::addImageTexture(
+    const std::string& samplerName,
+    vkapi::VkDriver& driver,
+    const vkapi::TextureHandle& handle,
+    const backend::TextureSamplerParams& params)
+{
+    uint32_t binding = samplerSet_.getSamplerBinding(samplerName);
+    programBundle_->setTexture(handle, binding, driver.getSamplerCache().createSampler(params));
+}
+
 void IMaterial::addBuffer(BufferBase* buffer, backend::ShaderStage type)
 {
     ASSERT_FATAL(buffer, "Buffer is NULL.");
@@ -234,7 +245,12 @@ void IMaterial::addBuffer(BufferBase* buffer, backend::ShaderStage type)
 }
 
 void IMaterial::build(
-    IEngine& engine, IRenderable& renderable, IRenderPrimitive* prim, const std::string& matShader)
+    IEngine& engine,
+    IScene& scene,
+    IRenderable& renderable,
+    IRenderPrimitive* prim,
+    const std::string& matShader,
+    const std::string& mainShaderPath)
 {
     auto& manager = engine.driver().progManager();
     auto& driver = engine.driver();
@@ -244,22 +260,28 @@ void IMaterial::build(
     if (!programBundle_->hasProgram(backend::ShaderStage::Vertex) &&
         !programBundle_->hasProgram(backend::ShaderStage::Fragment))
     {
+        std::string vertPath = mainShaderPath + ".vert";
+        std::string fragPath = mainShaderPath + ".frag";
         // create the material shaders to start.
         programBundle_->parseMaterialShader(matShader);
-        programBundle_->buildShaders("material.vert", "material.frag");
+        programBundle_->buildShaders(vertPath, fragPath);
     }
     programBundle_->clear();
-
-    IScene* scene = engine.getCurrentScene();
+    buffers_.clear();
 
     // add any additional buffer elemnts, push blocks or image samplers
     // to the appropiate shader before building
     auto* vProgram = programBundle_->getProgram(backend::ShaderStage::Vertex);
     auto* fProgram = programBundle_->getProgram(backend::ShaderStage::Fragment);
 
-    // default ubo buffers - camera and mesh transform
-    addBuffer(&scene->getSceneUbo().get(), backend::ShaderStage::Vertex);
-    addBuffer(&scene->getTransUbo(), backend::ShaderStage::Vertex);
+    // only the camera ubo is added by default - all other uniforms are optional
+    // to increase the usability of materials.
+    addBuffer(&scene.getSceneUbo().get(), backend::ShaderStage::Vertex);
+
+    if (withDynMeshTransformUbo_)
+    {
+        addBuffer(&scene.getTransUbo(), backend::ShaderStage::Vertex);
+    }
 
     for (const auto& [stage, buffer] : buffers_)
     {
@@ -332,7 +354,7 @@ void IMaterial::build(
     vProgram->addShader(vertexShader);
 
     // create the fragment shader (material)
-    if (!renderable.useGBuffer())
+    if (!scene.withGbuffer())
     {
         variantBits_.resetBit(Variants::EnableGBufferPipeline);
     }
@@ -384,7 +406,6 @@ void IMaterial::updateUboParamI(const std::string& name, backend::ShaderStage st
 void IMaterial::addUboParamI(
     const std::string& elementName,
     backend::BufferElementType type,
-    size_t size,
     size_t arrayCount,
     backend::ShaderStage stage,
     void* value)
@@ -532,7 +553,7 @@ void IMaterial::addUboParam(
     backend::ShaderStage stage,
     void* value)
 {
-    addUboParamI(elementName, type, size, arrayCount, stage, value);
+    addUboParamI(elementName, type, arrayCount, stage, value);
 }
 
 void IMaterial::setColourBaseFactor(const util::Colour4& col) noexcept

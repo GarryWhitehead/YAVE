@@ -71,8 +71,6 @@ public:
 
     virtual void setCurrentSwapchain(const vkapi::SwapchainHandle& handle) = 0;
 
-    virtual void setCurrentScene(Scene* scene) = 0;
-
     virtual RenderableManager* getRenderManager() = 0;
 
     virtual TransformManager* getTransformManager() = 0;
@@ -83,7 +81,7 @@ public:
 
     virtual Texture* createTexture() = 0;
 
-    virtual Skybox* createSkybox() = 0;
+    virtual Skybox* createSkybox(Scene* scene) = 0;
 
     virtual IndirectLight* createIndirectLight() = 0;
 

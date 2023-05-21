@@ -25,6 +25,7 @@
 #include "colour_pass.h"
 #include "engine.h"
 #include "mapped_texture.h"
+#include "post_process.h"
 #include "render_graph/resources.h"
 #include "scene.h"
 #include "skybox.h"
@@ -129,13 +130,12 @@ void IRenderer::renderSingleSceneI(vkapi::VkDriver& driver, IScene* scene, Rende
     driver.endRenderpass(cmdBuffer);
 }
 
-void IRenderer::renderI(vkapi::VkDriver& driver, IScene* scene)
+void IRenderer::renderI(vkapi::VkDriver& driver, IScene* scene, float dt, bool clearSwap)
 {
     rGraph_.reset();
 
-    // TODO: This is a temp measure.
-    uint32_t width = 1920;
-    uint32_t height = 1080;
+    // ensure the post-process manager has been initialised
+    engine_->getPostProcess()->init(*scene);
 
     // update the renderable objects and lights
     scene->update();
@@ -154,8 +154,11 @@ void IRenderer::renderI(vkapi::VkDriver& driver, IScene* scene)
 
     // store/clear flags for final colour attachment.
     desc.storeClearFlags[0] = backend::StoreClearFlags::Store;
-    desc.loadClearFlags[0] = backend::LoadClearFlags::Clear;
+    desc.loadClearFlags[0] =
+        clearSwap ? backend::LoadClearFlags::Clear : backend::LoadClearFlags::Load;
     desc.finalLayouts[0] = vk::ImageLayout::ePresentSrcKHR;
+    desc.initialLayouts[0] =
+        clearSwap ? vk::ImageLayout::eUndefined : vk::ImageLayout::ePresentSrcKHR;
 
     // should be definable via the client api
     desc.clearColour = {0.0f, 0.0f, 0.0f, 1.0f};
@@ -164,12 +167,33 @@ void IRenderer::renderI(vkapi::VkDriver& driver, IScene* scene)
 
     vk::Format depthFormat = driver.getSupportedDepthFormat();
 
-    // fill the gbuffers - this can't be the final render target due
-    // to the gBuffers requiring resolviong down to a single render target
-    ColourPass::render(*engine_, *scene, rGraph_, width, height, depthFormat);
+    // post process options
+    BloomOptions& bloomOptions = scene->getBloomOptions();
+    GbufferOptions& gbufferOptions = scene->getGbufferOptions();
+
+    if (!scene->withPostProcessing())
+    {
+        bloomOptions.enabled = false;
+    }
+
+    // fill the gbuffers - this can't be the final render target unless gbuffers are disabled due
+    // to the gBuffers requiring resolviong down to a single render target in the lighting pass
+    input = ColourPass::render(
+        *engine_, *scene, rGraph_, gbufferOptions.width, gbufferOptions.height, depthFormat);
 
     ILightManager* lightManager = engine_->getLightManagerI();
-    input = lightManager->render(rGraph_, *scene, desc.width, desc.height, depthFormat);
+    PostProcess* pp = engine_->getPostProcess();
+
+    if (scene->withGbuffer())
+    {
+        input = lightManager->render(rGraph_, *scene, desc.width, desc.height, depthFormat);
+    }
+
+    // post-process stage
+    if (bloomOptions.enabled)
+    {
+        input = pp->bloom(rGraph_, desc.width, desc.height, bloomOptions, dt);
+    }
 
     rGraph_.moveResource(input, backbufferRT);
     rGraph_.addPresentPass(backbufferRT);
@@ -199,9 +223,13 @@ void IRenderer::beginFrame() { beginFrameI(); }
 
 void IRenderer::endFrame() { endFrameI(); }
 
-void IRenderer::render(Engine* engine, Scene* scene)
+void IRenderer::render(Engine* engine, Scene* scene, float dt, bool clearSwap)
 {
-    renderI(reinterpret_cast<IEngine*>(engine)->driver(), reinterpret_cast<IScene*>(scene));
+    renderI(
+        reinterpret_cast<IEngine*>(engine)->driver(),
+        reinterpret_cast<IScene*>(scene),
+        dt,
+        clearSwap);
 };
 
 void IRenderer::renderSingleScene(Engine* engine, Scene* scene, RenderTarget& rTarget)

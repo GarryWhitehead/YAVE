@@ -213,12 +213,12 @@ void Image::transition(
     const vk::ImageLayout& oldLayout,
     const vk::ImageLayout& newLayout,
     const vk::CommandBuffer& cmdBuff,
+    vk::PipelineStageFlags srcStage,
+    vk::PipelineStageFlags dstStage,
     uint32_t baseMipMapLevel)
 {
     const TextureContext& tex = image.context();
-
     vk::ImageAspectFlags mask = ImageView::getImageAspect(tex.format);
-
     vk::AccessFlags srcBarrier, dstBarrier;
 
     switch (oldLayout)
@@ -234,6 +234,9 @@ void Image::transition(
             break;
         case vk::ImageLayout::eColorAttachmentOptimal:
             srcBarrier = vk::AccessFlagBits::eColorAttachmentWrite;
+            break;
+        case vk::ImageLayout::eShaderReadOnlyOptimal:
+            srcBarrier = vk::AccessFlagBits::eShaderRead;
             break;
         default:
             srcBarrier = (vk::AccessFlagBits)0;
@@ -252,6 +255,9 @@ void Image::transition(
             break;
         case vk::ImageLayout::eShaderReadOnlyOptimal:
             dstBarrier = vk::AccessFlagBits::eShaderRead;
+            break;
+        case vk::ImageLayout::eGeneral:
+            dstBarrier = vk::AccessFlagBits::eShaderRead | vk::AccessFlagBits::eShaderWrite;
             break;
         case vk::ImageLayout::eDepthStencilAttachmentOptimal:
             dstBarrier = vk::AccessFlagBits::eDepthStencilAttachmentRead |
@@ -281,15 +287,7 @@ void Image::transition(
         subresourceRange);
 
     cmdBuff.pipelineBarrier(
-        vk::PipelineStageFlagBits::eAllCommands,
-        vk::PipelineStageFlagBits::eAllCommands,
-        (vk::DependencyFlags)0,
-        0,
-        nullptr,
-        0,
-        nullptr,
-        1,
-        &memoryBarrier);
+        srcStage, dstStage, (vk::DependencyFlags)0, 0, nullptr, 0, nullptr, 1, &memoryBarrier);
 }
 
 void Image::blit(const Image& srcImage, const Image& dstImage, Commands& cmds)

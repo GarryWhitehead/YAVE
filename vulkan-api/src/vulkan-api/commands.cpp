@@ -184,8 +184,7 @@ void Commands::flush()
     }
 
     vk::PipelineStageFlags flags[2] = {
-        vk::PipelineStageFlagBits::eColorAttachmentOutput,
-        vk::PipelineStageFlagBits::eColorAttachmentOutput};
+        vk::PipelineStageFlagBits::eAllCommands, vk::PipelineStageFlagBits::eAllCommands};
     vk::SubmitInfo info {
         static_cast<uint32_t>(waitSignals.size()),
         waitSignals.data(),

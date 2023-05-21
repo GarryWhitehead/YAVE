@@ -206,7 +206,8 @@ void Texture::createTexture2d(
 
     imageLayout_ = (isDepth(format) || isStencil(format))
         ? vk::ImageLayout::eDepthStencilReadOnlyOptimal
-        : vk::ImageLayout::eShaderReadOnlyOptimal;
+        : (usageFlags & vk::ImageUsageFlagBits::eStorage) ? vk::ImageLayout::eGeneral
+                                                          : vk::ImageLayout::eShaderReadOnlyOptimal;
 }
 
 void Texture::createTexture2d(
@@ -286,6 +287,38 @@ void Texture::map(VkDriver& driver, void* data, uint32_t dataSize, size_t* offse
     // the final transition here may need improving on....
     Image::transition(
         *image_, vk::ImageLayout::eTransferDstOptimal, imageLayout_, cBuffer.cmdBuffer);
+}
+
+void Texture::transition(
+    vk::ImageLayout oldLayout,
+    vk::ImageLayout newLayout,
+    vk::CommandBuffer cmdBuffer,
+    vk::PipelineStageFlagBits srcStage,
+    vk::PipelineStageFlagBits dstStage)
+{
+    Image::transition(*image_, oldLayout, newLayout, cmdBuffer, srcStage, dstStage);
+    imageLayout_ = newLayout;
+}
+
+void Texture::memoryBarrier(
+    vk::CommandBuffer cmdBuffer,
+    vk::AccessFlags srcBarrier,
+    vk::AccessFlags dstBarrier,
+    vk::PipelineStageFlagBits srcStage,
+    vk::PipelineStageFlagBits dstStage)
+{
+    vk::ImageMemoryBarrier memoryBarrier(
+        srcBarrier,
+        dstBarrier,
+        imageLayout_,
+        imageLayout_,
+        VK_QUEUE_FAMILY_IGNORED,
+        VK_QUEUE_FAMILY_IGNORED,
+        image_->get(),
+        {ImageView::getImageAspect(texContext_.format), 0, 1, 0, 1});
+
+    cmdBuffer.pipelineBarrier(
+        srcStage, dstStage, (vk::DependencyFlags)0, 0, nullptr, 0, nullptr, 1, &memoryBarrier);
 }
 
 const TextureContext& Texture::context() const { return texContext_; }

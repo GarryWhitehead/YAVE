@@ -26,6 +26,7 @@
 #include "yave/light_manager.h"
 #include "yave/material.h"
 #include "yave/object.h"
+#include "yave/scene.h"
 #include "yave/transform_manager.h"
 #include "yave_app/app.h"
 
@@ -36,7 +37,7 @@ class GltfModelApp : public yave::Application
 {
 public:
     yave::LightManager::CreateInfo dirLightParams {
-        {2.0f, 2.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.8f, 0.3f, 1.0f}};
+        {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.8f, 0.3f, 1.0f}};
 
     yave::LightManager::CreateInfo spotLightParams {
         {0.0f, 2.0f, -1.0f}, {0.0f, 0.0f, -4.0f}, {1.0f, 1.0f, 1.0f}, 45.0f, 50.0f, 10.0f, 100.0f};
@@ -44,18 +45,17 @@ public:
     GltfModelApp(const yave::AppParams& params, bool showUI) : yave::Application(params, showUI) {}
 
     yave::Object buildModel(
-        const yave::GltfModel& model,
-        yave::Engine* engine,
-        yave::Scene* scene,
-        yave::AssetLoader& loader,
-        yave::ModelTransform& transform);
+        const yave::GltfModel& model, yave::AssetLoader& loader, yave::ModelTransform& transform);
 
-    void addLighting(yave::Engine* engine, yave::LightManager* lightManager, yave::Scene* scene);
+    void addLighting(yave::LightManager* lightManager);
 
     void uiCallback(yave::Engine* engine) override;
 
     bool showDirLight = true;
     bool showSpotLight = true;
+
+    yave::Scene* scene_ = nullptr;
+    yave::Engine* engine_ = nullptr;
 
     yave::Object dirLightObj;
     yave::Object spotLightObj;

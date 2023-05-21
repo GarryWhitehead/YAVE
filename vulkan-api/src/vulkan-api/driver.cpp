@@ -306,6 +306,7 @@ void VkDriver::beginRenderpass(
             rpassKey.colourFormats[i] = tex->context().format;
             ASSERT_LOG(data.finalLayouts[i] != vk::ImageLayout::eUndefined);
             rpassKey.finalLayout[i] = data.finalLayouts[i];
+            rpassKey.initialLayout[i] = data.initialLayouts[i];
             rpassKey.loadOp[i] = data.loadClearFlags[i];
             rpassKey.storeOp[i] = data.storeClearFlags[i];
             ++colourCount;
@@ -463,7 +464,7 @@ void VkDriver::draw(
     pipelineCache_->bindDescriptors(cmdBuffer, plineLayout, dynamicOffsets);
 
     // Bind the pipeline.
-    pipelineCache_->bindShaderModules(programBundle);
+    pipelineCache_->bindGraphicsShaderModules(programBundle);
 
     // Bind the rasterisation and depth/stencil states
     auto& srcRasterState = programBundle.rasterState_;
@@ -520,7 +521,7 @@ void VkDriver::draw(
         pipelineCache_->bindVertexInput(vertexAttr, vertexBinding);
     }
 
-    pipelineCache_->bindPipeline(cmdBuffer, plineLayout);
+    pipelineCache_->bindGraphicsPipeline(cmdBuffer, plineLayout);
 
     // Bind the push block if we have one. Note: The binding of the pushblock
     // has to be done after the binding of the pipeline.
@@ -555,6 +556,51 @@ void VkDriver::draw(
             "specified.");
         cmdBuffer.draw(programBundle.renderPrim_.vertexCount, 1, 0, 0);
     }
+}
+
+void VkDriver::dispatchCompute(
+    vk::CommandBuffer& cmd,
+    ShaderProgramBundle* bundle,
+    uint32_t xWorkCount,
+    uint32_t yWorkCount,
+    uint32_t zWorkCount)
+{
+    PipelineLayout& plineLayout = bundle->getPipelineLayout();
+
+    vkapi::PipelineCache::DescriptorImage samplers[vkapi::PipelineCache::MaxStorageImageBindCount];
+    for (int idx = 0; idx < vkapi::PipelineCache::MaxStorageImageBindCount; ++idx)
+    {
+        const vkapi::TextureHandle& handle = bundle->textureHandles_[idx];
+        if (handle)
+        {
+            const auto& tex = handle.getResource();
+            vkapi::PipelineCache::DescriptorImage& image = samplers[idx];
+            image.imageSampler = bundle->samplers_[idx];
+            image.imageView = tex->getImageView()->get();
+            image.imageLayout = tex->getImageLayout();
+        }
+    }
+    pipelineCache_->bindStorageImage(samplers);
+
+    // Bind all the buffers associated with this pipeline
+    for (const auto& info : bundle->descBindInfo_)
+    {
+        if (info.type == vk::DescriptorType::eUniformBuffer)
+        {
+            pipelineCache_->bindUbo(info.binding, info.buffer, info.size);
+        }
+        else if (info.type == vk::DescriptorType::eStorageBuffer)
+        {
+            pipelineCache_->bindSsbo(info.binding, info.buffer, info.size);
+        }
+    }
+    plineLayout.build(context());
+    pipelineCache_->bindDescriptors(cmd, plineLayout, {}, vk::PipelineBindPoint::eCompute);
+    pipelineCache_->bindComputeShaderModules(*bundle);
+
+    pipelineCache_->bindComputePipeline(cmd, plineLayout);
+
+    cmd.dispatch(xWorkCount, yWorkCount, zWorkCount);
 }
 
 vk::Format VkDriver::getSupportedDepthFormat() const
@@ -603,6 +649,8 @@ void VkDriver::generateMipMaps(const TextureHandle& handle, const vk::CommandBuf
         vk::ImageLayout::eShaderReadOnlyOptimal,
         vk::ImageLayout::eTransferSrcOptimal,
         cmdBuffer,
+        vk::PipelineStageFlagBits::eAllCommands,
+        vk::PipelineStageFlagBits::eAllCommands,
         0);
 
     for (uint8_t i = 1; i < texParams.mipLevels; ++i)
@@ -627,6 +675,8 @@ void VkDriver::generateMipMaps(const TextureHandle& handle, const vk::CommandBuf
             vk::ImageLayout::eUndefined,
             vk::ImageLayout::eTransferDstOptimal,
             cmdBuffer,
+            vk::PipelineStageFlagBits::eAllCommands,
+            vk::PipelineStageFlagBits::eAllCommands,
             i);
 
         // blit the image
@@ -644,6 +694,8 @@ void VkDriver::generateMipMaps(const TextureHandle& handle, const vk::CommandBuf
             vk::ImageLayout::eTransferDstOptimal,
             vk::ImageLayout::eTransferSrcOptimal,
             cmdBuffer,
+            vk::PipelineStageFlagBits::eAllCommands,
+            vk::PipelineStageFlagBits::eAllCommands,
             i);
     }
 
@@ -654,7 +706,6 @@ void VkDriver::generateMipMaps(const TextureHandle& handle, const vk::CommandBuf
         vk::ImageLayout::eShaderReadOnlyOptimal,
         cmdBuffer);
 }
-
 
 TextureHandle VkDriver::createTexture2d(
     vk::Format format,

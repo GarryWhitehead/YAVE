@@ -24,6 +24,7 @@
 namespace yave
 {
 class Texture;
+class Scene;
 
 class Skybox
 {
@@ -32,7 +33,7 @@ public:
 
     virtual void setTexture(Texture* texture) noexcept = 0;
 
-    virtual void build(Camera* camera) = 0;
+    virtual void build(Scene* scene, Camera* camera) = 0;
 
 protected:
     Skybox();
