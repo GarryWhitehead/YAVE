@@ -52,7 +52,7 @@ public:
     constexpr static uint8_t MaxUboDynamicBindCount = 4;
     constexpr static uint8_t MaxSsboBindCount = 4;
     constexpr static uint8_t MaxVertexAttributeCount = 8;
-    constexpr static uint8_t MaxStorageImageBindCount = 4;
+    constexpr static uint8_t MaxStorageImageBindCount = 6;
 
     // shader set values for each descriptor type
     constexpr static uint8_t UboSetValue = 0;

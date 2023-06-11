@@ -25,73 +25,82 @@
 #include <utility/colour.h>
 
 #include <cstdlib>
+#include <random>
+#include <numeric>
 
 namespace yave
 {
-NoiseGenerator::NoiseGenerator(uint32_t noiseWidth, uint32_t noiseHeight)
-    : noiseBuffer_(nullptr), noiseWidth_(noiseWidth), noiseHeight_(noiseHeight)
+NoiseGenerator::NoiseGenerator(uint32_t seed) 
 {
-    noiseBuffer_ = new double[noiseWidth * noiseHeight];
-    generateNoise(noiseBuffer_, noiseWidth, noiseHeight);
+    permutations_.resize(256);
+    std::iota(permutations_.begin(), permutations_.end(), 0);
+
+    std::default_random_engine engine(seed);
+
+    std::shuffle(permutations_.begin(), permutations_.end(), engine);
+
+    // Duplicate the permutation vector
+    permutations_.insert(permutations_.end(), permutations_.begin(), permutations_.end());
 }
 
-NoiseGenerator::~NoiseGenerator() { delete noiseBuffer_; }
+NoiseGenerator::~NoiseGenerator() { }
 
-void NoiseGenerator::generateNoise(double* noiseBuffer, uint32_t noiseWidth, uint32_t noiseHeight)
+double NoiseGenerator::fade(double t) { return t * t * t * (t * (t * 6 - 15) + 10); }
+
+double NoiseGenerator::lerp(double t, double a, double b) { return a + t * (b - a); }
+
+double NoiseGenerator::grad(int hash, double x, double y, double z)
 {
-    for (uint32_t y = 0; y < noiseHeight; y++)
-    {
-        for (uint32_t x = 0; x < noiseWidth; x++)
-        {
-            noiseBuffer[y * noiseWidth + x] = (rand() % 32768) / 32768.0;
-        }
-    }
+    int h = hash & 15;
+    // Convert lower 4 bits of hash into 12 gradient directions
+    double u = h < 8 ? x : y, v = h < 4 ? y : h == 12 || h == 14 ? x : z;
+    return ((h & 1) == 0 ? u : -u) + ((h & 2) == 0 ? v : -v);
 }
 
-double NoiseGenerator::smoothNoise(
-    double x, double y, double* noiseBuffer, uint32_t noiseWidth, uint32_t noiseHeight)
+double NoiseGenerator::generateNoise(double x, double y, double z)
 {
-    // get fractional part of x and y
-    double fractX = x - static_cast<int>(x);
-    double fractY = y - static_cast<int>(y);
+    int X = (int)floor(x) & 255;
+    int Y = (int)floor(y) & 255;
+    int Z = (int)floor(z) & 255;
+    
+    x -= floor(x);
+    y -= floor(y);
+    z -= floor(z);
 
-    // wrap around
-    uint32_t x1 = (static_cast<uint32_t>(x) + noiseWidth) % noiseWidth;
-    uint32_t y1 = (static_cast<uint32_t>(y) + noiseHeight) % noiseHeight;
+    // Compute fade curves for each of x, y, z
+    double u = fade(x);
+    double v = fade(y);
+    double w = fade(z);
 
-    // neighbor values
-    uint32_t x2 = (x1 + noiseWidth - 1) % noiseWidth;
-    uint32_t y2 = (y1 + noiseHeight - 1) % noiseHeight;
+    // Hash coordinates of the 8 cube corners
+    int A = permutations_[X] + Y;
+    int AA = permutations_[A] + Z;
+    int AB = permutations_[A + 1] + Z;
+    int B = permutations_[X + 1] + Y;
+    int BA = permutations_[B] + Z;
+    int BB = permutations_[B + 1] + Z;
 
-    // smooth the noise with bilinear interpolation
-    double value = 0.0;
-    value += fractX * fractY * noiseBuffer[y1 * noiseWidth + x1];
-    value += (1 - fractX) * fractY * noiseBuffer[y1 * noiseWidth + x2];
-    value += fractX * (1 - fractY) * noiseBuffer[y2 * noiseWidth + x1];
-    value += (1 - fractX) * (1 - fractY) * noiseBuffer[y2 * noiseWidth + x2];
-
-    return value;
+    // Add blended results from 8 corners of cube
+    double res = lerp(
+        w,
+        lerp(
+            v,
+            lerp(u, grad(permutations_[AA], x, y, z), grad(permutations_[BA], x - 1, y, z)),
+            lerp(
+                u, grad(permutations_[AB], x, y - 1, z), grad(permutations_[BB], x - 1, y - 1, z))),
+        lerp(
+            v,
+            lerp(
+                u,
+                grad(permutations_[AA + 1], x, y, z - 1),
+                grad(permutations_[BA + 1], x - 1, y, z - 1)),
+            lerp(
+                u,
+                grad(permutations_[AB + 1], x, y - 1, z - 1),
+                grad(permutations_[BB + 1], x - 1, y - 1, z - 1))));
+    return (res + 1.0) / 2.0;
 }
 
-uint8_t* NoiseGenerator::generateImage(
-    uint32_t imageWidth, uint32_t imageHeight, uint32_t noiseWidth, uint32_t noiseHeight)
-{
-    uint8_t* imageBuffer = new uint8_t[imageWidth * imageHeight * 4];
-
-    for (uint32_t y = 0; y < imageHeight; y++)
-    {
-        for (uint32_t x = 0; x < imageWidth; x++)
-        {
-            util::Colour4 colour {
-                static_cast<float>(256 * smoothNoise(x, y, noiseBuffer_, noiseWidth, noiseHeight))};
-            imageBuffer[y * imageWidth + x] = static_cast<uint8_t>(colour.r());
-            imageBuffer[2 * (y * imageWidth + x)] = static_cast<uint8_t>(colour.g());
-            imageBuffer[3 * (y * imageWidth + x)] = static_cast<uint8_t>(colour.b());
-            imageBuffer[4 * (y * imageWidth + x)] = 1;
-        }
-    }
-    return imageBuffer;
-}
 
 
 } // namespace yave

@@ -1,0 +1,56 @@
+
+#include "include/complex.h"
+
+#define PI 3.1415926535897932384626433832795
+
+layout (local_size_x = 1, local_size_y = 16) in;
+
+void main()
+{
+	ivec2 id = ivec2(gl_GlobalInvocationID.xy);
+	if(id.x >= compute_ubo.log2N || id.y >= compute_ubo.N)
+    {
+		return;
+    }
+
+	float k = mod(id.y * (compute_ubo.N /  pow(2, id.x + 1)), compute_ubo.N);
+	
+	complex twiddle = complex(cos(2.0 * PI * k / compute_ubo.N), sin(2.0 * PI * k / compute_ubo.N));
+	int span = int(pow(2, id.x));
+	
+	uint currWing = 0;
+	if (mod(id.y, pow(2, id.x + 1)) < pow(2, id.x))
+    {
+		currWing = 1;
+    }
+
+	if(id.x == 0) 
+    {						
+		// if the first stage, store the indices
+        // top wing
+        if(currWing == 1) 
+        {			
+			// store the twiddle factors and bit reversed indices 
+			imageStore(ButterflyImage, id, vec4(twiddle.r, twiddle.i, ssbo.bitReversed[id.y], ssbo.bitReversed[id.y + 1])); 
+		}
+		else 
+        {							
+            // bottom wing
+			imageStore(ButterflyImage, id, vec4(twiddle.r, twiddle.i, ssbo.bitReversed[id.y - 1], ssbo.bitReversed[id.y])); 
+		}
+	}
+	else 
+    {								
+        // otherwise, store the butterfly span
+        // top wing
+		if(currWing == 1) 
+        {			
+			imageStore(ButterflyImage, id, vec4(twiddle.r, twiddle.i, id.y, id.y + span)); 
+		}
+		else 
+        {							
+            // bottom wing
+			imageStore(ButterflyImage, id, vec4(twiddle.r, twiddle.i, id.y - span, id.y)); 
+		}
+	}
+}

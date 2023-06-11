@@ -32,6 +32,7 @@ class TextureSampler
 public:
     TextureSampler() = default;
 
+    TextureSampler(backend::SamplerFilter minMag) { params_ = {minMag, minMag}; }
     TextureSampler(backend::SamplerFilter min, backend::SamplerFilter mag) { params_ = {min, mag}; }
 
     TextureSampler(
@@ -62,6 +63,7 @@ public:
     }
 
     backend::TextureSamplerParams& get() noexcept { return params_; }
+    backend::TextureSamplerParams get() const noexcept { return params_; }
 
 private:
     backend::TextureSamplerParams params_;

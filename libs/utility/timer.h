@@ -68,7 +68,7 @@ public:
         current = timeNow;
     }
 
-    TimeType getTimeElapsed()
+    TimeType getTimeElapsed() 
     {
         auto timeNow =
             std::chrono::duration_cast<TimeType>(std::chrono::high_resolution_clock::now());
@@ -77,7 +77,7 @@ public:
         return deltaTime;
     }
 
-    static TimeType getCurrentTime()
+    static TimeType getCurrentTime() 
     {
         auto timeNow = std::chrono::high_resolution_clock::now();
         return std::chrono::duration_cast<TimeType>(timeNow.time_since_epoch());

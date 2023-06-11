@@ -22,7 +22,10 @@
 
 #pragma once
 
+#include <utility/assertion.h>
+
 #include <cstdint>
+#include <vector>
 
 namespace yave
 {
@@ -30,22 +33,54 @@ namespace yave
 class NoiseGenerator
 {
 public:
-    NoiseGenerator(uint32_t noiseWidth, uint32_t noiseHeight);
+    NoiseGenerator(uint32_t seed);
     ~NoiseGenerator();
 
-    void generateNoise(double* noiseBuffer, uint32_t noiseWidth, uint32_t noiseHeight);
+    double generateNoise(double x, double y, double z);
 
-    double
-    smoothNoise(double x, double y, double* noiseBuffer, uint32_t noiseWidth, uint32_t noiseHeight);
+    template <typename TYPE>
+    TYPE* generateImage(
+        uint32_t imageWidth, uint32_t imageHeight, uint32_t channels)
+    {
+        
+        ASSERT_FATAL(
+            channels > 0 && channels <= 4, "Only r, rg or rgb channels supported for image gen.");
+        TYPE* imageBuffer = new TYPE[imageWidth * imageHeight * channels];
 
-    uint8_t* generateImage(
-        uint32_t imageWidth, uint32_t imageHeight, uint32_t noiseWidth, uint32_t noiseHeight);
+        for (uint32_t i = 0; i < imageHeight; ++i)
+        {
+            for (uint32_t j = 0; j < imageWidth; j += channels)
+            {
+                double x = static_cast<double>(j) / static_cast<double>(imageWidth);
+                double y = static_cast<double>(i) / static_cast<double>(imageHeight);
+
+                double noise = generateNoise(10 * x, 10 * y, 0.8);
+
+                for (uint32_t k = 0; k < channels; ++k)
+                {
+                    if (k == 3)
+                    {
+                        imageBuffer[(i * imageWidth + j) + 3] = (TYPE)1;
+                        continue;
+                    }
+                    imageBuffer[(i * imageWidth + j) + k] = (TYPE)noise;
+                }
+            }
+        }
+        return imageBuffer;
+    }
 
 private:
-    double* noiseBuffer_;
 
-    uint32_t noiseWidth_;
-    uint32_t noiseHeight_;
+    double fade(double t);
+
+    double lerp(double t, double a, double b);
+
+    double grad(int hash, double x, double y, double z);
+
+private:
+
+    std::vector<int> permutations_;
 };
 
 } // namespace yave

@@ -46,6 +46,7 @@ class Skybox;
 class IndirectLight;
 class Camera;
 class Window;
+class WaveGenerator;
 
 class Engine
 {
@@ -86,6 +87,8 @@ public:
     virtual IndirectLight* createIndirectLight() = 0;
 
     virtual Camera* createCamera() = 0;
+
+    virtual WaveGenerator* createWaveGenerator() = 0;
 
     virtual void flushCmds() = 0;
 

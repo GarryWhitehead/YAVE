@@ -141,7 +141,6 @@ public:
         const std::string& elementName,
         backend::BufferElementType type,
         backend::ShaderStage stage,
-        size_t size,
         void* value)
     {
         pushBlock_[util::ecast(stage)]->addElement(elementName, type, (void*)value);

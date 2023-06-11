@@ -152,16 +152,22 @@ rg::RenderGraphHandle PostProcess::bloom(
             vk::PipelineStageFlagBits::eFragmentShader,
             vk::PipelineStageFlagBits::eComputeShader);
 
-        lumCompute_->addSamplerTexture(
+        lumCompute_->addStorageImage(
             driver,
             "ColourSampler",
             lightHandle,
-            {backend::SamplerFilter::Nearest},
             0,
             ImageStorageSet::StorageType::ReadOnly);
 
-        lumCompute_->addSsboWriteParam(
-            "histogram", backend::BufferElementType::Uint, totalWorkCount);
+       lumCompute_->addSsbo(
+            "histogram",
+            backend::BufferElementType::Uint,
+            StorageBuffer::AccessType::ReadWrite,
+            0,
+            "output_ssbo",
+            nullptr,
+            totalWorkCount);
+
         lumCompute_->addUboParam(
             "minLuminanceLog", backend::BufferElementType::Float, (void*)&options.minLuminanceLog);
         lumCompute_->addUboParam(
@@ -190,15 +196,21 @@ rg::RenderGraphHandle PostProcess::bloom(
             vk::PipelineStageFlagBits::eComputeShader,
             vk::PipelineStageFlagBits::eComputeShader);
 
-        avgCompute_->addSamplerTexture(
+        avgCompute_->addStorageImage(
             driver,
             "ColourSampler",
             averageLumLut_->getBackendHandle(),
-            {backend::SamplerFilter::Nearest},
             0,
             ImageStorageSet::StorageType::ReadWrite);
 
-        avgCompute_->addExternalSsboRead(*lumCompute_);
+         avgCompute_->copySsbo(
+            *lumCompute_,
+            0,
+            0,
+            StorageBuffer::AccessType::ReadWrite,
+            "SsboBuffer",
+            "input_ssbo");
+
         avgCompute_->addUboParam(
             "minLuminanceLog", backend::BufferElementType::Float, (void*)&options.minLuminanceLog);
         avgCompute_->addUboParam(

@@ -157,7 +157,10 @@ public:
 
     void parseMaterialShader(const std::filesystem::path& shaderPath);
 
-    void setTexture(const TextureHandle& handle, uint8_t binding, vk::Sampler sampler);
+   void setImageSampler(
+        const TextureHandle& handle, uint8_t binding, vk::Sampler sampler);
+
+    void setStorageImage(const TextureHandle& handle, uint8_t binding);
 
     void setPushBlockData(backend::ShaderStage stage, void* data);
 
@@ -212,12 +215,19 @@ private:
     std::unique_ptr<PipelineLayout> pipelineLayout_;
 
     // Note: this is initialised after a call to updateDescriptorLayouts.
-    std::unique_ptr<PipelineLayout::PushBlockBindParams> pushBlock_[2];
+    std::unique_ptr<PipelineLayout::PushBlockBindParams>
+        pushBlock_[util::ecast(backend::ShaderStage::Count)];
+
+    struct ImageSamplerParams
+    {
+        TextureHandle texHandle;
+        vk::Sampler sampler;
+    };
 
     // Index into the resource cache for the texture for each attachment.
-    std::array<TextureHandle, PipelineCache::MaxSamplerBindCount> textureHandles_;
+    std::array<ImageSamplerParams, PipelineCache::MaxSamplerBindCount> imageSamplers_;
 
-    std::array<vk::Sampler, PipelineCache::MaxSamplerBindCount> samplers_;
+    std::array<TextureHandle, PipelineCache::MaxStorageImageBindCount> storageImages_;
 
     // We keep a record of descriptors here and their binding info for
     // use at the pipeline binding draw stage

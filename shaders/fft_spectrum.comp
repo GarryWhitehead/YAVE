@@ -1,0 +1,55 @@
+
+#include "include/complex.h"
+
+#define PI 3.1415926535897932384626433832795
+#define GRAVITY 9.81
+
+layout (local_size_x = 16, local_size_y = 16) in;
+
+void main()
+{
+	ivec2 id = ivec2(gl_GlobalInvocationID.xy);
+	if(id.y >= compute_ubo.N || id.x >= compute_ubo.N)
+	{
+		return;
+	}
+	
+	vec2 h0_k = imageLoad(H0kImage, id).rg;
+	vec2 h0minus_k = imageLoad(H0minuskImage, id).rg;
+
+	vec2 x = vec2(gl_GlobalInvocationID.xy) - compute_ubo.N / 2.0;
+	vec2 k = vec2(2.0 * PI * x.x / compute_ubo.L, 2.0 * PI * x.y / compute_ubo.L);
+
+	float mag = length(k);
+	if(mag < 0.000001)
+	{
+		mag = 0.000001;
+	}
+
+	float w = sqrt(GRAVITY * mag);
+	
+	complex fft = complex(h0_k.x, h0_k.y);
+	complex fft_conj = conjugate(complex(h0minus_k.x, h0minus_k.y));
+	
+	float cos_omega = cos(w * compute_ubo.time);
+	float sin_omega = sin(w * compute_ubo.time);
+	
+	complex exp_omega = complex(cos_omega, sin_omega);
+	complex inv_exp_omega = complex(cos_omega, -sin_omega);
+
+	// calculate dt(y) height
+	complex dyt = cadd(cmul(fft, exp_omega), cmul(fft_conj, inv_exp_omega));
+	
+	// dt(x) displacement
+	complex dxt = cmul(complex(0.0, -k.x / mag), dyt);		// choppiness of the wave
+	
+	// dt(z) normal
+	complex dzt = cmul(complex(0.0, -k.y / mag), dyt);
+	
+	int index =  id.y * compute_ubo.N + id.x;
+
+	ssbo.out_dxyz[index + compute_ubo.offset_dx] = vec2(dxt.r, dxt.i);
+	ssbo.out_dxyz[index + compute_ubo.offset_dy] = vec2(dyt.r, dyt.i);
+	ssbo.out_dxyz[index + compute_ubo.offset_dz] = vec2(dzt.r, dzt.i);
+}	
+	

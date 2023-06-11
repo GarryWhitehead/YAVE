@@ -429,15 +429,14 @@ void VkDriver::draw(
     vkapi::PipelineCache::DescriptorImage samplers[vkapi::PipelineCache::MaxSamplerBindCount];
     for (int idx = 0; idx < vkapi::PipelineCache::MaxSamplerBindCount; ++idx)
     {
-        const vkapi::TextureHandle& handle = programBundle.textureHandles_[idx];
+        const vkapi::TextureHandle& handle = programBundle.imageSamplers_[idx].texHandle;
+        vk::Sampler sampler = programBundle.imageSamplers_[idx].sampler;
+
         if (handle)
         {
-            ASSERT_FATAL(
-                programBundle.samplers_[idx], "Image sampler has not been set for this material.");
-
             const auto& tex = handle.getResource();
             vkapi::PipelineCache::DescriptorImage& image = samplers[idx];
-            image.imageSampler = programBundle.samplers_[idx];
+            image.imageSampler = sampler;
             image.imageView = tex->getImageView()->get();
             image.imageLayout = tex->getImageLayout();
         }
@@ -567,20 +566,38 @@ void VkDriver::dispatchCompute(
 {
     PipelineLayout& plineLayout = bundle->getPipelineLayout();
 
-    vkapi::PipelineCache::DescriptorImage samplers[vkapi::PipelineCache::MaxStorageImageBindCount];
+    // image storage
+    vkapi::PipelineCache::DescriptorImage storageImages[vkapi::PipelineCache::MaxStorageImageBindCount];
     for (int idx = 0; idx < vkapi::PipelineCache::MaxStorageImageBindCount; ++idx)
     {
-        const vkapi::TextureHandle& handle = bundle->textureHandles_[idx];
+        const vkapi::TextureHandle& handle = bundle->storageImages_[idx];
         if (handle)
         {
             const auto& tex = handle.getResource();
-            vkapi::PipelineCache::DescriptorImage& image = samplers[idx];
-            image.imageSampler = bundle->samplers_[idx];
+            vkapi::PipelineCache::DescriptorImage& image = storageImages[idx];
             image.imageView = tex->getImageView()->get();
             image.imageLayout = tex->getImageLayout();
         }
     }
-    pipelineCache_->bindStorageImage(samplers);
+    pipelineCache_->bindStorageImage(storageImages);
+
+    // image samplers
+    vkapi::PipelineCache::DescriptorImage imageSamplers[vkapi::PipelineCache::MaxSamplerBindCount];
+    for (int idx = 0; idx < vkapi::PipelineCache::MaxSamplerBindCount; ++idx)
+    {
+        const vkapi::TextureHandle& handle = bundle->imageSamplers_[idx].texHandle;
+        vk::Sampler sampler = bundle->imageSamplers_[idx].sampler;
+
+        if (handle)
+        {
+            const auto& tex = handle.getResource();
+            vkapi::PipelineCache::DescriptorImage& image = imageSamplers[idx];
+            image.imageSampler = sampler;
+            image.imageView = tex->getImageView()->get();
+            image.imageLayout = tex->getImageLayout();
+        }
+    }
+    pipelineCache_->bindSampler(imageSamplers);
 
     // Bind all the buffers associated with this pipeline
     for (const auto& info : bundle->descBindInfo_)
@@ -599,6 +616,15 @@ void VkDriver::dispatchCompute(
     pipelineCache_->bindComputeShaderModules(*bundle);
 
     pipelineCache_->bindComputePipeline(cmd, plineLayout);
+
+    // Bind the push block.
+    size_t computeStage = util::ecast(backend::ShaderStage::Compute);
+    if (bundle->pushBlock_[computeStage])
+    {
+        ASSERT_FATAL(
+            bundle->pushBlock_[computeStage]->data, "No data has been set for this pushblock.");
+        plineLayout.bindPushBlock(cmd, *bundle->pushBlock_[computeStage]);
+    }
 
     cmd.dispatch(xWorkCount, yWorkCount, zWorkCount);
 }

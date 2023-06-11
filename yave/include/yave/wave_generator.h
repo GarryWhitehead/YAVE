@@ -21,47 +21,18 @@
  */
 #pragma once
 
-#include "options.h"
-
-#include <memory>
-
 namespace yave
 {
-class Skybox;
-class Camera;
-class Object;
-class IndirectLight;
-class WaveGenerator;
 
-class Scene
+class WaveGenerator
 {
 public:
-    virtual ~Scene();
 
-    virtual void setSkybox(Skybox* skybox) = 0;
-
-    virtual void setIndirectLight(IndirectLight* il) = 0;
-
-    virtual void setCamera(Camera* camera) = 0;
-
-    virtual void setWaveGenerator(WaveGenerator* waterGen) = 0;
-
-    virtual Camera* getCurrentCamera() = 0;
-
-    virtual void addObject(Object obj) = 0;
-    virtual void destroyObject(Object obj) = 0;
-
-    virtual void usePostProcessing(bool state) = 0;
-
-    virtual void useGbuffer(bool state) = 0;
-
-    virtual void setBloomOptions(const BloomOptions& bloom) = 0;
-    virtual void setGbufferOptions(const GbufferOptions& gb) = 0;
-    virtual BloomOptions& getBloomOptions() = 0;
-    virtual GbufferOptions& getGbufferOptions() = 0;
+    virtual ~WaveGenerator();
 
 protected:
-    Scene();
+
+    WaveGenerator();
 };
 
-} // namespace yave
+}

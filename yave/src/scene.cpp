@@ -49,6 +49,7 @@ IScene::IScene(IEngine& engine)
     : engine_(engine),
       camera_(nullptr),
       skybox_(nullptr),
+      waveGen_(nullptr),
       indirectLight_(nullptr),
       sceneUbo_(std::make_unique<SceneUbo>(engine_.driver())),
       usePostProcessing_(true),
@@ -95,6 +96,12 @@ void IScene::setCameraI(ICamera* cam) noexcept
 {
     ASSERT_FATAL(cam, "The camera is nullptr.");
     camera_ = cam;
+}
+
+void IScene::setWaveGeneratorI(IWaveGenerator* waterGen) noexcept 
+{
+    ASSERT_FATAL(waterGen, "Water generator is nullptr");
+    waveGen_ = waterGen;
 }
 
 bool IScene::update()
@@ -371,6 +378,11 @@ Scene::Scene() {}
 Scene::~Scene() {}
 
 void IScene::setSkybox(Skybox* skybox) { setSkyboxI(reinterpret_cast<ISkybox*>(skybox)); }
+
+void IScene::setWaveGenerator(WaveGenerator* waterGen)
+{
+    setWaveGeneratorI(reinterpret_cast<IWaveGenerator*>(waterGen));
+}
 
 void IScene::setIndirectLight(IndirectLight* il)
 {

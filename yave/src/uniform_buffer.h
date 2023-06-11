@@ -56,8 +56,10 @@ public:
         uint32_t size;
         // the member value as binary
         void* value;
-        // the array size
-        uint32_t arraySize;
+        // the inner array size ( >1 indicates a 2d array)
+        uint32_t innerArraySize;
+        // the outer array size 
+        uint32_t outerArraySize;
         // name of the struct if the element type is "Struct"
         std::string structName;
     };
@@ -65,11 +67,14 @@ public:
     BufferBase();
     virtual ~BufferBase();
 
+    // Note: if both inner and outer array are > 1 then indicates a 2d array.
+    // id inner array == 1 then treated as a 1d array and only the outer array size considered.
     void addElement(
         const std::string& name,
         backend::BufferElementType type,
         void* value = nullptr,
-        uint32_t arraySize = 1,
+        uint32_t outerArraySize = 1,
+        uint32_t innerArraySize = 1,
         const std::string& structName = "") noexcept;
 
     void updateElement(const std::string& name, void* data) noexcept;

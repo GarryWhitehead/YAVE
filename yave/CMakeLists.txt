@@ -39,6 +39,7 @@ target_sources(
     include/yave/object_manager.h
     include/yave/indirect_light.h
     include/yave/options.h
+    include/yave/wave_generator.h
     
     PRIVATE
     src/engine.cpp
@@ -62,6 +63,7 @@ target_sources(
     src/scene_ubo.cpp
     src/post_process.cpp
     src/compute.cpp
+    src/wave_generator.cpp
     src/managers/renderable_manager.cpp
     src/managers/component_manager.cpp
     src/managers/renderable_manager.cpp
@@ -100,6 +102,7 @@ target_sources(
     src/scene_ubo.h
     src/post_process.h
     src/compute.h
+    src/wave_generator.h
     src/managers/component_manager.h
     src/managers/renderable_manager.h
     src/managers/transform_manager.h

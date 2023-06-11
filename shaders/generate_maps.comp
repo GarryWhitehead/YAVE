@@ -1,0 +1,27 @@
+
+layout (local_Size_x = 16, local_size_y = 16) in;
+
+void main()
+{
+	ivec2 id = ivec2(gl_GlobalInvocationID.xy);
+	vec2 uv = vec2(id) / compute_ubo.N;
+	
+	float x0 = textureOffset(HeightMap, uv, ivec2(-1, 0)).r;
+	float x1 = textureOffset(HeightMap, uv, ivec2(1, 0)).r;
+	float y0 = textureOffset(HeightMap, uv, ivec2(0, -1)).r;
+	float y1 = textureOffset(HeightMap, uv, ivec2(0, 1)).r;
+	
+	vec2 grad = vec2(x1 - x0, y1 - y0);
+	
+	float height = texture(HeightMap, uv).r;
+	vec2 displacement = texture(fftOutputImage, uv).rg;
+
+	// calculate Jacobian correlation and store in w component of output vec
+	vec2 dx = (textureOffset(fftOutputImage, uv, ivec2(1, 0)).xy - textureOffset(fftOutputImage, uv, ivec2(-1, 0)).xy) * compute_ubo.choppyFactor * compute_ubo.gridLength;
+	vec2 dy = (textureOffset(fftOutputImage, uv, ivec2(0, 1)).xy - textureOffset(fftOutputImage, uv, ivec2(0, -1)).xy) * compute_ubo.choppyFactor * compute_ubo.gridLength;
+		
+	float j = (1.0 + dx.x) * (1.0 + dy.y) - dx.y * dy.x;
+	
+	imageStore(DisplacementMap, id, vec4(height, displacement, 0.0));
+	imageStore(GradientMap, id, vec4(grad, j, 0.0));
+}

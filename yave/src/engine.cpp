@@ -30,6 +30,7 @@
 #include "mapped_texture.h"
 #include "post_process.h"
 #include "renderable.h"
+#include "wave_generator.h"
 #include "scene.h"
 #include "skybox.h"
 #include "utility/timer.h"
@@ -203,6 +204,8 @@ IIndirectLight* IEngine::createIndirectLightI() noexcept { return createResource
 
 ICamera* IEngine::createCameraI() noexcept { return createResource(cameras_); }
 
+IWaveGenerator* IEngine::createWaveGeneratorI() noexcept { return createResource(waterGens_, *this); }
+
 void IEngine::flush()
 {
     auto& cmds = driver_->getCommands();
@@ -315,6 +318,11 @@ IndirectLight* IEngine::createIndirectLight()
 }
 
 Camera* IEngine::createCamera() { return reinterpret_cast<Camera*>(createCameraI()); }
+
+WaveGenerator* IEngine::createWaveGenerator()
+{
+    return reinterpret_cast<WaveGenerator*>(createWaveGeneratorI());
+}
 
 void IEngine::flushCmds() { flush(); }
 

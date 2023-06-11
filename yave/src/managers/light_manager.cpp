@@ -48,7 +48,7 @@ ILightManager::ILightManager(IEngine& engine)
         "LightSsbo",
         "light_ssbo");
 
-    ssbo_->addElement("params", backend::BufferElementType::Struct, nullptr, 0, "LightParams");
+    ssbo_->addElement("params", backend::BufferElementType::Struct, nullptr, 0, 1, "LightParams");
     ssbo_->createGpuBuffer(engine_.driver(), MaxLightCount * sizeof(ILightManager::LightSsbo));
 
     // A sampler for each of the gbuffer render targets.
@@ -453,15 +453,15 @@ rg::RenderGraphHandle ILightManager::render(
                 1.0f);
             vk::Sampler sampler =
                 engine_.driver().getSamplerCache().createSampler(samplerParams.get());
-            programBundle_->setTexture(
+            programBundle_->setImageSampler(
                 resources.getTextureHandle(data.position), SamplerPositionBinding, sampler);
-            programBundle_->setTexture(
+            programBundle_->setImageSampler(
                 resources.getTextureHandle(data.colour), SamplerColourBinding, sampler);
-            programBundle_->setTexture(
+            programBundle_->setImageSampler(
                 resources.getTextureHandle(data.normal), SamplerNormalBinding, sampler);
-            programBundle_->setTexture(
+            programBundle_->setImageSampler(
                 resources.getTextureHandle(data.pbr), SamplerPbrBinding, sampler);
-            programBundle_->setTexture(
+            programBundle_->setImageSampler(
                 resources.getTextureHandle(data.emissive), SamplerEmissiveBinding, sampler);
 
             TextureSampler iblSamplerParams(
@@ -475,23 +475,24 @@ rg::RenderGraphHandle ILightManager::render(
             IIndirectLight* il = scene.getIndirectLight();
             if (il)
             {
-                programBundle_->setTexture(
+                programBundle_->setImageSampler(
                     il->getIrradianceMapHandle(), SamplerIrradianceBinding, iblSampler);
-                programBundle_->setTexture(
+                programBundle_->setImageSampler(
                     il->getSpecularMapHandle(), SamplerSpecularBinding, iblSampler);
-                programBundle_->setTexture(il->getBrdfLutHandle(), SamplerBrdfBinding, iblSampler);
+                programBundle_->setImageSampler(
+                    il->getBrdfLutHandle(), SamplerBrdfBinding, iblSampler);
             }
             else
             {
-                programBundle_->setTexture(
+                programBundle_->setImageSampler(
                     engine_.getDummyIrradianceMap()->getBackendHandle(),
                     SamplerIrradianceBinding,
                     sampler);
-                programBundle_->setTexture(
+                programBundle_->setImageSampler(
                     engine_.getDummySpecularMap()->getBackendHandle(),
                     SamplerSpecularBinding,
                     sampler);
-                programBundle_->setTexture(
+                programBundle_->setImageSampler(
                     engine_.getDummyBrdfLut()->getBackendHandle(), SamplerBrdfBinding, sampler);
             }
 

@@ -147,6 +147,7 @@ enum class TextureFormat
     R8,
     R16F,
     R32F,
+    R32U,
     RG8,
     RG16F,
     RG32F,

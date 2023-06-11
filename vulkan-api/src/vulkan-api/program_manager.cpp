@@ -279,14 +279,22 @@ bool ShaderProgramBundle::hasProgram(backend::ShaderStage type) noexcept
     return false;
 }
 
-void ShaderProgramBundle::setTexture(
+void ShaderProgramBundle::setImageSampler(
     const TextureHandle& handle, uint8_t binding, vk::Sampler sampler)
 {
     ASSERT_FATAL(handle, "Invalid texture handle.");
     ASSERT_FATAL(
         binding < PipelineCache::MaxSamplerBindCount, "Binding of %d is out of bounds.", binding);
-    textureHandles_[binding] = handle;
-    samplers_[binding] = sampler;
+    imageSamplers_[binding] = {handle, sampler};
+}
+
+void ShaderProgramBundle::setStorageImage(
+    const TextureHandle& handle, uint8_t binding)
+{
+    ASSERT_FATAL(handle, "Invalid texture handle.");
+    ASSERT_FATAL(
+        binding < PipelineCache::MaxStorageImageBindCount, "Binding of %d is out of bounds.", binding);
+    storageImages_[binding] = handle;
 }
 
 void ShaderProgramBundle::setPushBlockData(backend::ShaderStage stage, void* data)
@@ -345,20 +353,17 @@ void ShaderProgramBundle::addTextureSampler(vk::Sampler sampler, uint32_t bindin
         binding < PipelineCache::MaxSamplerBindCount,
         "Binding value of %d exceeds the max binding count.",
         binding);
-    samplers_[binding] = sampler;
+    imageSamplers_[binding].sampler = sampler;
 }
 
 void ShaderProgramBundle::createPushBlock(size_t size, backend::ShaderStage stage)
 {
     uint32_t stageValue = util::ecast(stage);
-    ASSERT_FATAL(
-        stageValue <= 2, "Only vertex and fragment shader currently supports push blocks.");
-
     if (!pushBlock_[stageValue])
     {
         pushBlock_[stageValue] = std::make_unique<PipelineLayout::PushBlockBindParams>();
-        pushBlock_[stageValue]->stage = Shader::getStageFlags(stage);
     }
+    pushBlock_[stageValue]->stage = Shader::getStageFlags(stage);
     pushBlock_[stageValue]->size = size;
 }
 

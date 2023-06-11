@@ -224,7 +224,7 @@ void IMaterial::addImageTexture(
     setSamplerParamI(imageTypeToStr(type), binding, samplerType);
 
     params.mipLevels = texture->getMipLevels();
-    programBundle_->setTexture(
+    programBundle_->setImageSampler(
         texture->getBackendHandle(), binding, driver.getSamplerCache().createSampler(params));
 }
 
@@ -235,7 +235,8 @@ void IMaterial::addImageTexture(
     const backend::TextureSamplerParams& params)
 {
     uint32_t binding = samplerSet_.getSamplerBinding(samplerName);
-    programBundle_->setTexture(handle, binding, driver.getSamplerCache().createSampler(params));
+    programBundle_->setImageSampler(
+        handle, binding, driver.getSamplerCache().createSampler(params));
 }
 
 void IMaterial::addBuffer(BufferBase* buffer, backend::ShaderStage type)
@@ -542,7 +543,7 @@ void IMaterial::addPushConstantParam(
     size_t size,
     void* value)
 {
-    addPushConstantParamI(elementName, type, stage, size, value);
+    addPushConstantParamI(elementName, type, stage, value);
 }
 
 void IMaterial::addUboParam(
@@ -651,6 +652,7 @@ void IMaterial::setEmissiveFactor(const util::Colour4& emissive) noexcept
         (void*)&emissive);
     addVariant(IMaterial::Variants::HasEmissiveFactor);
 }
+
 void IMaterial::setMaterialFactors(const MaterialFactors& factors)
 {
     setColourBaseFactor(factors.baseColourFactor);

@@ -190,10 +190,11 @@ void BufferBase::addElement(
     const std::string& name,
     backend::BufferElementType type,
     void* value,
-    uint32_t arraySize,
+    uint32_t outerArraySize,
+    uint32_t innerArraySize,
     const std::string& structName) noexcept
 {
-    uint32_t byteSize = elementTypeSizeof(type) * arraySize;
+    uint32_t byteSize = elementTypeSizeof(type) * (innerArraySize * outerArraySize);
 
     // if an element of the same name is already associated with the
     // buffer, as long as the value type is identical, this is not considered
@@ -225,7 +226,7 @@ void BufferBase::addElement(
         newValue = new uint8_t[byteSize];
         memcpy(newValue, value, byteSize);
     }
-    elements_.push_back({name, type, byteSize, newValue, arraySize, structName});
+    elements_.push_back({name, type, byteSize, newValue, innerArraySize, outerArraySize, structName});
     accumSize_ += byteSize;
 }
 
@@ -318,9 +319,10 @@ std::string UniformBuffer::createShaderStr() noexcept
     {
         const auto& [type, size] = elementTypeToStrAndSize(element);
         output += "\t" + type + " " + element.name;
-        if (element.arraySize > 1)
+        // TODO: add support for 2d arrays
+        if (element.outerArraySize > 1)
         {
-            output += "[" + std::to_string(element.arraySize) + "]";
+            output += "[" + std::to_string(element.outerArraySize) + "]";
         }
         output += ";\n";
     }
@@ -347,7 +349,7 @@ void UniformBuffer::createGpuBuffer(vkapi::VkDriver& driver) noexcept
 void UniformBuffer::mapGpuBuffer(vkapi::VkDriver& driver, void* data, size_t size) noexcept
 {
     vkapi::Buffer* buffer = vkHandle_.getResource();
-    ASSERT_LOG(buffer);
+    ASSERT_FATAL(buffer, "Buffer is nullptr - have you created the buffer before trying to map data?");
     buffer->mapToGpuBuffer(data, size);
 }
 
@@ -391,14 +393,22 @@ std::string StorageBuffer::createShaderStr() noexcept
         const auto& [type, size] = elementTypeToStrAndSize(element);
         output += "\t" + type + " " + element.name;
 
-        // An array size of zero denotes this as a unlimited array.
-        if (!element.arraySize)
+        // check for 2d array
+        if (element.innerArraySize > 1)
+        {
+            ASSERT_FATAL(
+                element.outerArraySize > 1,
+                "When specifying a 2d array, the outer array size must be greater than one.");
+            output += "[" + std::to_string(element.innerArraySize) + "]";
+        }
+        // An array size of zero denotes the outer array is of unlimited size.
+        if (!element.outerArraySize)
         {
             output += "[]";
         }
-        else if (element.arraySize > 1)
+        else if (element.outerArraySize > 1)
         {
-            output += "[" + std::to_string(element.arraySize) + "]";
+            output += "[" + std::to_string(element.outerArraySize) + "]";
         }
         output += ";\n";
     }

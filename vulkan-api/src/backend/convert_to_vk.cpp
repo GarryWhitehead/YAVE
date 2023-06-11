@@ -280,6 +280,9 @@ vk::Format textureFormatToVk(backend::TextureFormat type)
         case backend::TextureFormat::R32F:
             output = vk::Format::eR32Sfloat;
             break;
+        case backend::TextureFormat::R32U:
+            output = vk::Format::eR32Uint;
+            break;
         case backend::TextureFormat::RG8:
             output = vk::Format::eR8G8Unorm;
             break;
