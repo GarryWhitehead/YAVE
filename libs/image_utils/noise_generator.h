@@ -39,10 +39,8 @@ public:
     double generateNoise(double x, double y, double z);
 
     template <typename TYPE>
-    TYPE* generateImage(
-        uint32_t imageWidth, uint32_t imageHeight, uint32_t channels)
+    TYPE* generateImage(uint32_t imageWidth, uint32_t imageHeight, uint32_t channels)
     {
-        
         ASSERT_FATAL(
             channels > 0 && channels <= 4, "Only r, rg or rgb channels supported for image gen.");
         TYPE* imageBuffer = new TYPE[imageWidth * imageHeight * channels];
@@ -71,7 +69,6 @@ public:
     }
 
 private:
-
     double fade(double t);
 
     double lerp(double t, double a, double b);
@@ -79,7 +76,6 @@ private:
     double grad(int hash, double x, double y, double z);
 
 private:
-
     std::vector<int> permutations_;
 };
 

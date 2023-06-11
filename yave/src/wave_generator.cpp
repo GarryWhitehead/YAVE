@@ -21,10 +21,11 @@
  */
 
 #include "wave_generator.h"
-#include "engine.h"
-#include "scene.h"
+
 #include "compute.h"
+#include "engine.h"
 #include "mapped_texture.h"
+#include "scene.h"
 #include "yave/texture_sampler.h"
 
 #include <image_utils/noise_generator.h>
@@ -47,7 +48,7 @@ IWaveGenerator::IWaveGenerator(IEngine& engine)
       pingpong_(0),
       updateSpectrum_(true)
 {
-    auto reverse = [this](int idx) -> uint32_t {  
+    auto reverse = [this](int idx) -> uint32_t {
         uint32_t res = 0;
         for (int i = 0; i < log2N_; ++i)
         {
@@ -56,7 +57,7 @@ IWaveGenerator::IWaveGenerator(IEngine& engine)
         }
         return res;
     };
-    
+
     for (size_t index = 0; index < Resolution; ++index)
     {
         reversedBits_[index] = reverse(index);
@@ -84,61 +85,70 @@ IWaveGenerator::IWaveGenerator(IEngine& engine)
         Resolution * Resolution * 4 * sizeof(float),
         Resolution,
         Resolution,
-        1, 1,
+        1,
+        1,
         Texture::TextureFormat::RGBA32F,
         backend::ImageUsage::Storage);
 
     butterflyLut_ = engine.createMappedTextureI();
     butterflyLut_->setEmptyTexture(
-        log2N_,
-        Resolution,
-        Texture::TextureFormat::RGBA32F,
-        backend::ImageUsage::Storage,
-        1, 1);
+        log2N_, Resolution, Texture::TextureFormat::RGBA32F, backend::ImageUsage::Storage, 1, 1);
 
     // output textures for h0k and h0-k
     h0kTexture_ = engine.createMappedTextureI();
     h0minuskTexture_ = engine.createMappedTextureI();
     h0kTexture_->setEmptyTexture(
-        Resolution, Resolution, Texture::TextureFormat::RGBA32F, backend::ImageUsage::Storage, 1, 1);
+        Resolution,
+        Resolution,
+        Texture::TextureFormat::RGBA32F,
+        backend::ImageUsage::Storage,
+        1,
+        1);
     h0minuskTexture_->setEmptyTexture(
-        Resolution, Resolution, Texture::TextureFormat::RGBA32F, backend::ImageUsage::Storage, 1, 1);
+        Resolution,
+        Resolution,
+        Texture::TextureFormat::RGBA32F,
+        backend::ImageUsage::Storage,
+        1,
+        1);
 
     // displacement
     fftOutputImage_ = engine_.createMappedTextureI();
     fftOutputImage_->setEmptyTexture(
-        Resolution,
-        Resolution,
-        Texture::TextureFormat::RG32F,
-        backend::ImageUsage::Storage,
-        1,
-        1);
+        Resolution, Resolution, Texture::TextureFormat::RG32F, backend::ImageUsage::Storage, 1, 1);
     heightMap_ = engine_.createMappedTextureI();
     heightMap_->setEmptyTexture(
-        Resolution,
-        Resolution,
-        Texture::TextureFormat::R32F,
-        backend::ImageUsage::Storage,
-        1,
-        1);
+        Resolution, Resolution, Texture::TextureFormat::R32F, backend::ImageUsage::Storage, 1, 1);
 
     // map generation
     displacementMap_ = engine_.createMappedTextureI();
     displacementMap_->setEmptyTexture(
-        Resolution, Resolution, Texture::TextureFormat::RGBA32F, backend::ImageUsage::Storage, 1, 1);
+        Resolution,
+        Resolution,
+        Texture::TextureFormat::RGBA32F,
+        backend::ImageUsage::Storage,
+        1,
+        1);
     gradientMap_ = engine_.createMappedTextureI();
     gradientMap_->setEmptyTexture(
-        Resolution, Resolution, Texture::TextureFormat::RGBA32F, backend::ImageUsage::Storage, 1, 1);
+        Resolution,
+        Resolution,
+        Texture::TextureFormat::RGBA32F,
+        backend::ImageUsage::Storage,
+        1,
+        1);
 }
 
 IWaveGenerator::~IWaveGenerator() {}
 
-void IWaveGenerator::render(rg::RenderGraph& rGraph, IScene& scene, float dt, util::Timer<NanoSeconds>& timer)
+void IWaveGenerator::render(
+    rg::RenderGraph& rGraph, IScene& scene, float dt, util::Timer<NanoSeconds>& timer)
 {
     float N = static_cast<float>(Resolution);
     float log2N = static_cast<float>(log2N_);
 
-    // only generate the initial spectrum data if something has changed - i.e wind speed or direction
+    // only generate the initial spectrum data if something has changed - i.e wind speed or
+    // direction
     if (updateSpectrum_)
     {
         rGraph.addExecutorPass("initial_spectrum", [=](vkapi::VkDriver& driver) {
@@ -166,7 +176,8 @@ void IWaveGenerator::render(rg::RenderGraph& rGraph, IScene& scene, float dt, ut
                 2,
                 ImageStorageSet::StorageType::WriteOnly);
 
-            initialSpecCompute_->addUboParam("N", backend::BufferElementType::Int, (void*)&Resolution);
+            initialSpecCompute_->addUboParam(
+                "N", backend::BufferElementType::Int, (void*)&Resolution);
             initialSpecCompute_->addUboParam(
                 "windSpeed", backend::BufferElementType::Float, (void*)&options.windSpeed);
             initialSpecCompute_->addUboParam(
@@ -181,8 +192,8 @@ void IWaveGenerator::render(rg::RenderGraph& rGraph, IScene& scene, float dt, ut
                 cmds.getCmdBuffer().cmdBuffer, bundle, Resolution / 16, Resolution / 16, 1);
         });
 
-        // Note: the butterfly image only needs updating if user deinfed chnages in resolution are allowed
-        // at some point. This may need moving under its own flag.
+        // Note: the butterfly image only needs updating if user deinfed chnages in resolution are
+        // allowed at some point. This may need moving under its own flag.
         rGraph.addExecutorPass("fft_butterfly", [=](vkapi::VkDriver& driver) {
             auto& cmds = driver.getCommands();
             auto& cmdBuffer = cmds.getCmdBuffer().cmdBuffer;
@@ -215,7 +226,7 @@ void IWaveGenerator::render(rg::RenderGraph& rGraph, IScene& scene, float dt, ut
         updateSpectrum_ = false;
     }
 
-     rGraph.addExecutorPass("spectrum", [=](vkapi::VkDriver& driver) {
+    rGraph.addExecutorPass("spectrum", [=](vkapi::VkDriver& driver) {
         auto& cmds = driver.getCommands();
         auto& cmdBuffer = cmds.getCmdBuffer().cmdBuffer;
 
@@ -297,20 +308,10 @@ void IWaveGenerator::render(rg::RenderGraph& rGraph, IScene& scene, float dt, ut
             ImageStorageSet::StorageType::ReadOnly);
 
         fftVertCompute_->copySsbo(
-            *fftHorizCompute_,
-            0,
-            0,
-            StorageBuffer::AccessType::ReadWrite,
-            "SsboBufferA",
-            "ssbo_a");
-           
+            *fftHorizCompute_, 0, 0, StorageBuffer::AccessType::ReadWrite, "SsboBufferA", "ssbo_a");
+
         fftVertCompute_->copySsbo(
-            *fftHorizCompute_,
-            1,
-            1,
-            StorageBuffer::AccessType::ReadWrite,
-            "SsboBufferB",
-            "ssbo_b");
+            *fftHorizCompute_, 1, 1, StorageBuffer::AccessType::ReadWrite, "SsboBufferB", "ssbo_b");
 
         fftVertCompute_->addUboParam("N", backend::BufferElementType::Float, (void*)&N);
         fftVertCompute_->addPushConstantParam("stage", backend::BufferElementType::Int);
@@ -320,7 +321,7 @@ void IWaveGenerator::render(rg::RenderGraph& rGraph, IScene& scene, float dt, ut
         auto* vertBundle = fftVertCompute_->build(engine_, "fft_vert.comp");
         vkapi::VkContext::writeReadComputeBarrier(cmdBuffer);
 
-        // dispatch horizontal fft 
+        // dispatch horizontal fft
         for (size_t n = 0; n < log2N_; ++n)
         {
             pingpong_ = pingpong_ == 0 ? 1 : 0;
@@ -348,7 +349,7 @@ void IWaveGenerator::render(rg::RenderGraph& rGraph, IScene& scene, float dt, ut
 
         vkapi::VkContext::writeReadComputeBarrier(cmdBuffer);
 
-        // dispatch vertical fft 
+        // dispatch vertical fft
         for (size_t n = 0; n < log2N_; ++n)
         {
             pingpong_ = pingpong_ == 0 ? 1 : 0;
@@ -413,20 +414,24 @@ void IWaveGenerator::render(rg::RenderGraph& rGraph, IScene& scene, float dt, ut
             1,
             ImageStorageSet::StorageType::WriteOnly);
 
-       displaceCompute_->addUboParam("N", backend::BufferElementType::Float, (void*)&N); 
-       displaceCompute_->addUboParam("choppyFactor", backend::BufferElementType::Float, (void*)&options.choppyFactor);
-       displaceCompute_->addUboParam("offset_dx", backend::BufferElementType::Int, (void*)&dxOffset);
-       displaceCompute_->addUboParam("offset_dy", backend::BufferElementType::Int, (void*)&dyOffset);
-       displaceCompute_->addUboParam("offset_dz", backend::BufferElementType::Int, (void*)&dzOffset);
-       
-       auto* bundle = displaceCompute_->build(engine_, "fft_displacement.comp");
+        displaceCompute_->addUboParam("N", backend::BufferElementType::Float, (void*)&N);
+        displaceCompute_->addUboParam(
+            "choppyFactor", backend::BufferElementType::Float, (void*)&options.choppyFactor);
+        displaceCompute_->addUboParam(
+            "offset_dx", backend::BufferElementType::Int, (void*)&dxOffset);
+        displaceCompute_->addUboParam(
+            "offset_dy", backend::BufferElementType::Int, (void*)&dyOffset);
+        displaceCompute_->addUboParam(
+            "offset_dz", backend::BufferElementType::Int, (void*)&dzOffset);
 
-       vkapi::VkContext::writeReadComputeBarrier(cmdBuffer);
-       driver.dispatchCompute(cmds.getCmdBuffer().cmdBuffer, bundle, Resolution / 16, Resolution / 16, 1);
+        auto* bundle = displaceCompute_->build(engine_, "fft_displacement.comp");
 
-     });
+        vkapi::VkContext::writeReadComputeBarrier(cmdBuffer);
+        driver.dispatchCompute(
+            cmds.getCmdBuffer().cmdBuffer, bundle, Resolution / 16, Resolution / 16, 1);
+    });
 
-     rGraph.addExecutorPass("generate_maps", [=](vkapi::VkDriver& driver) {
+    rGraph.addExecutorPass("generate_maps", [=](vkapi::VkDriver& driver) {
         auto& cmds = driver.getCommands();
         auto& cmdBuffer = cmds.getCmdBuffer().cmdBuffer;
 
@@ -479,4 +484,4 @@ void IWaveGenerator::render(rg::RenderGraph& rGraph, IScene& scene, float dt, ut
 WaveGenerator::WaveGenerator() = default;
 WaveGenerator::~WaveGenerator() = default;
 
-}
+} // namespace yave

@@ -47,7 +47,7 @@
 #include <memory>
 
 void WaveApp::uiCallback(yave::Engine* engine) {}
- 
+
 int main()
 {
     yave::AppParams params {"wave demo", 1920, 1080};

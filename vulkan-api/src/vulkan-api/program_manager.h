@@ -157,8 +157,7 @@ public:
 
     void parseMaterialShader(const std::filesystem::path& shaderPath);
 
-   void setImageSampler(
-        const TextureHandle& handle, uint8_t binding, vk::Sampler sampler);
+    void setImageSampler(const TextureHandle& handle, uint8_t binding, vk::Sampler sampler);
 
     void setStorageImage(const TextureHandle& handle, uint8_t binding);
 

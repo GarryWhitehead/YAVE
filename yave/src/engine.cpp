@@ -30,11 +30,11 @@
 #include "mapped_texture.h"
 #include "post_process.h"
 #include "renderable.h"
-#include "wave_generator.h"
 #include "scene.h"
 #include "skybox.h"
 #include "utility/timer.h"
 #include "vulkan-api/swapchain.h"
+#include "wave_generator.h"
 #include "yave/renderable.h"
 
 #include <yave_app/window.h>
@@ -204,7 +204,10 @@ IIndirectLight* IEngine::createIndirectLightI() noexcept { return createResource
 
 ICamera* IEngine::createCameraI() noexcept { return createResource(cameras_); }
 
-IWaveGenerator* IEngine::createWaveGeneratorI() noexcept { return createResource(waterGens_, *this); }
+IWaveGenerator* IEngine::createWaveGeneratorI() noexcept
+{
+    return createResource(waterGens_, *this);
+}
 
 void IEngine::flush()
 {

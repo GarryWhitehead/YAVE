@@ -20,17 +20,19 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+
 #include "noise_generator.h"
 
 #include <utility/colour.h>
 
+#include <algorithm>
 #include <cstdlib>
-#include <random>
 #include <numeric>
+#include <random>
 
 namespace yave
 {
-NoiseGenerator::NoiseGenerator(uint32_t seed) 
+NoiseGenerator::NoiseGenerator(uint32_t seed)
 {
     permutations_.resize(256);
     std::iota(permutations_.begin(), permutations_.end(), 0);
@@ -43,7 +45,7 @@ NoiseGenerator::NoiseGenerator(uint32_t seed)
     permutations_.insert(permutations_.end(), permutations_.begin(), permutations_.end());
 }
 
-NoiseGenerator::~NoiseGenerator() { }
+NoiseGenerator::~NoiseGenerator() {}
 
 double NoiseGenerator::fade(double t) { return t * t * t * (t * (t * 6 - 15) + 10); }
 
@@ -62,7 +64,7 @@ double NoiseGenerator::generateNoise(double x, double y, double z)
     int X = (int)floor(x) & 255;
     int Y = (int)floor(y) & 255;
     int Z = (int)floor(z) & 255;
-    
+
     x -= floor(x);
     y -= floor(y);
     z -= floor(z);
@@ -100,7 +102,6 @@ double NoiseGenerator::generateNoise(double x, double y, double z)
                 grad(permutations_[BB + 1], x - 1, y - 1, z - 1))));
     return (res + 1.0) / 2.0;
 }
-
 
 
 } // namespace yave

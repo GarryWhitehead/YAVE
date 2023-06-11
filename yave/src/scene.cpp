@@ -98,7 +98,7 @@ void IScene::setCameraI(ICamera* cam) noexcept
     camera_ = cam;
 }
 
-void IScene::setWaveGeneratorI(IWaveGenerator* waterGen) noexcept 
+void IScene::setWaveGeneratorI(IWaveGenerator* waterGen) noexcept
 {
     ASSERT_FATAL(waterGen, "Water generator is nullptr");
     waveGen_ = waterGen;

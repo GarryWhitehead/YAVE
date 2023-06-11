@@ -36,7 +36,6 @@
 class WaveApp : public yave::Application
 {
 public:
-
     WaveApp(const yave::AppParams& params, bool showUI) : yave::Application(params, showUI) {}
 
     void uiCallback(yave::Engine* engine) override;

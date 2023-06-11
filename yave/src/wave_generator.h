@@ -21,12 +21,11 @@
  */
 
 #pragma once
-#include "yave/wave_generator.h"
 #include "render_graph/render_graph.h"
-
-#include <utility/timer.h>
+#include "yave/wave_generator.h"
 
 #include <mathfu/glsl_mappings.h>
+#include <utility/timer.h>
 
 #include <cstdint>
 
@@ -40,64 +39,62 @@ class IMappedTexture;
 class IWaveGenerator : public WaveGenerator
 {
 public:
-
-	// fixed resolution, maybe user defined at some point?
-	static constexpr int Resolution = 256;
+    // fixed resolution, maybe user defined at some point?
+    static constexpr int Resolution = 256;
     // dxyz buffer offsets
     static constexpr int dxOffset = 0;
     static constexpr int dyOffset = Resolution * Resolution;
     static constexpr int dzOffset = dyOffset * 2;
     static constexpr int dxyzBufferSize = Resolution * Resolution * 3;
-	
-	// temp measure - move to scene!
-	struct WaveOptions
+
+    // temp measure - move to scene!
+    struct WaveOptions
     {
-		int L = 1000;
+        int L = 1000;
         float A = 4.0f;
         mathfu::vec2 windDirection {4.0f, 2.0f};
         float windSpeed = 40.0f;
         float choppyFactor = 1.0f;
         float gridLength = 1024.0f;
-	};
+    };
 
-	IWaveGenerator(IEngine& engine);
+    IWaveGenerator(IEngine& engine);
     ~IWaveGenerator();
 
-	void render(rg::RenderGraph& rGraph, IScene& scene, float dt, util::Timer<NanoSeconds>& timer);
+    void render(rg::RenderGraph& rGraph, IScene& scene, float dt, util::Timer<NanoSeconds>& timer);
 
 private:
+    IEngine& engine_;
 
-	IEngine& engine_;
-
-	size_t log2N_;
+    size_t log2N_;
     uint32_t reversedBits_[Resolution];
     // 4 channels for our noise texture
     float noiseMap_[Resolution * Resolution * 4];
 
-	// inital spectrum compute
-	// output textures
+    // inital spectrum compute
+    // output textures
     IMappedTexture* h0kTexture_;
     IMappedTexture* h0minuskTexture_;
 
     std::unique_ptr<Compute> initialSpecCompute_;
     IMappedTexture* noiseTexture_;
-	 
-	// spectrum
+
+    // spectrum
     IMappedTexture* dztTexture_;
     IMappedTexture* dytTexture_;
     IMappedTexture* dxtTexture_;
     std::unique_ptr<Compute> specCompute_;
-	
-	// fft butterfly compute
-	IMappedTexture* butterflyLut_;
+
+    // fft butterfly compute
+    IMappedTexture* butterflyLut_;
     std::unique_ptr<Compute> butterflyCompute_;
 
-	// fft compute
+    // fft compute
     std::unique_ptr<Compute> fftHorizCompute_;
     std::unique_ptr<Compute> fftVertCompute_;
     IMappedTexture* pingpongTexture_;
 
-	// displacement
+    // displacement
     IMappedTexture* fftOutputImage_;
     IMappedTexture* heightMap_;
     std::unique_ptr<Compute> displaceCompute_;
@@ -108,10 +105,10 @@ private:
     IMappedTexture* displacementMap_;
     std::unique_ptr<Compute> genMapCompute_;
 
-	int pingpong_;
+    int pingpong_;
 
-	WaveOptions options;
+    WaveOptions options;
 
-	bool updateSpectrum_;
+    bool updateSpectrum_;
 };
-}
+} // namespace yave

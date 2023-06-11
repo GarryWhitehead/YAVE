@@ -153,13 +153,9 @@ rg::RenderGraphHandle PostProcess::bloom(
             vk::PipelineStageFlagBits::eComputeShader);
 
         lumCompute_->addStorageImage(
-            driver,
-            "ColourSampler",
-            lightHandle,
-            0,
-            ImageStorageSet::StorageType::ReadOnly);
+            driver, "ColourSampler", lightHandle, 0, ImageStorageSet::StorageType::ReadOnly);
 
-       lumCompute_->addSsbo(
+        lumCompute_->addSsbo(
             "histogram",
             backend::BufferElementType::Uint,
             StorageBuffer::AccessType::ReadWrite,
@@ -203,13 +199,8 @@ rg::RenderGraphHandle PostProcess::bloom(
             0,
             ImageStorageSet::StorageType::ReadWrite);
 
-         avgCompute_->copySsbo(
-            *lumCompute_,
-            0,
-            0,
-            StorageBuffer::AccessType::ReadWrite,
-            "SsboBuffer",
-            "input_ssbo");
+        avgCompute_->copySsbo(
+            *lumCompute_, 0, 0, StorageBuffer::AccessType::ReadWrite, "SsboBuffer", "input_ssbo");
 
         avgCompute_->addUboParam(
             "minLuminanceLog", backend::BufferElementType::Float, (void*)&options.minLuminanceLog);

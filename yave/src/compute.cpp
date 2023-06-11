@@ -25,10 +25,9 @@
 #include "engine.h"
 #include "mapped_texture.h"
 
+#include <spdlog/spdlog.h>
 #include <vulkan-api/common.h>
 #include <vulkan-api/sampler_cache.h>
-
-#include <spdlog/spdlog.h>
 
 namespace yave
 {
@@ -37,7 +36,7 @@ Compute::Compute(IEngine& engine) : extSsboRead_(nullptr)
 {
     ubo_ = std::make_unique<UniformBuffer>(
         vkapi::PipelineCache::UboSetValue, UboBindPoint, "ComputeUbo", "compute_ubo");
-    
+
     pushBlock_ = std::make_unique<PushBlock>("PushBlock", "push_params");
 
     bundle_ = engine.driver().progManager().createProgramBundle();
@@ -76,9 +75,10 @@ void Compute::addImageSampler(
     const TextureSampler& sampler)
 {
     // all samplers use the same set
-    samplerSet_.pushSampler(name, vkapi::PipelineCache::SamplerSetValue, binding, SamplerSet::SamplerType::e2d);
+    samplerSet_.pushSampler(
+        name, vkapi::PipelineCache::SamplerSetValue, binding, SamplerSet::SamplerType::e2d);
 
-     bundle_->setImageSampler(
+    bundle_->setImageSampler(
         texture, binding, driver.getSamplerCache().createSampler(sampler.get()));
 }
 
@@ -109,13 +109,10 @@ void Compute::addSsbo(
     if (!ssbos_[binding])
     {
         ssbos_[binding] = std::make_unique<StorageBuffer>(
-            accessType,
-            vkapi::PipelineCache::SsboSetValue,
-            binding,
-            bufferName,
-            aliasName);
-        ssbos_[binding]->addElement(elementName, type, values, outerArraySize, innerArraySize, structName);
-    }      
+            accessType, vkapi::PipelineCache::SsboSetValue, binding, bufferName, aliasName);
+        ssbos_[binding]->addElement(
+            elementName, type, values, outerArraySize, innerArraySize, structName);
+    }
 }
 
 void Compute::copySsbo(
@@ -153,9 +150,7 @@ void Compute::copySsbo(
 }
 
 void Compute::addPushConstantParam(
-    const std::string& elementName,
-    backend::BufferElementType type,
-    void* value)
+    const std::string& elementName, backend::BufferElementType type, void* value)
 {
     pushBlock_->addElement(elementName, type, (void*)value);
 }
@@ -165,7 +160,7 @@ void Compute::updatePushConstantParam(const std::string& elementName, void* valu
     pushBlock_->updateElement(elementName, value);
 }
 
-void Compute::updateGpuPush() noexcept 
+void Compute::updateGpuPush() noexcept
 {
     if (!pushBlock_->empty())
     {
@@ -202,7 +197,7 @@ vkapi::ShaderProgramBundle* Compute::build(IEngine& engine, const std::string& c
             ASSERT_LOG(!ssbos_[i]->empty());
             program->addAttributeBlock(ssbos_[i]->createShaderStr());
             ssbos_[i]->createGpuBuffer(driver);
-            
+
             void* data = ssbos_[i]->getBlockData();
             if (data)
             {
@@ -214,7 +209,7 @@ vkapi::ShaderProgramBundle* Compute::build(IEngine& engine, const std::string& c
         }
     }
 
-    // storage images 
+    // storage images
     if (!imageStorageSet_.empty())
     {
         program->addAttributeBlock(imageStorageSet_.createShaderStr());

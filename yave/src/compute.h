@@ -81,16 +81,14 @@ public:
         bool destroy = false);
 
     void addPushConstantParam(
-        const std::string& elementName,
-        backend::BufferElementType type,
-        void* value = nullptr);
+        const std::string& elementName, backend::BufferElementType type, void* value = nullptr);
 
     void updatePushConstantParam(const std::string& elementName, void* value);
 
     void updateGpuPush() noexcept;
 
-    // add a previously declared ssbo as a reader/writer to another compute shader - must have been declared/written to
-    // in a seperate dispatch call.
+    // add a previously declared ssbo as a reader/writer to another compute shader - must have been
+    // declared/written to in a seperate dispatch call.
     void copySsbo(
         const Compute& fromCompute,
         int fromId,

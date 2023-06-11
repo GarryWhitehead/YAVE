@@ -27,12 +27,10 @@ namespace yave
 class WaveGenerator
 {
 public:
-
     virtual ~WaveGenerator();
 
 protected:
-
     WaveGenerator();
 };
 
-}
+} // namespace yave

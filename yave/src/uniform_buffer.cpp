@@ -226,7 +226,8 @@ void BufferBase::addElement(
         newValue = new uint8_t[byteSize];
         memcpy(newValue, value, byteSize);
     }
-    elements_.push_back({name, type, byteSize, newValue, innerArraySize, outerArraySize, structName});
+    elements_.push_back(
+        {name, type, byteSize, newValue, innerArraySize, outerArraySize, structName});
     accumSize_ += byteSize;
 }
 
@@ -349,7 +350,8 @@ void UniformBuffer::createGpuBuffer(vkapi::VkDriver& driver) noexcept
 void UniformBuffer::mapGpuBuffer(vkapi::VkDriver& driver, void* data, size_t size) noexcept
 {
     vkapi::Buffer* buffer = vkHandle_.getResource();
-    ASSERT_FATAL(buffer, "Buffer is nullptr - have you created the buffer before trying to map data?");
+    ASSERT_FATAL(
+        buffer, "Buffer is nullptr - have you created the buffer before trying to map data?");
     buffer->mapToGpuBuffer(data, size);
 }
 

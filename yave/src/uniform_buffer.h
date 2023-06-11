@@ -58,7 +58,7 @@ public:
         void* value;
         // the inner array size ( >1 indicates a 2d array)
         uint32_t innerArraySize;
-        // the outer array size 
+        // the outer array size
         uint32_t outerArraySize;
         // name of the struct if the element type is "Struct"
         std::string structName;

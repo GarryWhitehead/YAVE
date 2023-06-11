@@ -59,7 +59,7 @@ bool Application::run(Renderer* renderer, Scene* scene)
     while (!closeApp_)
     {
         NanoSeconds startTime = timer.getCurrentTime();
-        
+
         // check for any input from the window
         window_->poll();
 

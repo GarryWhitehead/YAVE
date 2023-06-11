@@ -288,12 +288,13 @@ void ShaderProgramBundle::setImageSampler(
     imageSamplers_[binding] = {handle, sampler};
 }
 
-void ShaderProgramBundle::setStorageImage(
-    const TextureHandle& handle, uint8_t binding)
+void ShaderProgramBundle::setStorageImage(const TextureHandle& handle, uint8_t binding)
 {
     ASSERT_FATAL(handle, "Invalid texture handle.");
     ASSERT_FATAL(
-        binding < PipelineCache::MaxStorageImageBindCount, "Binding of %d is out of bounds.", binding);
+        binding < PipelineCache::MaxStorageImageBindCount,
+        "Binding of %d is out of bounds.",
+        binding);
     storageImages_[binding] = handle;
 }
 

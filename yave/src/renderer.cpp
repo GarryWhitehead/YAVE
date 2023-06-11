@@ -29,9 +29,9 @@
 #include "render_graph/resources.h"
 #include "scene.h"
 #include "skybox.h"
-#include "wave_generator.h"
 #include "utility/cstring.h"
 #include "vulkan-api/renderpass.h"
+#include "wave_generator.h"
 
 #include <algorithm>
 
@@ -132,7 +132,11 @@ void IRenderer::renderSingleSceneI(vkapi::VkDriver& driver, IScene* scene, Rende
 }
 
 void IRenderer::renderI(
-    vkapi::VkDriver& driver, IScene* scene, float dt, util::Timer<NanoSeconds>& timer, bool clearSwap)
+    vkapi::VkDriver& driver,
+    IScene* scene,
+    float dt,
+    util::Timer<NanoSeconds>& timer,
+    bool clearSwap)
 {
     rGraph_.reset();
 

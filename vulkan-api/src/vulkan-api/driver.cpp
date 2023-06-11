@@ -567,7 +567,8 @@ void VkDriver::dispatchCompute(
     PipelineLayout& plineLayout = bundle->getPipelineLayout();
 
     // image storage
-    vkapi::PipelineCache::DescriptorImage storageImages[vkapi::PipelineCache::MaxStorageImageBindCount];
+    vkapi::PipelineCache::DescriptorImage
+        storageImages[vkapi::PipelineCache::MaxStorageImageBindCount];
     for (int idx = 0; idx < vkapi::PipelineCache::MaxStorageImageBindCount; ++idx)
     {
         const vkapi::TextureHandle& handle = bundle->storageImages_[idx];

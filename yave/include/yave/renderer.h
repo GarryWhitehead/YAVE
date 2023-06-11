@@ -93,7 +93,11 @@ public:
     virtual void endFrame() = 0;
 
     virtual void render(
-        Engine* engine, Scene* scene, float dt, util::Timer<NanoSeconds>& timer, bool clearSwap = true) = 0;
+        Engine* engine,
+        Scene* scene,
+        float dt,
+        util::Timer<NanoSeconds>& timer,
+        bool clearSwap = true) = 0;
 
     virtual void renderSingleScene(Engine* engine, Scene* scene, RenderTarget& rTarget) = 0;
 
