@@ -74,6 +74,19 @@ public:
 
     uint32_t selectMemoryType(uint32_t flags, vk::MemoryPropertyFlags reqs);
 
+    static void GlobalBarrier(
+        vk::CommandBuffer& cmds,
+        vk::PipelineStageFlags srcStage,
+        vk::PipelineStageFlags dstStage,
+        vk::AccessFlags srcAccess,
+        vk::AccessFlags dstAccess);
+
+    static void writeReadComputeBarrier(vk::CommandBuffer& cmds);
+
+    static void ExecutionBarrier(
+        vk::CommandBuffer& cmds, vk::PipelineStageFlags srcStage, vk::PipelineStageFlags dstStage);
+
+
     // All the getters
     const vk::Instance& instance() const { return instance_; }
     const vk::Device& device() const { return device_; }

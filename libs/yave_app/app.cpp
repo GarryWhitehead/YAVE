@@ -100,11 +100,11 @@ bool Application::run(Renderer* renderer, Scene* scene)
         this->preRenderCallback();
 
         // begin the rendering for this frame - render the main scene
-        renderer->render(engine_, scene, timeStep);
+        renderer->render(engine_, scene, timeStep, timer);
         // and render the UI over this
         if (showUI_)
         {
-            renderer->render(engine_, imgui_->getScene(), timeStep, false);
+            renderer->render(engine_, imgui_->getScene(), timeStep, timer, false);
         }
 
         // user defined post-render callback to be added here

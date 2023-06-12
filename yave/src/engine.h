@@ -36,6 +36,7 @@
 #include "yave/engine.h"
 #include "yave/light_manager.h"
 #include "yave/renderable_manager.h"
+#include "yave/wave_generator.h"
 
 #include <deque>
 #include <filesystem>
@@ -56,6 +57,7 @@ class IMappedTexture;
 class ISkybox;
 class IIndirectLight;
 class ICamera;
+class IWaveGenerator;
 
 using SwapchainHandle = vkapi::SwapchainHandle;
 
@@ -82,6 +84,7 @@ public:
     ISkybox* createSkyboxI(IScene& scene) noexcept;
     IIndirectLight* createIndirectLightI() noexcept;
     ICamera* createCameraI() noexcept;
+    IWaveGenerator* createWaveGeneratorI() noexcept;
 
     void setCurrentSwapchainI(const SwapchainHandle& handle) noexcept;
     vkapi::Swapchain* getCurrentSwapchain() noexcept;
@@ -144,6 +147,7 @@ public:
     Skybox* createSkybox(Scene* scene) override;
     IndirectLight* createIndirectLight() override;
     Camera* createCamera() override;
+    WaveGenerator* createWaveGenerator() override;
     void flushCmds() override;
 
     void destroy(VertexBuffer* buffer) override;
@@ -175,6 +179,7 @@ private:
     std::unordered_set<ISkybox*> skyboxes_;
     std::unordered_set<IIndirectLight*> indirectLights_;
     std::unordered_set<ICamera*> cameras_;
+    std::unordered_set<IWaveGenerator*> waterGens_;
     std::vector<vkapi::Swapchain*> swapchains_;
 
     vkapi::Swapchain* currentSwapchain_;

@@ -517,4 +517,33 @@ uint32_t VkContext::selectMemoryType(uint32_t flags, vk::MemoryPropertyFlags req
     return UINT32_MAX;
 }
 
+void VkContext::GlobalBarrier(
+    vk::CommandBuffer& cmds,
+    vk::PipelineStageFlags srcStage,
+    vk::PipelineStageFlags dstStage,
+    vk::AccessFlags srcAccess,
+    vk::AccessFlags dstAccess)
+{
+    vk::MemoryBarrier barrier {srcAccess, dstAccess};
+    cmds.pipelineBarrier(
+        srcStage, dstStage, (vk::DependencyFlags)0, 1, &barrier, 0, nullptr, 0, nullptr);
+}
+
+void VkContext::writeReadComputeBarrier(vk::CommandBuffer& cmds)
+{
+    GlobalBarrier(
+        cmds,
+        vk::PipelineStageFlagBits::eComputeShader,
+        vk::PipelineStageFlagBits::eComputeShader,
+        vk::AccessFlagBits::eShaderWrite,
+        vk::AccessFlagBits::eShaderRead);
+}
+
+void VkContext::ExecutionBarrier(
+    vk::CommandBuffer& cmds, vk::PipelineStageFlags srcStage, vk::PipelineStageFlags dstStage)
+{
+    cmds.pipelineBarrier(
+        srcStage, dstStage, (vk::DependencyFlags)0, 0, nullptr, 0, nullptr, 0, nullptr);
+}
+
 } // namespace vkapi

@@ -41,8 +41,10 @@ endfunction()
 create_app(APP_NAME primitives FILES primitives.cpp primitives.h)
 create_app(APP_NAME gltf_model FILES gltf_model.cpp gltf_model.h)
 create_app(APP_NAME triangle FILES triangle.cpp)
+create_app(APP_NAME wave_demo FILES wave_demo.cpp wave_demo.h)
 
 target_link_libraries(primitives PUBLIC mathfu::mathfu YaveUtility)
 target_link_libraries(gltf_model PUBLIC mathfu::mathfu YaveUtility YaveIbl)
 target_link_libraries(triangle PUBLIC mathfu::mathfu)
+target_link_libraries(wave_demo PUBLIC mathfu::mathfu YaveUtility YaveIbl YaveImageUtils)
 

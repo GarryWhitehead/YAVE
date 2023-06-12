@@ -31,6 +31,7 @@
 #include "skybox.h"
 #include "utility/cstring.h"
 #include "vulkan-api/renderpass.h"
+#include "wave_generator.h"
 
 #include <algorithm>
 
@@ -130,7 +131,12 @@ void IRenderer::renderSingleSceneI(vkapi::VkDriver& driver, IScene* scene, Rende
     driver.endRenderpass(cmdBuffer);
 }
 
-void IRenderer::renderI(vkapi::VkDriver& driver, IScene* scene, float dt, bool clearSwap)
+void IRenderer::renderI(
+    vkapi::VkDriver& driver,
+    IScene* scene,
+    float dt,
+    util::Timer<NanoSeconds>& timer,
+    bool clearSwap)
 {
     rGraph_.reset();
 
@@ -174,6 +180,13 @@ void IRenderer::renderI(vkapi::VkDriver& driver, IScene* scene, float dt, bool c
     if (!scene->withPostProcessing())
     {
         bloomOptions.enabled = false;
+    }
+
+    // upate the wave data - the actual draw happens in the material queue
+    IWaveGenerator* waveGen = scene->getWaveGenerator();
+    if (waveGen)
+    {
+        waveGen->render(rGraph_, *scene, dt, timer);
     }
 
     // fill the gbuffers - this can't be the final render target unless gbuffers are disabled due
@@ -223,12 +236,14 @@ void IRenderer::beginFrame() { beginFrameI(); }
 
 void IRenderer::endFrame() { endFrameI(); }
 
-void IRenderer::render(Engine* engine, Scene* scene, float dt, bool clearSwap)
+void IRenderer::render(
+    Engine* engine, Scene* scene, float dt, util::Timer<NanoSeconds>& timer, bool clearSwap)
 {
     renderI(
         reinterpret_cast<IEngine*>(engine)->driver(),
         reinterpret_cast<IScene*>(scene),
         dt,
+        timer,
         clearSwap);
 };
 

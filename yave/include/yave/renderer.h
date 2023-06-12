@@ -24,6 +24,7 @@
 #include <backend/enums.h>
 #include <utility/colour.h>
 #include <utility/cstring.h>
+#include <utility/timer.h>
 #include <vulkan-api/renderpass.h>
 
 #include <memory>
@@ -91,7 +92,12 @@ public:
 
     virtual void endFrame() = 0;
 
-    virtual void render(Engine* engine, Scene* scene, float dt, bool clearSwap = true) = 0;
+    virtual void render(
+        Engine* engine,
+        Scene* scene,
+        float dt,
+        util::Timer<NanoSeconds>& timer,
+        bool clearSwap = true) = 0;
 
     virtual void renderSingleScene(Engine* engine, Scene* scene, RenderTarget& rTarget) = 0;
 

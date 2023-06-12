@@ -42,19 +42,25 @@ class Compute
 {
 public:
     static constexpr int UboBindPoint = 0;
-    static constexpr int SsboReadOnlyBindPoint = 1;
-    static constexpr int SsboWriteOnlyBindPoint = 2;
+    static constexpr int SsboBindPoint = 1;
+    static constexpr int MaxSsboCount = 5;
 
     Compute(IEngine& engine);
     ~Compute();
 
-    void addSamplerTexture(
+    void addStorageImage(
         vkapi::VkDriver& driver,
         const std::string& name,
         const vkapi::TextureHandle& handle,
-        const backend::TextureSamplerParams& params,
         uint32_t binding,
         ImageStorageSet::StorageType storageType);
+
+    void addImageSampler(
+        vkapi::VkDriver& driver,
+        const std::string& name,
+        const vkapi::TextureHandle& texture,
+        uint8_t binding,
+        const TextureSampler& sampler);
 
     void addUboParam(
         const std::string& elementName,
@@ -62,36 +68,45 @@ public:
         void* value,
         size_t arrayCount = 1);
 
-    // custom struct version
-    void addSsboReadParam(
-        const std::string& elementName,
-        void* values,
-        const std::string& structName,
-        uint32_t arraySize = 0);
-
-    void addSsboWriteParam(
-        const std::string& elementName, const std::string& structName, uint32_t arraySize = 0);
-
-    void addSsboReadParam(
+    void addSsbo(
         const std::string& elementName,
         backend::BufferElementType type,
-        void* values,
-        uint32_t arraySize = 0);
+        StorageBuffer::AccessType accessType,
+        int binding,
+        const std::string& aliasName,
+        void* values = nullptr,
+        uint32_t outerArraySize = 0,
+        uint32_t innerArraySize = 1,
+        const std::string& structName = "",
+        bool destroy = false);
 
-    void addSsboWriteParam(
-        const std::string& elementName, backend::BufferElementType type, uint32_t arraySize = 0);
+    void addPushConstantParam(
+        const std::string& elementName, backend::BufferElementType type, void* value = nullptr);
 
-    // add the write-only ssbo as a reader to a compute shader - must have been written to
-    // in a seperate dispatch call.
-    void addExternalSsboRead(const Compute& compute);
+    void updatePushConstantParam(const std::string& elementName, void* value);
+
+    void updateGpuPush() noexcept;
+
+    // add a previously declared ssbo as a reader/writer to another compute shader - must have been
+    // declared/written to in a seperate dispatch call.
+    void copySsbo(
+        const Compute& fromCompute,
+        int fromId,
+        int toId,
+        StorageBuffer::AccessType toAccessType,
+        const std::string& toSsboName,
+        const std::string& toAliasName,
+        bool destroy = false);
 
     vkapi::ShaderProgramBundle* build(IEngine& engine, const std::string& compShader);
 
 private:
-    std::unique_ptr<StorageBuffer> readSsbo_;
-    std::unique_ptr<StorageBuffer> writeSsbo_;
+    std::unique_ptr<StorageBuffer> ssbos_[MaxSsboCount];
     std::unique_ptr<UniformBuffer> ubo_;
+    std::unique_ptr<PushBlock> pushBlock_;
+
     ImageStorageSet imageStorageSet_;
+    SamplerSet samplerSet_;
 
     StorageBuffer* extSsboRead_;
 

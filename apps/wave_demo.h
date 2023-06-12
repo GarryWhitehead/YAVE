@@ -19,49 +19,32 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+
 #pragma once
 
-#include "options.h"
+#include "yave/engine.h"
+#include "yave/light_manager.h"
+#include "yave/material.h"
+#include "yave/object.h"
+#include "yave/scene.h"
+#include "yave/transform_manager.h"
+#include "yave_app/app.h"
 
-#include <memory>
+#include <model_parser/gltf/gltf_model.h>
+#include <yave_app/asset_loader.h>
 
-namespace yave
-{
-class Skybox;
-class Camera;
-class Object;
-class IndirectLight;
-class WaveGenerator;
-
-class Scene
+class WaveApp : public yave::Application
 {
 public:
-    virtual ~Scene();
+    WaveApp(const yave::AppParams& params, bool showUI) : yave::Application(params, showUI) {}
 
-    virtual void setSkybox(Skybox* skybox) = 0;
+    void uiCallback(yave::Engine* engine) override;
 
-    virtual void setIndirectLight(IndirectLight* il) = 0;
+    yave::Scene* scene_ = nullptr;
+    yave::Engine* engine_ = nullptr;
 
-    virtual void setCamera(Camera* camera) = 0;
+    yave::Object dirLightObj;
+    yave::Object spotLightObj;
 
-    virtual void setWaveGenerator(WaveGenerator* waterGen) = 0;
-
-    virtual Camera* getCurrentCamera() = 0;
-
-    virtual void addObject(Object obj) = 0;
-    virtual void destroyObject(Object obj) = 0;
-
-    virtual void usePostProcessing(bool state) = 0;
-
-    virtual void useGbuffer(bool state) = 0;
-
-    virtual void setBloomOptions(const BloomOptions& bloom) = 0;
-    virtual void setGbufferOptions(const GbufferOptions& gb) = 0;
-    virtual BloomOptions& getBloomOptions() = 0;
-    virtual GbufferOptions& getGbufferOptions() = 0;
-
-protected:
-    Scene();
+    std::vector<yave::Material*> materials;
 };
-
-} // namespace yave

@@ -576,7 +576,6 @@ void PipelineCache::createDescriptorSets(
                             vk::DescriptorImageInfo& imageInfo,
                             vk::DescriptorSet set,
                             size_t binding) -> void {
-        ASSERT_FATAL(desc.imageSampler, "Image sampler not set for descriptor binding %d", binding);
         ASSERT_FATAL(desc.imageView, "Image view not set for descriptor binding %d", binding);
         ASSERT_FATAL(set, "Descriptor set is NULL.");
 
@@ -604,7 +603,7 @@ void PipelineCache::createDescriptorSets(
     }
     for (uint8_t bind = 0; bind < MaxStorageImageBindCount; ++bind)
     {
-        if (descRequires_.storageImages[bind].imageSampler)
+        if (descRequires_.storageImages[bind].imageView)
         {
             vk::DescriptorImageInfo& imageInfo = storageImageInfos[bind];
             writeDescSet(

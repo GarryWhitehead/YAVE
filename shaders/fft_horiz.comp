@@ -1,0 +1,54 @@
+
+#include "include/complex.h"
+
+void processButterfly(ivec2 id, vec4 data)
+{
+	complex H;
+	vec2 p0;
+	vec2 q0;
+		
+	uint index_p0 = uint(id.y * compute_ubo.N + data.z);
+	uint index_q0 = uint(id.y * compute_ubo.N + data.w);
+	
+	if (push_params.pingpong == 0)
+	{
+		p0 = ssbo_a.pingpong0[index_p0 + push_params.offset];
+		q0 = ssbo_a.pingpong0[index_q0 + push_params.offset];
+	}
+	else
+	{
+		p0 = ssbo_b.out_dxyz[index_p0 + push_params.offset];
+		q0 = ssbo_b.out_dxyz[index_q0 + push_params.offset];
+	}
+
+	complex p = complex(p0.x, p0.y);
+	complex q = complex(q0.x, q0.y);
+	complex w = complex(data.x, data.y);
+		
+	H = cadd(p, cmul(w, q));
+	
+	uint out_index = id.y * uint(compute_ubo.N) + id.x;
+
+	if (push_params.pingpong == 0)
+	{
+		ssbo_b.out_dxyz[out_index + push_params.offset] = vec2(H.r, H.i);
+	}
+	else
+	{
+		ssbo_a.pingpong0[out_index + push_params.offset] = vec2(H.r, H.i);
+	}
+}
+
+layout (local_size_x = 16, local_size_y = 16) in;
+
+void main()
+{
+	ivec2 id = ivec2(gl_GlobalInvocationID.xy);
+	if(id.y >= compute_ubo.N || id.x >= compute_ubo.N)
+	{
+		return;
+	}
+
+	vec4 data = imageLoad(ButterflySampler, ivec2(push_params.stage, id.x));
+	processButterfly(id, data);
+}

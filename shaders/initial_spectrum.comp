@@ -1,0 +1,50 @@
+
+#define PI 3.1415926535897932384626433832795
+
+const float GRAVITY = 9.81;
+
+layout (local_size_x = 16, local_size_y = 16) in;
+
+float phillips(vec2 k, float max_l)
+{
+    float len = (compute_ubo.windSpeed * compute_ubo.windSpeed) / GRAVITY;
+    float mag = length(k);
+    if (mag == 0.0)
+    {
+        return mag;
+    }
+
+    float mag2 = mag * mag;
+    float kdotw = dot(normalize(k), normalize(compute_ubo.windDirection));
+
+    return (kdotw * kdotw) *       
+        exp(-1.0 * mag2 * max_l * max_l) * 
+        exp(-1.0f / (mag2 * len * len)) *
+        pow(mag, -4.0f);
+}
+
+void main()
+{   
+    ivec2 id = ivec2(gl_GlobalInvocationID.xy);
+	if(id.y >= compute_ubo.N || id.x >= compute_ubo.N)
+    {
+		return;
+    }
+ 
+    vec2 x = vec2(gl_GlobalInvocationID.xy) - compute_ubo.N / 2.0;
+    vec2 k = vec2(2.0 * PI * x.x / float(compute_ubo.L), 2.0 * PI * x.y / float(compute_ubo.L));
+
+    // calculate the phillips spectrum
+    float max_l = 0.02;
+    float ph = compute_ubo.A * phillips(k, max_l);
+
+    float phminusk = compute_ubo.A * phillips(-k, max_l);
+  
+    vec4 gaussRnd = imageLoad(NoiseImage, id).xyzw;
+ 
+    vec2 h0 = gaussRnd.xy * (sqrt(ph) * 0.5);
+    vec2 h0minusk = gaussRnd.zw * (sqrt(phminusk) * 0.5);
+
+    imageStore(H0kImage, id, vec4(h0, 0.0, 1.0));
+    imageStore(H0minuskImage, id, vec4(h0minusk, 0.0, 1.0));
+}

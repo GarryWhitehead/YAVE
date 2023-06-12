@@ -25,6 +25,7 @@
 #include "engine.h"
 #include "mapped_texture.h"
 
+#include <spdlog/spdlog.h>
 #include <vulkan-api/common.h>
 #include <vulkan-api/sampler_cache.h>
 
@@ -36,34 +37,21 @@ Compute::Compute(IEngine& engine) : extSsboRead_(nullptr)
     ubo_ = std::make_unique<UniformBuffer>(
         vkapi::PipelineCache::UboSetValue, UboBindPoint, "ComputeUbo", "compute_ubo");
 
-    readSsbo_ = std::make_unique<StorageBuffer>(
-        StorageBuffer::AccessType::ReadWrite,
-        vkapi::PipelineCache::SsboSetValue,
-        SsboReadOnlyBindPoint,
-        "ComputeReadSsbo",
-        "input_ssbo");
-
-    writeSsbo_ = std::make_unique<StorageBuffer>(
-        StorageBuffer::AccessType::ReadWrite,
-        vkapi::PipelineCache::SsboSetValue,
-        SsboWriteOnlyBindPoint,
-        "ComputeWriteSsbo",
-        "output_ssbo");
+    pushBlock_ = std::make_unique<PushBlock>("PushBlock", "push_params");
 
     bundle_ = engine.driver().progManager().createProgramBundle();
 }
 Compute::~Compute() {}
 
-void Compute::addSamplerTexture(
+void Compute::addStorageImage(
     vkapi::VkDriver& driver,
     const std::string& name,
     const vkapi::TextureHandle& texture,
-    const backend::TextureSamplerParams& params,
     uint32_t binding,
     ImageStorageSet::StorageType storageType)
 {
     ASSERT_FATAL(
-        binding < vkapi::PipelineCache::MaxSamplerBindCount,
+        binding < vkapi::PipelineCache::MaxStorageImageBindCount,
         "Out of range for texture binding (=%d). Max allowed count is %d\n",
         binding,
         vkapi::PipelineCache::MaxSamplerBindCount);
@@ -76,7 +64,22 @@ void Compute::addSamplerTexture(
         storageType,
         ImageStorageSet::texFormatToFormatLayout(texture.getResource()->context().format));
 
-    bundle_->setTexture(texture, binding, driver.getSamplerCache().createSampler(params));
+    bundle_->setStorageImage(texture, binding);
+}
+
+void Compute::addImageSampler(
+    vkapi::VkDriver& driver,
+    const std::string& name,
+    const vkapi::TextureHandle& texture,
+    uint8_t binding,
+    const TextureSampler& sampler)
+{
+    // all samplers use the same set
+    samplerSet_.pushSampler(
+        name, vkapi::PipelineCache::SamplerSetValue, binding, SamplerSet::SamplerType::e2d);
+
+    bundle_->setImageSampler(
+        texture, binding, driver.getSamplerCache().createSampler(sampler.get()));
 }
 
 void Compute::addUboParam(
@@ -85,44 +88,86 @@ void Compute::addUboParam(
     ubo_->addElement(elementName, type, (void*)value, arrayCount);
 }
 
-void Compute::addSsboReadParam(
-    const std::string& elementName, void* values, const std::string& structName, uint32_t arraySize)
-{
-    readSsbo_->addElement(
-        elementName, backend::BufferElementType::Struct, values, arraySize, structName);
-}
-
-void Compute::addSsboWriteParam(
-    const std::string& elementName, const std::string& structName, uint32_t arraySize)
-{
-    writeSsbo_->addElement(
-        elementName, backend::BufferElementType::Struct, nullptr, arraySize, structName);
-}
-
-void Compute::addSsboReadParam(
+void Compute::addSsbo(
     const std::string& elementName,
     backend::BufferElementType type,
+    StorageBuffer::AccessType accessType,
+    int binding,
+    const std::string& aliasName,
     void* values,
-    uint32_t arraySize)
+    uint32_t outerArraySize,
+    uint32_t innerArraySize,
+    const std::string& structName,
+    bool destroy)
 {
-    readSsbo_->addElement(elementName, type, values, arraySize);
+    ASSERT_FATAL(binding < MaxSsboCount, "Binding out of range.");
+    std::string bufferName = "SsboBuffer" + std::to_string(binding);
+    if (ssbos_[binding] && destroy)
+    {
+        ssbos_[binding].reset();
+    }
+    if (!ssbos_[binding])
+    {
+        ssbos_[binding] = std::make_unique<StorageBuffer>(
+            accessType, vkapi::PipelineCache::SsboSetValue, binding, bufferName, aliasName);
+        ssbos_[binding]->addElement(
+            elementName, type, values, outerArraySize, innerArraySize, structName);
+    }
 }
 
-void Compute::addSsboWriteParam(
-    const std::string& elementName, backend::BufferElementType type, uint32_t arraySize)
-{
-    writeSsbo_->addElement(elementName, type, nullptr, arraySize);
-}
-
-void Compute::addExternalSsboRead(const Compute& compute)
+void Compute::copySsbo(
+    const Compute& fromCompute,
+    int fromId,
+    int toId,
+    StorageBuffer::AccessType toAccessType,
+    const std::string& toSsboName,
+    const std::string& toAliasName,
+    bool destroy)
 {
     ASSERT_FATAL(
-        !compute.writeSsbo_->empty(),
+        fromCompute.ssbos_[fromId] && !fromCompute.ssbos_[fromId]->empty(),
         "The write-only ssbo must have been written to in another compute call before being used "
         "as a reader.");
+    ASSERT_FATAL(
+        toId < MaxSsboCount, "Can not copy ssbo to id {} and exceed max bind count.", toId);
+
     // copy the write ssbo details to the read including the GPU buffer address that contains
     // the write contents from the last stage.
-    readSsbo_->copyFrom(*compute.writeSsbo_);
+    if (destroy)
+    {
+        ssbos_[toId].reset();
+    }
+    if (!ssbos_[toId])
+    {
+        ssbos_[toId] = std::make_unique<StorageBuffer>(
+            toAccessType,
+            vkapi::PipelineCache::SsboSetValue,
+            SsboBindPoint + toId,
+            toSsboName,
+            toAliasName);
+        ssbos_[toId]->copyFrom(*fromCompute.ssbos_[fromId]);
+    }
+}
+
+void Compute::addPushConstantParam(
+    const std::string& elementName, backend::BufferElementType type, void* value)
+{
+    pushBlock_->addElement(elementName, type, (void*)value);
+}
+
+void Compute::updatePushConstantParam(const std::string& elementName, void* value)
+{
+    pushBlock_->updateElement(elementName, value);
+}
+
+void Compute::updateGpuPush() noexcept
+{
+    if (!pushBlock_->empty())
+    {
+        void* data = pushBlock_->getBlockData();
+        ASSERT_LOG(data);
+        bundle_->setPushBlockData(backend::ShaderStage::Compute, data);
+    }
 }
 
 vkapi::ShaderProgramBundle* Compute::build(IEngine& engine, const std::string& compShader)
@@ -144,34 +189,40 @@ vkapi::ShaderProgramBundle* Compute::build(IEngine& engine, const std::string& c
     auto params = ubo_->getBufferParams(driver);
     bundle_->addDescriptorBinding(params.size, params.binding, params.buffer, params.type);
 
-    // read ssbo
-    // Note: we don't map storage buffers used for compute as we assume the write ssbo will
-    // be written by the compute and this will then be read. This might not always be the
-    // case so may need changing at some point.
-    if (!readSsbo_->empty())
+    // storage buffers
+    for (int i = 0; i < MaxSsboCount; ++i)
     {
-        program->addAttributeBlock(readSsbo_->createShaderStr());
-        readSsbo_->createGpuBuffer(driver);
+        if (ssbos_[i])
+        {
+            ASSERT_LOG(!ssbos_[i]->empty());
+            program->addAttributeBlock(ssbos_[i]->createShaderStr());
+            ssbos_[i]->createGpuBuffer(driver);
 
-        params = readSsbo_->getBufferParams(driver);
-        bundle_->addDescriptorBinding(params.size, params.binding, params.buffer, params.type);
+            void* data = ssbos_[i]->getBlockData();
+            if (data)
+            {
+                ssbos_[i]->mapGpuBuffer(driver, data);
+            }
+
+            params = ssbos_[i]->getBufferParams(driver);
+            bundle_->addDescriptorBinding(params.size, params.binding, params.buffer, params.type);
+        }
     }
 
-    // write ssbo
-    if (!writeSsbo_->empty())
-    {
-        program->addAttributeBlock(writeSsbo_->createShaderStr());
-        writeSsbo_->createGpuBuffer(driver);
-
-        params = writeSsbo_->getBufferParams(driver);
-        bundle_->addDescriptorBinding(params.size, params.binding, params.buffer, params.type);
-    }
-
-    // samplers
+    // storage images
     if (!imageStorageSet_.empty())
     {
         program->addAttributeBlock(imageStorageSet_.createShaderStr());
     }
+
+    // image samplers
+    if (!samplerSet_.empty())
+    {
+        program->addAttributeBlock(samplerSet_.createShaderStr());
+    }
+
+    // push block
+    program->addAttributeBlock(pushBlock_->createShaderStr());
 
     vkapi::Shader* shader = manager.findShaderVariantOrCreate(
         {}, backend::ShaderStage::Compute, vk::PrimitiveTopology::eTriangleList, bundle_);

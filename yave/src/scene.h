@@ -46,6 +46,8 @@ class ICamera;
 class Frustum;
 class IEngine;
 class ISkybox;
+class IWaveGenerator;
+class WaveGenerator;
 
 class IScene : public Scene
 {
@@ -89,6 +91,8 @@ public:
 
     void setCameraI(ICamera* cam) noexcept;
 
+    void setWaveGeneratorI(IWaveGenerator* waterGen) noexcept;
+
     // ============== getters ============================
 
     ISkybox* getSkybox() noexcept { return skybox_; }
@@ -98,6 +102,7 @@ public:
     UniformBuffer& getTransUbo() noexcept { return *transUbo_; }
     UniformBuffer& getSkinUbo() noexcept { return *skinUbo_; }
     SceneUbo& getSceneUbo() noexcept { return *sceneUbo_; }
+    IWaveGenerator* getWaveGenerator() noexcept { return waveGen_; }
     bool withPostProcessing() const noexcept { return usePostProcessing_; }
     bool withGbuffer() const noexcept { return useGbuffer_; }
 
@@ -106,6 +111,7 @@ public:
     void setSkybox(Skybox* skybox) override;
     void setIndirectLight(IndirectLight* il) override;
     void setCamera(Camera* cam) override;
+    void setWaveGenerator(WaveGenerator* waterGen) override;
     Camera* getCurrentCamera() override;
     void addObject(Object obj) override;
     void destroyObject(Object obj) override;
@@ -125,6 +131,7 @@ private:
 
     // current skybox
     ISkybox* skybox_;
+    IWaveGenerator* waveGen_;
 
     IIndirectLight* indirectLight_;
 
