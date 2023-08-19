@@ -88,7 +88,7 @@ public:
 
     virtual Camera* createCamera() = 0;
 
-    virtual WaveGenerator* createWaveGenerator() = 0;
+    virtual WaveGenerator* createWaveGenerator(Scene* scene) = 0;
 
     virtual void flushCmds() = 0;
 

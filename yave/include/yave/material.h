@@ -217,10 +217,15 @@ public:
         uint32_t height,
         backend::TextureFormat format,
         ImageType type,
+        backend::ShaderStage stage,
         TextureSampler& sampler) = 0;
 
-    virtual void
-    addTexture(Engine* engine, Texture* texture, ImageType type, TextureSampler& sampler) = 0;
+    virtual void addTexture(
+        Engine* engine,
+        Texture* texture,
+        ImageType type,
+        backend::ShaderStage stage,
+        TextureSampler& sampler) = 0;
 
 protected:
     Material();

@@ -134,7 +134,7 @@ public:
      */
     static vk::ShaderStageFlagBits getStageFlags(backend::ShaderStage type);
 
-    static util::CString shaderTypeToString(backend::ShaderStage type);
+    static std::string shaderTypeToString(backend::ShaderStage type);
 
     /**
      * @brief From the width and vecsize derive the vk format

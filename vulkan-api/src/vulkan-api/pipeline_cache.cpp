@@ -351,6 +351,11 @@ void PipelineCache::bindColourAttachCount(uint32_t count) noexcept
     graphicsPlineRequires_.rasterState.colourAttachCount = count;
 }
 
+void PipelineCache::bindTesselationVertCount(size_t count) noexcept
+{ 
+    graphicsPlineRequires_.tesselationVertCount = count;
+}
+
 void PipelineCache::bindBlendFactorBlock(const BlendFactorBlock& block) noexcept
 {
     graphicsPlineRequires_.blendState = block;
@@ -451,8 +456,8 @@ void PipelineCache::bindDescriptors(
     auto iter = descriptorSets_.find(descRequires_);
     if (iter != descriptorSets_.end())
     {
-        descSetInfo.frameLastUsed = driver_.getCurrentFrame();
         descSetInfo = iter->second;
+        iter->second.frameLastUsed = driver_.getCurrentFrame();
     }
     else
     {

@@ -36,6 +36,7 @@
 class WaveApp : public yave::Application
 {
 public:
+
     WaveApp(const yave::AppParams& params, bool showUI) : yave::Application(params, showUI) {}
 
     void uiCallback(yave::Engine* engine) override;
@@ -43,8 +44,6 @@ public:
     yave::Scene* scene_ = nullptr;
     yave::Engine* engine_ = nullptr;
 
-    yave::Object dirLightObj;
-    yave::Object spotLightObj;
+    yave::Object sunObj_;
 
-    std::vector<yave::Material*> materials;
 };

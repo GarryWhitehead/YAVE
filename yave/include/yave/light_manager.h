@@ -62,6 +62,11 @@ public:
         // used for deriving the spotlight intensity
         float innerCone = 5.0f;
         float outerCone = 10.0f;
+
+        // sun parameters (only used for directional light)
+        float sunAngularRadius = 0.526f;
+        float sunHaloSize = 10.0f;
+        float sunHaloFalloff = 80.0f;
     };
 
     virtual ~LightManager();

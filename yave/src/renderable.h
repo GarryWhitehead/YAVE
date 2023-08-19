@@ -69,6 +69,8 @@ public:
 
     void skipVisibilityChecksI();
 
+    void setTesselationVertCount(size_t count) noexcept { tesselationVertCount_ = count; }
+
     // ================= getters ========================
 
     IRenderPrimitive* getRenderPrimitive(size_t idx = 0) noexcept;
@@ -78,6 +80,8 @@ public:
 
     uint32_t getMeshDynamicOffset() const noexcept;
     uint32_t getSkinDynamicOffset() const noexcept;
+
+    size_t getTesselationVertCount() const noexcept { return tesselationVertCount_; }
 
     // ================ client api ==========================
 
@@ -98,6 +102,10 @@ private:
     // when drawing
     uint32_t meshDynamicOffset_;
     uint32_t skinDynamicOffset_;
+
+    // tesselation vertices count - if non-zero assumes tesselation
+    // shader pipeline is used.
+    size_t tesselationVertCount_;
 
     std::vector<IRenderPrimitive*> primitives_;
 };

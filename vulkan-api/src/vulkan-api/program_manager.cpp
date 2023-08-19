@@ -122,7 +122,7 @@ void ShaderProgram::parseShader(const std::vector<std::string>& lines)
 void ShaderProgram::clearAttributes() noexcept { attributeBlocks_.clear(); }
 
 ShaderProgramBundle::ShaderProgramBundle()
-    : shaderId_(0), pipelineLayout_(std::make_unique<PipelineLayout>())
+    : shaderId_(0), pipelineLayout_(std::make_unique<PipelineLayout>()), tesselationVertCount_(0)
 {
 }
 
@@ -163,6 +163,16 @@ void ShaderProgramBundle::parseMaterialShader(const std::filesystem::path& shade
             ShaderProgram* prog = createProgram(backend::ShaderStage::Fragment);
             prog->parseMaterialShaderBlock(shaderLines, idx);
         }
+        else if (line.find("[[tesse-eval]]") != std::string::npos)
+        {
+            ShaderProgram* prog = createProgram(backend::ShaderStage::TesselationEval);
+            prog->parseMaterialShaderBlock(shaderLines, idx);
+        }
+        else if (line.find("[[tesse-control]]") != std::string::npos)
+        {
+            ShaderProgram* prog = createProgram(backend::ShaderStage::TesselationCon);
+            prog->parseMaterialShaderBlock(shaderLines, idx);
+        }
     }
 }
 
@@ -198,6 +208,14 @@ void ShaderProgramBundle::buildShader(std::string filename)
     else if (shaderExt == ".comp")
     {
         shaderType = backend::ShaderStage::Compute;
+    }
+    else if (shaderExt == ".tesse")
+    {
+        shaderType = backend::ShaderStage::TesselationEval;
+    }
+    else if (shaderExt == ".tessc")
+    {
+        shaderType = backend::ShaderStage::TesselationCon;
     }
     else
     {
@@ -330,6 +348,11 @@ void ShaderProgramBundle::addRenderPrimitive(
 void ShaderProgramBundle::addRenderPrimitive(uint32_t vertexCount)
 {
     renderPrim_.vertexCount = vertexCount;
+}
+
+void ShaderProgramBundle::setTesselationVertCount(size_t count) noexcept 
+{
+    tesselationVertCount_ = count;
 }
 
 void ShaderProgramBundle::setScissor(

@@ -186,7 +186,8 @@ void IRenderer::renderI(
     IWaveGenerator* waveGen = scene->getWaveGenerator();
     if (waveGen)
     {
-        waveGen->render(rGraph_, *scene, dt, timer);
+        waveGen->updateCompute(rGraph_, *scene, dt, timer);
+        waveGen->transitionImagesToShaderRead(rGraph_);
     }
 
     // fill the gbuffers - this can't be the final render target unless gbuffers are disabled due
@@ -206,6 +207,11 @@ void IRenderer::renderI(
     if (bloomOptions.enabled)
     {
         input = pp->bloom(rGraph_, desc.width, desc.height, bloomOptions, dt);
+    }
+
+    if (waveGen)
+    {
+        waveGen->transitionImagesToCompute(rGraph_);
     }
 
     rGraph_.moveResource(input, backbufferRT);

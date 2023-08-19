@@ -125,12 +125,11 @@ void IEngine::init() noexcept
     quadPrimitive_.addMeshDrawData(indices.size(), 0, 0);
 
     // initialise duumy ibl textures
-    dummyIrradianceMap_ = createMappedTextureI();
-    dummySpecularMap_ = createMappedTextureI();
-    dummyBrdfLut_ = createMappedTextureI();
+    dummyCubeMap_ = createMappedTextureI();
+    dummyTexture_ = createMappedTextureI();
 
     uint32_t zeroBuffer[6] = {0};
-    dummyIrradianceMap_->setTextureI(
+    dummyCubeMap_->setTextureI(
         zeroBuffer,
         sizeof(zeroBuffer),
         1,
@@ -139,16 +138,7 @@ void IEngine::init() noexcept
         6,
         Texture::TextureFormat::RGBA8,
         backend::ImageUsage::Sampled);
-    dummySpecularMap_->setTextureI(
-        zeroBuffer,
-        sizeof(zeroBuffer),
-        1,
-        1,
-        1,
-        6,
-        Texture::TextureFormat::RGBA8,
-        backend::ImageUsage::Sampled);
-    dummyBrdfLut_->setTextureI(
+    dummyTexture_->setTextureI(
         zeroBuffer,
         sizeof(zeroBuffer),
         1,
@@ -204,9 +194,9 @@ IIndirectLight* IEngine::createIndirectLightI() noexcept { return createResource
 
 ICamera* IEngine::createCameraI() noexcept { return createResource(cameras_); }
 
-IWaveGenerator* IEngine::createWaveGeneratorI() noexcept
+IWaveGenerator* IEngine::createWaveGeneratorI(IScene& scene) noexcept
 {
-    return createResource(waterGens_, *this);
+    return createResource(waterGens_, *this, scene);
 }
 
 void IEngine::flush()
@@ -322,9 +312,9 @@ IndirectLight* IEngine::createIndirectLight()
 
 Camera* IEngine::createCamera() { return reinterpret_cast<Camera*>(createCameraI()); }
 
-WaveGenerator* IEngine::createWaveGenerator()
+WaveGenerator* IEngine::createWaveGenerator(Scene* scene)
 {
-    return reinterpret_cast<WaveGenerator*>(createWaveGeneratorI());
+    return reinterpret_cast<WaveGenerator*>(createWaveGeneratorI(*(reinterpret_cast<IScene*>(scene))));
 }
 
 void IEngine::flushCmds() { flush(); }

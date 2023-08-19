@@ -6,13 +6,11 @@ void materialVertex(vec4 pos)
 {
     outPos = inPos.xyz;
 	
-	gl_Position = scene_ubo.project * ubo.faceViews[gl_ViewIndex] * vec4(inPos, 1.0);
+	gl_Position = scene_ubo.project * material_ubo.faceViews[gl_ViewIndex] * vec4(inPos, 1.0);
     gl_Position.z = gl_Position.w;
 }
 
 [[fragment]]
-
-#define PI 3.1415926535897932384626433832795
 
 void materialFragment()
 {

@@ -25,6 +25,7 @@
 #include "camera.h"
 #include "engine.h"
 #include "indirect_light.h"
+#include "managers/light_manager.h"
 
 #include <mathfu/glsl_mappings.h>
 
@@ -50,6 +51,13 @@ SceneUbo::SceneUbo(vkapi::VkDriver& driver)
 
     ubo_->addElement("iblMipLevels", backend::BufferElementType::Int);
 
+    // =============== directional light =============================
+
+    ubo_->addElement("padding0", backend::BufferElementType::Float2);
+    ubo_->addElement("lightColourIntensity", backend::BufferElementType::Float4);
+    ubo_->addElement("lightDirection", backend::BufferElementType::Float4);
+    ubo_->addElement("sun", backend::BufferElementType::Float4);
+
     ubo_->createGpuBuffer(driver);
     uboSize_ = ubo_->size();
 }
@@ -58,6 +66,7 @@ void SceneUbo::updateCamera(ICamera& camera)
 {
     mathfu::mat4 proj = camera.projMatrix();
     mathfu::mat4 view = camera.viewMatrix();
+    mathfu::mat4 model = camera.modelMatrix();
     mathfu::vec3 pos = camera.position();
     float n = camera.getNear();
     float f = camera.getFar();
@@ -67,6 +76,7 @@ void SceneUbo::updateCamera(ICamera& camera)
     ubo_->updateElement("mvp", &vp);
     ubo_->updateElement("project", &proj);
     ubo_->updateElement("view", &view);
+    ubo_->updateElement("model", &model);
     ubo_->updateElement("position", &pos);
     ubo_->updateElement("zNear", &n);
     ubo_->updateElement("zFar", &f);
@@ -80,6 +90,32 @@ void SceneUbo::updateIbl(IIndirectLight* il)
     }
     int mips = il->getMipLevels();
     ubo_->updateElement("iblMipLevels", &mips);
+}
+
+void SceneUbo::updateDirLight(IEngine& engine, LightInstance* instance) 
+{ 
+    auto* lm = engine.getLightManagerI();
+
+    mathfu::vec4 sun { 0.0f, 0.0f, 0.0f, 0.0f };
+    mathfu::vec4 dir {mathfu::normalize(-instance->target), 1.0f};
+    float exposure = 0.1f;
+    
+    if (instance)
+    {
+        mathfu::vec4 lightIntensity {instance->colour, instance->intensity * exposure};
+        ubo_->updateElement("lightColourIntensity", &lightIntensity);
+        ubo_->updateElement("lightDirection", &dir);
+
+        float radius = lm->getSunAngularRadius();
+        float size = lm->getSunHaloSize();
+        float falloff = lm->getSunHaloFalloff();
+
+        sun.x = std::sin(radius);
+        sun.y = std::cos(radius);
+        sun.z = 1.0f / (std::cos(radius * size) - sun.x);
+        sun.w = falloff;
+    }
+    ubo_->updateElement("sun", &sun);
 }
 
 void SceneUbo::upload(IEngine& engine)

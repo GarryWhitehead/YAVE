@@ -40,9 +40,9 @@ void main()
     boneTransform += skin_ubo.bones[int(inBoneId.z)] * inWeights.z;
     boneTransform += skin_ubo.bones[int(inBoneId.w)] * inWeights.w;
 
-    mat4 normalTransform = mesh_ubo.modelMatrix * boneTransform;
+    mat4 normalTransform = scene_ubo.model * boneTransform;
 #elif defined(HAS_POS_ATTR_INPUT)
-    mat4 normalTransform = mesh_ubo.modelMatrix;
+    mat4 normalTransform = scene_ubo.model;
     vec4 pos = normalTransform * vec4(inPos, 1.0);
 #else
     vec4 pos = vec4(0.0);

@@ -26,7 +26,10 @@ namespace yave
 {
 
 IRenderable::IRenderable()
-    : program_(nullptr), meshDynamicOffset_(0), skinDynamicOffset_(IRenderable::UNINITIALISED)
+    : program_(nullptr),
+      meshDynamicOffset_(0),
+      skinDynamicOffset_(IRenderable::UNINITIALISED),
+      tesselationVertCount_(0)
 {
 }
 

@@ -98,6 +98,12 @@ shaderc_shader_kind getShaderKind(const backend::ShaderStage type)
         case backend::ShaderStage::Compute:
             result = shaderc_shader_kind::shaderc_compute_shader;
             break;
+        case backend::ShaderStage::TesselationEval:
+            result = shaderc_shader_kind::shaderc_tess_evaluation_shader;
+            break;
+        case backend::ShaderStage::TesselationCon:
+            result = shaderc_shader_kind::shaderc_tess_control_shader;
+            break;
     }
 
     return result;
@@ -181,9 +187,9 @@ Shader::Shader(VkContext& context, const backend::ShaderStage type) : context_(c
 
 Shader::~Shader() {}
 
-util::CString Shader::shaderTypeToString(backend::ShaderStage type)
+std::string Shader::shaderTypeToString(backend::ShaderStage type)
 {
-    util::CString result;
+    std::string result;
     switch (type)
     {
         case backend::ShaderStage::Vertex:

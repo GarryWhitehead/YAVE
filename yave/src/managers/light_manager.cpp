@@ -39,7 +39,12 @@ namespace yave
 {
 
 ILightManager::ILightManager(IEngine& engine)
-    : engine_(engine), programBundle_(nullptr), currentScene_(nullptr)
+    : engine_(engine),
+      programBundle_(nullptr),
+      currentScene_(nullptr),
+      sunAngularRadius_(0.0f),
+      sunHaloSize_(0.0f),
+      sunHaloFalloff_(0.0f)
 {
     ssbo_ = std::make_unique<StorageBuffer>(
         StorageBuffer::AccessType::ReadOnly,
@@ -201,6 +206,32 @@ void ILightManager::setRadius(float fallout, LightInstance& light)
     }
 }
 
+void ILightManager::setSunAngularRadius(float radius, LightInstance& light)
+{
+    if (light.type == LightManager::Type::Directional)
+    {
+        radius = std::clamp(radius, 0.25f, 20.0f);
+        sunAngularRadius_ = util::maths::radians(radius);
+    }
+}
+
+void ILightManager::setSunHaloSize(float size, LightInstance& light)
+{
+    if (light.type == LightManager::Type::Directional)
+    {
+        sunHaloSize_ = size;
+    }
+}
+
+void ILightManager::setSunHaloFalloff(float falloff, LightInstance& light)
+{
+    if (light.type == LightManager::Type::Directional)
+    {
+        sunHaloFalloff_ = falloff;
+    }
+}
+
+
 void ILightManager::createLight(
     const LightManager::CreateInfo& ci, Object& obj, LightManager::Type type)
 {
@@ -218,6 +249,17 @@ void ILightManager::createLight(
     setRadius(ci.fallout, *instance);
     setIntensity(ci.intensity, type, *instance);
     calculateSpotCone(ci.outerCone, ci.innerCone, *instance);
+
+    setSunAngularRadius(ci.sunAngularRadius, *instance);
+    setSunHaloSize(ci.sunHaloSize, *instance);
+    setSunHaloFalloff(ci.sunHaloFalloff, *instance);
+    
+    // keep track of the directonal light as its parameters are needed
+    // for rendering the sun.
+    if (type == LightManager::Type::Directional)
+    {
+        dirLightObj_ = obj;
+    }
 
     // check whether we just add to the back or use a freed slot
     if (handle.get() >= lights_.size())
@@ -325,6 +367,15 @@ vkapi::VDefinitions ILightManager::createShaderVariants()
 void ILightManager::enableAmbientLight() noexcept
 {
     setVariant(ILightManager::Variants::IblContribution);
+}
+
+LightInstance* ILightManager::getDirLightParams() noexcept 
+{ 
+    if (dirLightObj_.isValid())
+    {
+        return getLightInstance(dirLightObj_);
+    }
+    return nullptr;
 }
 
 LightInstance* ILightManager::getLightInstance(Object& obj)
@@ -485,15 +536,15 @@ rg::RenderGraphHandle ILightManager::render(
             else
             {
                 programBundle_->setImageSampler(
-                    engine_.getDummyIrradianceMap()->getBackendHandle(),
+                    engine_.getDummyCubeMap()->getBackendHandle(),
                     SamplerIrradianceBinding,
                     sampler);
                 programBundle_->setImageSampler(
-                    engine_.getDummySpecularMap()->getBackendHandle(),
+                    engine_.getDummyCubeMap()->getBackendHandle(),
                     SamplerSpecularBinding,
                     sampler);
                 programBundle_->setImageSampler(
-                    engine_.getDummyBrdfLut()->getBackendHandle(), SamplerBrdfBinding, sampler);
+                    engine_.getDummyTexture()->getBackendHandle(), SamplerBrdfBinding, sampler);
             }
 
             driver.draw(cmdBuffer, *programBundle_);

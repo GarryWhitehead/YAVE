@@ -57,7 +57,7 @@ int main()
     app.scene_ = app.getScene();
 
     // create irradiance/specular maps
-    yave::Ibl ibl(app.engine_, YAVE_ASSETS_DIRECTORY);
+    /* yave::Ibl ibl(app.engine_, YAVE_ASSETS_DIRECTORY);
     if (!ibl.loadEqirectImage("hdr/monoLake.hdr"))
     {
         exit(1);
@@ -65,19 +65,36 @@ int main()
     yave::IndirectLight* il = app.engine_->createIndirectLight();
     il->setIrrandianceMap(ibl.getIrradianceMap());
     il->setSpecularMap(ibl.getSpecularMap(), ibl.getBrdfLut());
-    app.scene_->setIndirectLight(il);
+    app.scene_->setIndirectLight(il);*/
 
     yave::AssetLoader loader(app.engine_);
     loader.setAssetFolder(YAVE_ASSETS_DIRECTORY);
 
     // add the skybox to the scene
     yave::Skybox* skybox = app.engine_->createSkybox(app.scene_);
-    skybox->setTexture(ibl.getCubeMap());
+    skybox->setColour({0.1f, 0.2f, 0.8f, 1.0f});
+    skybox->renderSun(true);
+    //skybox->setTexture(ibl.getCubeMap());
     skybox->build(app.scene_, app.getWindow()->getCamera());
     app.scene_->setSkybox(skybox);
 
+    // add the sun (directional light)
+    yave::ObjectManager* objManager = app.engine_->getObjectManager();
+    yave::LightManager* lm = app.engine_->getLightManager();
+
+    app.sunObj_ = objManager->createObject();
+    app.scene_->addObject(app.sunObj_);
+
+    yave::LightManager::CreateInfo sunParams {
+        {1.0f, 80.0f, 1.0f}, {0.7f, -1.0f, -0.8f}, {0.1f, 0.9f, 0.1f}};
+    sunParams.intensity = 1100;
+    sunParams.sunAngularRadius = 0.5f;
+    sunParams.sunHaloSize = 20.0f;
+    sunParams.sunHaloFalloff = 5.0f;
+    lm->create(sunParams, yave::LightManager::Type::Directional, app.sunObj_);
+
     // add some waves....
-    yave::WaveGenerator* waveGen = app.engine_->createWaveGenerator();
+    yave::WaveGenerator* waveGen = app.engine_->createWaveGenerator(app.scene_);
     app.scene_->setWaveGenerator(waveGen);
 
     // create the renderer used to draw to the backbuffer

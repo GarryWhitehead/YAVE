@@ -18,8 +18,9 @@ class VkSceneEditor3dPackage(ConanFile):
         "shared": [True, False],
         "fPIC": [True, False],
         "with_validation_layers": [True, False],
+        "verbose": [True, False]
     }
-    default_options = {"shared": False, "fPIC": True, "with_validation_layers": True}
+    default_options = {"shared": False, "fPIC": True, "with_validation_layers": True, "verbose": False}
     generators = "CMakeDeps"
     _cmake = None
 
@@ -58,6 +59,7 @@ class VkSceneEditor3dPackage(ConanFile):
         tc = CMakeToolchain(self)
         tc.variables["WITH_VALIDATION_LAYERS"] = self.options.with_validation_layers
         tc.variables["BUILD_SHARED"] = self.options.shared
+        tc.variables["VERBOSE_OUTPUT"] = self.options.verbose
         tc.generate()
 
     def build(self):

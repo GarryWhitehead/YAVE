@@ -1,0 +1,45 @@
+#if defined(HAS_UV_ATTR_INPUT)
+layout (location = 0) in vec2 inUv[];
+#endif
+#if defined(HAS_NORMAL_ATTR_INPUT)
+layout (location = 1) in vec3 inNorm[];
+#endif
+#if defined(HAS_COLOUR_ATTR_INPUT)
+layout(location = 2) in vec4 inColour[];
+#endif
+layout (location = 3) in vec3 inPos[];
+
+#if defined(HAS_UV_ATTR_INPUT)
+layout (location = 0) out vec2 outUv[4]; 
+#endif
+#if defined(HAS_NORMAL_ATTR_INPUT)	
+layout (location = 1) out vec3 outNorm[4];
+#endif
+#if defined(HAS_COLOUR_ATTR_INPUT)
+layout(location = 2) in vec4 outColour[4];
+#endif
+layout (location = 3) out vec3 outPos[4];
+
+// only support quads at present
+layout (vertices = 4) out;
+
+void main()
+{
+    materialTessControl();
+
+    gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;
+    
+ #if defined(HAS_UV_ATTR_INPUT)   
+	outUv[gl_InvocationID] = inUv[gl_InvocationID];
+#endif
+#if defined(HAS_NORMAL_ATTR_INPUT)
+    outNorm[gl_InvocationID] = inNorm[gl_InvocationID];
+#endif
+#if defined(HAS_COLOUR_ATTR_INPUT)
+    outColour[gl_InvocationID] = inColour[gl_InvocationID];
+#endif
+
+    outPos[gl_InvocationID] = inPos[gl_InvocationID];
+
+
+}

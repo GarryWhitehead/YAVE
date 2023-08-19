@@ -98,7 +98,7 @@ Texture* PreFilter::eqirectToCubemap(Texture* hdrImage)
         backend::SamplerFilter::Linear,
         backend::SamplerAddressMode::ClampToEdge,
         16.0f);
-    mat->addTexture(engine_, hdrImage, Material::ImageType::BaseColour, sampler);
+    mat->addTexture(engine_, hdrImage, Material::ImageType::BaseColour, backend::ShaderStage::Fragment, sampler);
 
     std::array<mathfu::mat4, 6> faceViews;
     CubeMap::createFaceViews(faceViews);
@@ -221,7 +221,12 @@ Texture* PreFilter::createIrradianceEnvMap(Texture* cubeMap)
         6,
         backend::ShaderStage::Vertex,
         faceViews.data());
-    mat->addTexture(engine_, cubeMap, Material::ImageType::BaseColour, cubeSampler);
+    mat->addTexture(
+        engine_,
+        cubeMap,
+        Material::ImageType::BaseColour,
+        backend::ShaderStage::Fragment,
+        cubeSampler);
     prim_->setMaterial(mat);
 
     Renderable* render = engine_->createRenderable();
@@ -293,7 +298,12 @@ Texture* PreFilter::createSpecularEnvMap(Texture* cubeMap)
         &options_.specularSampleCount);
     mat->addUboParam(
         "roughness", backend::BufferElementType::Float, backend::ShaderStage::Fragment, &roughness);
-    mat->addTexture(engine_, cubeMap, Material::ImageType::BaseColour, cubeSampler);
+    mat->addTexture(
+        engine_,
+        cubeMap,
+        Material::ImageType::BaseColour,
+        backend::ShaderStage::Fragment, 
+        cubeSampler);
     prim_->setMaterial(mat);
 
     Renderable* render = engine_->createRenderable();

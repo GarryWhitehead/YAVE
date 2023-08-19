@@ -1,7 +1,6 @@
 
 #include "include/complex.h"
-
-#define PI 3.1415926535897932384626433832795
+#include "include/math.h"
 
 layout (local_size_x = 1, local_size_y = 16) in;
 
