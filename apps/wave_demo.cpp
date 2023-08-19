@@ -74,7 +74,7 @@ int main()
     yave::Skybox* skybox = app.engine_->createSkybox(app.scene_);
     skybox->setColour({0.1f, 0.2f, 0.8f, 1.0f});
     skybox->renderSun(true);
-    //skybox->setTexture(ibl.getCubeMap());
+    // skybox->setTexture(ibl.getCubeMap());
     skybox->build(app.scene_, app.getWindow()->getCamera());
     app.scene_->setSkybox(skybox);
 

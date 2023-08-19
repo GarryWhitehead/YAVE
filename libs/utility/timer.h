@@ -55,7 +55,9 @@ public:
 
     void startTimer()
     {
-        current = std::chrono::duration_cast<TimeType>(std::chrono::steady_clock::now().time_since_epoch()).count();
+        current = std::chrono::duration_cast<TimeType>(
+                      std::chrono::steady_clock::now().time_since_epoch())
+                      .count();
         isRunning = true;
     }
 
@@ -64,14 +66,16 @@ public:
     void resetTime()
     {
         auto timeNow = std::chrono::duration_cast<TimeType>(
-            std::chrono::steady_clock::now().time_since_epoch()).count();
+                           std::chrono::steady_clock::now().time_since_epoch())
+                           .count();
         current = timeNow;
     }
 
     double getTimeElapsed()
     {
         double timeNow = std::chrono::duration_cast<TimeType>(
-            std::chrono::steady_clock::now().time_since_epoch()).count();
+                             std::chrono::steady_clock::now().time_since_epoch())
+                             .count();
         double deltaTime = timeNow - current;
 
         return deltaTime;

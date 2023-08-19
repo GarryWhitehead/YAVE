@@ -33,6 +33,7 @@
 #include "yave/scene.h"
 #include "yave/skybox.h"
 #include "yave/texture.h"
+
 #include <utility/colour.h>
 
 #include <cstdint>
@@ -48,7 +49,6 @@ class IMaterial;
 class ISkybox : public Skybox
 {
 public:
-
     ISkybox(IEngine& engine, IScene& scene);
 
     void buildI(IScene& scene, ICamera& camera);

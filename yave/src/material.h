@@ -107,7 +107,7 @@ public:
         uint32_t binding);
 
     // Uses custom image sampler naming - but doesn't set the
-    // shader variant (i.e. base colour). 
+    // shader variant (i.e. base colour).
     void addImageTexture(
         const std::string& samplerName,
         vkapi::VkDriver& driver,
@@ -166,7 +166,8 @@ public:
         SamplerSet::SamplerType type)
     {
         // all samplers use the same set
-        samplerSet_[util::ecast(stage)].pushSampler(name, vkapi::PipelineCache::SamplerSetValue, binding, type);
+        samplerSet_[util::ecast(stage)].pushSampler(
+            name, vkapi::PipelineCache::SamplerSetValue, binding, type);
     }
 
     // ====== material state setters ========

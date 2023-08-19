@@ -267,7 +267,11 @@ rg::RenderGraphHandle PostProcess::bloom(
                 backend::ShaderStage::Fragment,
                 {backend::SamplerFilter::Nearest});
             mat->addImageTexture(
-                "ColourSampler", driver, lightTex, backend::ShaderStage::Fragment, {backend::SamplerFilter::Nearest});
+                "ColourSampler",
+                driver,
+                lightTex,
+                backend::ShaderStage::Fragment,
+                {backend::SamplerFilter::Nearest});
             mat->updateUboParam("gamma", backend::ShaderStage::Fragment, (void*)&options.gamma);
             mat->update(engine_);
 

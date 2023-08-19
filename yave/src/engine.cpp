@@ -314,7 +314,8 @@ Camera* IEngine::createCamera() { return reinterpret_cast<Camera*>(createCameraI
 
 WaveGenerator* IEngine::createWaveGenerator(Scene* scene)
 {
-    return reinterpret_cast<WaveGenerator*>(createWaveGeneratorI(*(reinterpret_cast<IScene*>(scene))));
+    return reinterpret_cast<WaveGenerator*>(
+        createWaveGeneratorI(*(reinterpret_cast<IScene*>(scene))));
 }
 
 void IEngine::flushCmds() { flush(); }

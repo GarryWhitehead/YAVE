@@ -217,7 +217,11 @@ void ImGuiHelper::updateDrawCommands(ImDrawData* drawData, const ImGuiIO& io)
 
             // font texture
             params.material->addTexture(
-                engine_, texture_, Material::ImageType::BaseColour, backend::ShaderStage::Fragment, sampler_);
+                engine_,
+                texture_,
+                Material::ImageType::BaseColour,
+                backend::ShaderStage::Fragment,
+                sampler_);
 
             // set the push constant
             PushConstant push;

@@ -352,7 +352,7 @@ void PipelineCache::bindColourAttachCount(uint32_t count) noexcept
 }
 
 void PipelineCache::bindTesselationVertCount(size_t count) noexcept
-{ 
+{
     graphicsPlineRequires_.tesselationVertCount = count;
 }
 

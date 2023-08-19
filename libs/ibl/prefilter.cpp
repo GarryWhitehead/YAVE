@@ -98,7 +98,12 @@ Texture* PreFilter::eqirectToCubemap(Texture* hdrImage)
         backend::SamplerFilter::Linear,
         backend::SamplerAddressMode::ClampToEdge,
         16.0f);
-    mat->addTexture(engine_, hdrImage, Material::ImageType::BaseColour, backend::ShaderStage::Fragment, sampler);
+    mat->addTexture(
+        engine_,
+        hdrImage,
+        Material::ImageType::BaseColour,
+        backend::ShaderStage::Fragment,
+        sampler);
 
     std::array<mathfu::mat4, 6> faceViews;
     CubeMap::createFaceViews(faceViews);
@@ -302,7 +307,7 @@ Texture* PreFilter::createSpecularEnvMap(Texture* cubeMap)
         engine_,
         cubeMap,
         Material::ImageType::BaseColour,
-        backend::ShaderStage::Fragment, 
+        backend::ShaderStage::Fragment,
         cubeSampler);
     prim_->setMaterial(mat);
 

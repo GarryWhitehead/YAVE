@@ -63,8 +63,7 @@ void IRenderableManager::buildI(
     for (const auto& prim : renderable->primitives_)
     {
         ASSERT_FATAL(prim->getMaterial(), "Material must be initialised for a render primitive.");
-        prim->getMaterial()->build(
-            engine_, scene, *renderable, prim, matShader, mainShaderPath);
+        prim->getMaterial()->build(engine_, scene, *renderable, prim, matShader, mainShaderPath);
     }
 
     engine_.getTransformManager()->addModelTransform(transform, obj);

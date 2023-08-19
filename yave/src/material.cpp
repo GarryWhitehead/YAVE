@@ -304,43 +304,43 @@ void IMaterial::build(
 
     // add any additional buffer elemnts, push blocks or image samplers
     // to the appropiate shader before building
-    auto addElements = [this, &driver, &scene](backend::ShaderStage stage, vkapi::ShaderProgram* prog) 
-    {
-        size_t idx = util::ecast(stage);
+    auto addElements =
+        [this, &driver, &scene](backend::ShaderStage stage, vkapi::ShaderProgram* prog) {
+            size_t idx = util::ecast(stage);
 
-        // only the scene ubo is added by default - all other uniforms are optional
-        // to increase the usability of materials.
-        addBuffer(&scene.getSceneUbo().get(), stage);
+            // only the scene ubo is added by default - all other uniforms are optional
+            // to increase the usability of materials.
+            addBuffer(&scene.getSceneUbo().get(), stage);
 
-        for (const auto& [s, buffer] : buffers_)
-        {
-            if (stage == s)
+            for (const auto& [s, buffer] : buffers_)
             {
-                prog->addAttributeBlock(buffer->createShaderStr());
+                if (stage == s)
+                {
+                    prog->addAttributeBlock(buffer->createShaderStr());
 
-                auto params = buffer->getBufferParams(driver);
-                ASSERT_FATAL(params.buffer, "Vulkan buffer handle is invalid.");
+                    auto params = buffer->getBufferParams(driver);
+                    ASSERT_FATAL(params.buffer, "Vulkan buffer handle is invalid.");
 
-                programBundle_->addDescriptorBinding(
-                    params.size, params.binding, params.buffer, params.type);
+                    programBundle_->addDescriptorBinding(
+                        params.size, params.binding, params.buffer, params.type);
+                }
             }
-        }
-        
-        // uniform buffers
-        if (!ubos_[idx]->empty())
-        {
-            ubos_[idx]->createGpuBuffer(driver);
-            auto uboParams = ubos_[idx]->getBufferParams(driver);
-            programBundle_->addDescriptorBinding(
-                uboParams.size, uboParams.binding, uboParams.buffer, uboParams.type);
-        }
 
-        // add ubo and push block strings to shader block
-        PushBlock* pushBlock = pushBlock_[idx].get();
-        prog->addAttributeBlock(pushBlock->createShaderStr());
-        prog->addAttributeBlock(ubos_[idx]->createShaderStr());
-        prog->addAttributeBlock(samplerSet_[idx].createShaderStr());
-    };
+            // uniform buffers
+            if (!ubos_[idx]->empty())
+            {
+                ubos_[idx]->createGpuBuffer(driver);
+                auto uboParams = ubos_[idx]->getBufferParams(driver);
+                programBundle_->addDescriptorBinding(
+                    uboParams.size, uboParams.binding, uboParams.buffer, uboParams.type);
+            }
+
+            // add ubo and push block strings to shader block
+            PushBlock* pushBlock = pushBlock_[idx].get();
+            prog->addAttributeBlock(pushBlock->createShaderStr());
+            prog->addAttributeBlock(ubos_[idx]->createShaderStr());
+            prog->addAttributeBlock(samplerSet_[idx].createShaderStr());
+        };
 
     auto* vProgram = programBundle_->getProgram(backend::ShaderStage::Vertex);
     auto* fProgram = programBundle_->getProgram(backend::ShaderStage::Fragment);
@@ -413,11 +413,17 @@ void IMaterial::build(
         programBundle_->setTesselationVertCount(renderable.getTesselationVertCount());
 
         vkapi::Shader* tesseShader = manager.findShaderVariantOrCreate(
-            vertexVariants, backend::ShaderStage::TesselationEval, prim->getTopology(), programBundle_);
+            vertexVariants,
+            backend::ShaderStage::TesselationEval,
+            prim->getTopology(),
+            programBundle_);
         programBundle_->getProgram(backend::ShaderStage::TesselationEval)->addShader(tesseShader);
 
         vkapi::Shader* tesscShader = manager.findShaderVariantOrCreate(
-            vertexVariants, backend::ShaderStage::TesselationCon, prim->getTopology(), programBundle_);
+            vertexVariants,
+            backend::ShaderStage::TesselationCon,
+            prim->getTopology(),
+            programBundle_);
         programBundle_->getProgram(backend::ShaderStage::TesselationCon)->addShader(tesscShader);
     }
 }
@@ -542,7 +548,11 @@ Material::Material() = default;
 Material::~Material() = default;
 
 void IMaterial::addTexture(
-    Engine* engine, Texture* texture, ImageType type, backend::ShaderStage stage, TextureSampler& sampler)
+    Engine* engine,
+    Texture* texture,
+    ImageType type,
+    backend::ShaderStage stage,
+    TextureSampler& sampler)
 {
     uint32_t binding = util::ecast(type);
     addImageTexture(

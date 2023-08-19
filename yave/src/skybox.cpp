@@ -46,7 +46,8 @@
 namespace yave
 {
 
-ISkybox::ISkybox(IEngine& engine, IScene& scene) : engine_(engine), cubeTexture_(nullptr), skyboxCol_ {0.0f}, showSun_(false)
+ISkybox::ISkybox(IEngine& engine, IScene& scene)
+    : engine_(engine), cubeTexture_(nullptr), skyboxCol_ {0.0f}, showSun_(false)
 {
     IRenderableManager* rm = engine_.getRenderableManagerI();
     IObjectManager* om = engine_.getObjManagerI();
@@ -69,7 +70,7 @@ void ISkybox::buildI(IScene& scene, ICamera& cam)
 
     int useColour = static_cast<int>(!cubeTexture_);
     int showSun = static_cast<int>(showSun_);
-       
+
     IMappedTexture* tex = cubeTexture_ ? cubeTexture_ : engine_.getDummyCubeMap();
     material_->addImageTexture(
         engine_.driver(),
@@ -78,7 +79,7 @@ void ISkybox::buildI(IScene& scene, ICamera& cam)
         backend::ShaderStage::Fragment,
         sampler.get(),
         0);
-    
+
     material_->addUboParamI(
         "colour",
         backend::BufferElementType::Float4,
@@ -147,14 +148,8 @@ void ISkybox::build(Scene* scene, Camera* camera)
     buildI(*(reinterpret_cast<IScene*>(scene)), *(reinterpret_cast<ICamera*>(camera)));
 }
 
-void ISkybox::setColour(const util::Colour4& col) noexcept 
-{ 
-    skyboxCol_ = col; 
-}
+void ISkybox::setColour(const util::Colour4& col) noexcept { skyboxCol_ = col; }
 
-void ISkybox::renderSun(bool state) noexcept
-{ 
-    showSun_ = state; 
-}
+void ISkybox::renderSun(bool state) noexcept { showSun_ = state; }
 
 } // namespace yave

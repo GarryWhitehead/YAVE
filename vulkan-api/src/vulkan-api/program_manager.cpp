@@ -350,7 +350,7 @@ void ShaderProgramBundle::addRenderPrimitive(uint32_t vertexCount)
     renderPrim_.vertexCount = vertexCount;
 }
 
-void ShaderProgramBundle::setTesselationVertCount(size_t count) noexcept 
+void ShaderProgramBundle::setTesselationVertCount(size_t count) noexcept
 {
     tesselationVertCount_ = count;
 }

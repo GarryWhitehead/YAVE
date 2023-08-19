@@ -24,22 +24,21 @@
 
 #include "compute.h"
 #include "engine.h"
+#include "index_buffer.h"
+#include "managers/renderable_manager.h"
 #include "mapped_texture.h"
-#include "scene.h"
+#include "material.h"
 #include "object_manager.h"
 #include "renderable.h"
+#include "scene.h"
 #include "vertex_buffer.h"
-#include "index_buffer.h"
-#include "material.h"
-#include "managers/renderable_manager.h"
-
 #include "yave/texture_sampler.h"
 
-#include <yave_app/window.h>
 #include <image_utils/noise_generator.h>
+#include <yave_app/window.h>
 
-#include <random>
 #include <numeric>
+#include <random>
 
 
 namespace yave
@@ -174,7 +173,7 @@ IWaveGenerator::IWaveGenerator(IEngine& engine, IScene& scene)
 
     material_ = rm->createMaterialI();
 
-    // create the vertices for the tessletaion patch 
+    // create the vertices for the tessletaion patch
     // NOTE: The patch size can not be changed during runtime at present
     generatePatch();
 
@@ -190,7 +189,7 @@ void IWaveGenerator::generatePatch() noexcept
     int patchCount = static_cast<int>(options.patchCount);
     float width = 10.0f;
     float height = 10.0f;
- 
+
     // interleaved pos and uv data for tesselation patch
     // Note: The y axis for position is calculated from the height map on the tesse shader
     for (size_t y = 0; y < options.patchCount; ++y)
@@ -198,14 +197,16 @@ void IWaveGenerator::generatePatch() noexcept
         for (size_t x = 0; x < options.patchCount; ++x)
         {
             uint32_t index = (x + y * options.patchCount);
-            patchVertices.push_back( x * width + width / 2.0f - (float)options.patchCount * width / 2.0f);
+            patchVertices.push_back(
+                x * width + width / 2.0f - (float)options.patchCount * width / 2.0f);
             patchVertices.push_back(0.0f);
-            patchVertices.push_back(y * height + height / 2.0f - (float)options.patchCount * height / 2.0f);
+            patchVertices.push_back(
+                y * height + height / 2.0f - (float)options.patchCount * height / 2.0f);
             patchVertices.push_back((float)x / (options.patchCount - 1));
             patchVertices.push_back((float)y / (options.patchCount - 1));
         }
     }
-   
+
     // indices
     const uint32_t w = (patchCount - 1);
     patchIndices.resize(w * w * 4);
@@ -299,10 +300,7 @@ void IWaveGenerator::buildMaterial(IScene& scene)
     vBuffer->addAttribute(VertexBuffer::BindingType::Uv, backend::BufferElementType::Float2);
     vBuffer->buildI(driver, verticesCount * sizeof(float), patchVertices.data());
     iBuffer->buildI(
-        driver,
-        patchIndices.size(),
-        patchIndices.data(),
-        backend::IndexBufferType::Uint32);
+        driver, patchIndices.size(), patchIndices.data(), backend::IndexBufferType::Uint32);
     prim->addMeshDrawDataI(patchIndices.size(), 0, 0);
 
     prim->setVertexBuffer(vBuffer);
@@ -436,8 +434,7 @@ void IWaveGenerator::updateCompute(
 
         specCompute_->addUboParam("N", backend::BufferElementType::Int, (void*)&Resolution);
         specCompute_->addUboParam("L", backend::BufferElementType::Int, (void*)&options.L);
-        specCompute_->addUboParam(
-            "time", backend::BufferElementType::Float, (void*)&time);
+        specCompute_->addUboParam("time", backend::BufferElementType::Float, (void*)&time);
         specCompute_->addUboParam("offset_dx", backend::BufferElementType::Int, (void*)&dxOffset);
         specCompute_->addUboParam("offset_dy", backend::BufferElementType::Int, (void*)&dyOffset);
         specCompute_->addUboParam("offset_dz", backend::BufferElementType::Int, (void*)&dzOffset);
@@ -670,7 +667,7 @@ void IWaveGenerator::updateCompute(
     });
 }
 
-void IWaveGenerator::transitionImagesToShaderRead(rg::RenderGraph& rGraph) 
+void IWaveGenerator::transitionImagesToShaderRead(rg::RenderGraph& rGraph)
 {
     rGraph.addExecutorPass("transition_images_shader_read", [=](vkapi::VkDriver& driver) {
         auto& cmds = driver.getCommands();

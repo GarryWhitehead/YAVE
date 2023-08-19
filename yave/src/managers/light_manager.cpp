@@ -253,7 +253,7 @@ void ILightManager::createLight(
     setSunAngularRadius(ci.sunAngularRadius, *instance);
     setSunHaloSize(ci.sunHaloSize, *instance);
     setSunHaloFalloff(ci.sunHaloFalloff, *instance);
-    
+
     // keep track of the directonal light as its parameters are needed
     // for rendering the sun.
     if (type == LightManager::Type::Directional)
@@ -369,8 +369,8 @@ void ILightManager::enableAmbientLight() noexcept
     setVariant(ILightManager::Variants::IblContribution);
 }
 
-LightInstance* ILightManager::getDirLightParams() noexcept 
-{ 
+LightInstance* ILightManager::getDirLightParams() noexcept
+{
     if (dirLightObj_.isValid())
     {
         return getLightInstance(dirLightObj_);
@@ -540,9 +540,7 @@ rg::RenderGraphHandle ILightManager::render(
                     SamplerIrradianceBinding,
                     sampler);
                 programBundle_->setImageSampler(
-                    engine_.getDummyCubeMap()->getBackendHandle(),
-                    SamplerSpecularBinding,
-                    sampler);
+                    engine_.getDummyCubeMap()->getBackendHandle(), SamplerSpecularBinding, sampler);
                 programBundle_->setImageSampler(
                     engine_.getDummyTexture()->getBackendHandle(), SamplerBrdfBinding, sampler);
             }

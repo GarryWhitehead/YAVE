@@ -36,7 +36,7 @@ public:
     virtual void setTexture(Texture* texture) noexcept = 0;
 
     virtual void build(Scene* scene, Camera* camera) = 0;
-    
+
     virtual void setColour(const util::Colour4& col) noexcept = 0;
 
     virtual void renderSun(bool state) noexcept = 0;

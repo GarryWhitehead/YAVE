@@ -92,14 +92,14 @@ void SceneUbo::updateIbl(IIndirectLight* il)
     ubo_->updateElement("iblMipLevels", &mips);
 }
 
-void SceneUbo::updateDirLight(IEngine& engine, LightInstance* instance) 
-{ 
+void SceneUbo::updateDirLight(IEngine& engine, LightInstance* instance)
+{
     auto* lm = engine.getLightManagerI();
 
-    mathfu::vec4 sun { 0.0f, 0.0f, 0.0f, 0.0f };
+    mathfu::vec4 sun {0.0f, 0.0f, 0.0f, 0.0f};
     mathfu::vec4 dir {mathfu::normalize(-instance->target), 1.0f};
     float exposure = 0.1f;
-    
+
     if (instance)
     {
         mathfu::vec4 lightIntensity {instance->colour, instance->intensity * exposure};

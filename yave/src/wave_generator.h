@@ -22,8 +22,8 @@
 
 #pragma once
 #include "render_graph/render_graph.h"
-#include "yave/wave_generator.h"
 #include "yave/object.h"
+#include "yave/wave_generator.h"
 
 #include <mathfu/glsl_mappings.h>
 #include <utility/timer.h>
@@ -59,7 +59,7 @@ public:
         float windSpeed = 40.0f;
         float choppyFactor = 1.0f;
         float gridLength = 1024.0f;
-        // clamps the patch to a min/max distance 
+        // clamps the patch to a min/max distance
         float minDistance = 20.0f;
         float maxDistance = 800.0f;
         // min/max tesselation levels
@@ -78,7 +78,8 @@ public:
 
     void buildMaterial(IScene& scene);
 
-    void updateCompute(rg::RenderGraph& rGraph, IScene& scene, float dt, util::Timer<NanoSeconds>& timer);
+    void updateCompute(
+        rg::RenderGraph& rGraph, IScene& scene, float dt, util::Timer<NanoSeconds>& timer);
 
     // ensures compute shaders with images that are to be used by the compute shaders have finished
     // and transitions layouts from general state to shader read
