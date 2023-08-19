@@ -16,9 +16,9 @@ void main()
 	float height = texture(HeightMap, uv).r;
 	vec2 displacement = texture(fftOutputImage, uv).rg;
 
-	// calculate Jacobian correlation and store in w component of output vec
-	vec2 dx = (textureOffset(fftOutputImage, uv, ivec2(1, 0)).xy - textureOffset(fftOutputImage, uv, ivec2(-1, 0)).xy) * compute_ubo.choppyFactor * compute_ubo.gridLength;
-	vec2 dy = (textureOffset(fftOutputImage, uv, ivec2(0, 1)).xy - textureOffset(fftOutputImage, uv, ivec2(0, -1)).xy) * compute_ubo.choppyFactor * compute_ubo.gridLength;
+	// calculate Jacobian correlation and store in z component of output vec
+	vec2 dx = (textureOffset(fftOutputImage, uv, ivec2(1, 0)).xy - textureOffset(fftOutputImage, uv, ivec2(-1, 0)).xy);
+	vec2 dy = (textureOffset(fftOutputImage, uv, ivec2(0, 1)).xy - textureOffset(fftOutputImage, uv, ivec2(0, -1)).xy);
 		
 	float j = (1.0 + dx.x) * (1.0 + dy.y) - dx.y * dy.x;
 	

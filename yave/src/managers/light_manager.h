@@ -134,6 +134,10 @@ public:
     void setColourI(const mathfu::vec3& col, Object& obj);
     void setFovI(float fov, Object& obj);
 
+    void setSunAngularRadius(float radius, LightInstance& light);
+    void setSunHaloSize(float size, LightInstance& light);
+    void setSunHaloFalloff(float falloff, LightInstance& light);
+
     void createLight(const CreateInfo& ci, Object& obj, LightManager::Type type);
 
     size_t getLightCount() const;
@@ -144,12 +148,18 @@ public:
 
     void destroy(const Object& handle);
 
+    LightInstance* getDirLightParams() noexcept;
+
     rg::RenderGraphHandle render(
         rg::RenderGraph& rGraph,
         IScene& scene,
         uint32_t width,
         uint32_t height,
         vk::Format depthFormat);
+
+    float getSunAngularRadius() const noexcept { return sunAngularRadius_; }
+    float getSunHaloSize() const noexcept { return sunHaloSize_; }
+    float getSunHaloFalloff() const noexcept { return sunHaloFalloff_; }
 
     // =================== client api ========================
 
@@ -178,6 +188,14 @@ private:
 
     // keep track of the scene the light manager was last prepared for
     IScene* currentScene_;
+
+    // if a directional light is set then keep track of its object
+    // as the light parameters are also held by the scene ubo
+    Object dirLightObj_;
+
+    float sunAngularRadius_;
+    float sunHaloSize_;
+    float sunHaloFalloff_;
 
     // ================= vulkan backend =======================
 

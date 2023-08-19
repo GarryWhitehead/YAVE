@@ -265,15 +265,15 @@ void VkDriver::endFrame(Swapchain& swapchain)
         1, renderCompleteSignal, 1, &swapchain.get(), &imageIndex_, nullptr};
     VK_CHECK_RESULT(context().presentQueue().presentKHR(&presentInfo));
 
-    SPDLOG_INFO(
+    SPDLOG_DEBUG(
         "KHR Presentation (image index {}) - render wait signal: {:p}",
         imageIndex_,
         fmt::ptr((void*)*renderCompleteSignal));
 
-    currentFrame_++;
-
     // destroy any resources which have reached there use by date
     collectGarbage();
+
+    currentFrame_++;
 }
 
 void VkDriver::beginRenderpass(
@@ -318,7 +318,6 @@ void VkDriver::beginRenderpass(
     rpassKey.dsStoreOp[1] = data.storeClearFlags[RenderTarget::StencilIndex - 1];
 
     RenderPass* rpass = framebufferCache_->findOrCreateRenderPass(rpassKey);
-    rpass->lastUsedFrameStamp_ = currentFrame_;
 
     // find a framebuffer from the cache or create a new one.
     FramebufferCache::FboKey fboKey;
@@ -501,6 +500,7 @@ void VkDriver::draw(
     // Bind primitive info
     pipelineCache_->bindPrimRestart(programBundle.renderPrim_.primitiveRestart);
     pipelineCache_->bindTopology(programBundle.renderPrim_.topology);
+    pipelineCache_->bindTesselationVertCount(programBundle.tesselationVertCount_);
 
     // if the width and height are zero then ignore setting the scissor and/or
     // viewport and go with the extents set aupon initiation of the renderpass

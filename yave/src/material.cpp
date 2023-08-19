@@ -45,15 +45,22 @@ namespace yave
 IMaterial::IMaterial(IEngine& engine)
     : doubleSided_(false), pipelineId_(0), viewLayer_(0x2), withDynMeshTransformUbo_(true)
 {
-    pushBlock_[util::ecast(backend::ShaderStage::Vertex)] =
-        std::make_unique<PushBlock>("VertexPushBlock", "push_params");
-    pushBlock_[util::ecast(backend::ShaderStage::Fragment)] =
-        std::make_unique<PushBlock>("FragmentPushBlock", "push_params");
+    for (int i = 0; i < util::ecast(backend::ShaderStage::Count); ++i)
+    {
+        backend::ShaderStage stage = static_cast<backend::ShaderStage>(i);
+        std::string shaderName = vkapi::Shader::shaderTypeToString(stage);
 
-    ubos_[0] = std::make_unique<UniformBuffer>(
-        vkapi::PipelineCache::UboSetValue, VertexUboBindPoint, "VertMaterialUbo", "ubo");
-    ubos_[1] = std::make_unique<UniformBuffer>(
-        vkapi::PipelineCache::UboSetValue, FragmentUboBindPoint, "FragMaterialUbo", "material_ubo");
+        std::string pushBlockName = shaderName + "PushBlock";
+        std::string uboName = shaderName + "Ubo";
+
+        pushBlock_[i] = std::make_unique<PushBlock>(pushBlockName, "push_params");
+
+        // this is the bind value offset of the ubo buffers for the materials to avoid clashes with
+        // other buffer bind points - shpuld probably be calculated in a more robust way.
+        size_t offset = 4;
+        ubos_[i] = std::make_unique<UniformBuffer>(
+            vkapi::PipelineCache::UboSetValue, i + offset, uboName, "material_ubo");
+    }
 
     programBundle_ = engine.driver().progManager().createProgramBundle();
 
@@ -206,6 +213,7 @@ void IMaterial::addImageTexture(
     vkapi::VkDriver& driver,
     IMappedTexture* texture,
     Material::ImageType type,
+    backend::ShaderStage stage,
     backend::TextureSamplerParams& params,
     uint32_t binding)
 {
@@ -221,7 +229,7 @@ void IMaterial::addImageTexture(
     SamplerSet::SamplerType samplerType =
         texture->isCubeMap() ? SamplerSet::SamplerType::Cube : SamplerSet::SamplerType::e2d;
 
-    setSamplerParamI(imageTypeToStr(type), binding, samplerType);
+    setSamplerParamI(imageTypeToStr(type), binding, stage, samplerType);
 
     params.mipLevels = texture->getMipLevels();
     programBundle_->setImageSampler(
@@ -232,9 +240,24 @@ void IMaterial::addImageTexture(
     const std::string& samplerName,
     vkapi::VkDriver& driver,
     const vkapi::TextureHandle& handle,
+    backend::ShaderStage stage,
+    const backend::TextureSamplerParams& params,
+    uint32_t binding)
+{
+    setSamplerParamI(samplerName, binding, stage, SamplerSet::SamplerType::e2d);
+
+    programBundle_->setImageSampler(
+        handle, binding, driver.getSamplerCache().createSampler(params));
+}
+
+void IMaterial::addImageTexture(
+    const std::string& samplerName,
+    vkapi::VkDriver& driver,
+    const vkapi::TextureHandle& handle,
+    backend::ShaderStage stage,
     const backend::TextureSamplerParams& params)
 {
-    uint32_t binding = samplerSet_.getSamplerBinding(samplerName);
+    uint32_t binding = samplerSet_[util::ecast(stage)].getSamplerBinding(samplerName);
     programBundle_->setImageSampler(
         handle, binding, driver.getSamplerCache().createSampler(params));
 }
@@ -256,6 +279,8 @@ void IMaterial::build(
     auto& manager = engine.driver().progManager();
     auto& driver = engine.driver();
 
+    bool withTesselationStages = renderable.getTesselationVertCount() > 0;
+
     // if we have already built the shader programs for this material, then
     // don't waste time rebuilding everything.
     if (!programBundle_->hasProgram(backend::ShaderStage::Vertex) &&
@@ -266,63 +291,75 @@ void IMaterial::build(
         // create the material shaders to start.
         programBundle_->parseMaterialShader(matShader);
         programBundle_->buildShaders(vertPath, fragPath);
+
+        if (withTesselationStages)
+        {
+            std::string tessePath = mainShaderPath + ".tesse";
+            std::string tesscPath = mainShaderPath + ".tessc";
+            programBundle_->buildShaders(tessePath, tesscPath);
+        }
     }
     programBundle_->clear();
     buffers_.clear();
 
     // add any additional buffer elemnts, push blocks or image samplers
     // to the appropiate shader before building
+    auto addElements =
+        [this, &driver, &scene](backend::ShaderStage stage, vkapi::ShaderProgram* prog) {
+            size_t idx = util::ecast(stage);
+
+            // only the scene ubo is added by default - all other uniforms are optional
+            // to increase the usability of materials.
+            addBuffer(&scene.getSceneUbo().get(), stage);
+
+            for (const auto& [s, buffer] : buffers_)
+            {
+                if (stage == s)
+                {
+                    prog->addAttributeBlock(buffer->createShaderStr());
+
+                    auto params = buffer->getBufferParams(driver);
+                    ASSERT_FATAL(params.buffer, "Vulkan buffer handle is invalid.");
+
+                    programBundle_->addDescriptorBinding(
+                        params.size, params.binding, params.buffer, params.type);
+                }
+            }
+
+            // uniform buffers
+            if (!ubos_[idx]->empty())
+            {
+                ubos_[idx]->createGpuBuffer(driver);
+                auto uboParams = ubos_[idx]->getBufferParams(driver);
+                programBundle_->addDescriptorBinding(
+                    uboParams.size, uboParams.binding, uboParams.buffer, uboParams.type);
+            }
+
+            // add ubo and push block strings to shader block
+            PushBlock* pushBlock = pushBlock_[idx].get();
+            prog->addAttributeBlock(pushBlock->createShaderStr());
+            prog->addAttributeBlock(ubos_[idx]->createShaderStr());
+            prog->addAttributeBlock(samplerSet_[idx].createShaderStr());
+        };
+
     auto* vProgram = programBundle_->getProgram(backend::ShaderStage::Vertex);
     auto* fProgram = programBundle_->getProgram(backend::ShaderStage::Fragment);
-
-    // only the camera ubo is added by default - all other uniforms are optional
-    // to increase the usability of materials.
-    addBuffer(&scene.getSceneUbo().get(), backend::ShaderStage::Vertex);
 
     if (withDynMeshTransformUbo_)
     {
         addBuffer(&scene.getTransUbo(), backend::ShaderStage::Vertex);
     }
 
-    for (const auto& [stage, buffer] : buffers_)
+    addElements(backend::ShaderStage::Vertex, vProgram);
+    addElements(backend::ShaderStage::Fragment, fProgram);
+
+    if (withTesselationStages)
     {
-        if (stage == backend::ShaderStage::Vertex)
-        {
-            vProgram->addAttributeBlock(buffer->createShaderStr());
-        }
-        else if (stage == backend::ShaderStage::Fragment)
-        {
-            fProgram->addAttributeBlock(buffer->createShaderStr());
-        }
-
-        auto params = buffer->getBufferParams(driver);
-        ASSERT_FATAL(params.buffer, "Vulkan buffer handle is invalid.");
-
-        programBundle_->addDescriptorBinding(
-            params.size, params.binding, params.buffer, params.type);
+        auto* tesseProgram = programBundle_->getProgram(backend::ShaderStage::TesselationEval);
+        auto* tesscProgram = programBundle_->getProgram(backend::ShaderStage::TesselationCon);
+        addElements(backend::ShaderStage::TesselationEval, tesseProgram);
+        addElements(backend::ShaderStage::TesselationCon, tesscProgram);
     }
-
-    // add the custom material ubo - we create the device buffer here so
-    // its no longer possible to change to outlay of the ubo
-    for (int i = 0; i < 2; ++i)
-    {
-        if (!ubos_[i]->empty())
-        {
-            ubos_[i]->createGpuBuffer(driver);
-            auto uboParams = ubos_[i]->getBufferParams(driver);
-            programBundle_->addDescriptorBinding(
-                uboParams.size, uboParams.binding, uboParams.buffer, uboParams.type);
-        }
-    }
-
-    PushBlock* vPushBlock = pushBlock_[util::ecast(backend::ShaderStage::Vertex)].get();
-    PushBlock* fPushBlock = pushBlock_[util::ecast(backend::ShaderStage::Fragment)].get();
-
-    vProgram->addAttributeBlock(vPushBlock->createShaderStr());
-    fProgram->addAttributeBlock(fPushBlock->createShaderStr());
-    vProgram->addAttributeBlock(ubos_[0]->createShaderStr());
-    fProgram->addAttributeBlock(ubos_[1]->createShaderStr());
-    fProgram->addAttributeBlock(samplerSet_.createShaderStr());
 
     // add the render primitive, with sub meshes (not properly implemented yet)
     const auto& drawData = prim->getDrawData();
@@ -369,28 +406,43 @@ void IMaterial::build(
         programBundle_,
         variantBits_.getUint64());
     fProgram->addShader(fragShader);
+
+    // create the tesselation shaders if required (no variants at present supported)
+    if (withTesselationStages)
+    {
+        programBundle_->setTesselationVertCount(renderable.getTesselationVertCount());
+
+        vkapi::Shader* tesseShader = manager.findShaderVariantOrCreate(
+            vertexVariants,
+            backend::ShaderStage::TesselationEval,
+            prim->getTopology(),
+            programBundle_);
+        programBundle_->getProgram(backend::ShaderStage::TesselationEval)->addShader(tesseShader);
+
+        vkapi::Shader* tesscShader = manager.findShaderVariantOrCreate(
+            vertexVariants,
+            backend::ShaderStage::TesselationCon,
+            prim->getTopology(),
+            programBundle_);
+        programBundle_->getProgram(backend::ShaderStage::TesselationCon)->addShader(tesscShader);
+    }
 }
 
 void IMaterial::update(IEngine& engine) noexcept
 {
     // TODO: could do with dirty flags here so we aren't updating data
     // that hasn't changed.
-    PushBlock* vPushBlock = pushBlock_[util::ecast(backend::ShaderStage::Vertex)].get();
-    PushBlock* fPushBlock = pushBlock_[util::ecast(backend::ShaderStage::Fragment)].get();
-    if (!vPushBlock->empty())
+    // update the ubos and push blocks
+    for (int i = 0; i < util::ecast(backend::ShaderStage::Count); ++i)
     {
-        void* data = vPushBlock->getBlockData();
-        programBundle_->setPushBlockData(backend::ShaderStage::Vertex, data);
-    }
-    if (!fPushBlock->empty())
-    {
-        void* data = fPushBlock->getBlockData();
-        programBundle_->setPushBlockData(backend::ShaderStage::Fragment, data);
-    }
+        backend::ShaderStage stage = static_cast<backend::ShaderStage>(i);
+        PushBlock* pushBlock = pushBlock_[i].get();
+        if (!pushBlock->empty())
+        {
+            void* data = pushBlock->getBlockData();
+            programBundle_->setPushBlockData(stage, data);
+        }
 
-    // update the ubos
-    for (int i = 0; i < 2; ++i)
-    {
         if (!ubos_[i]->empty())
         {
             ubos_[i]->createGpuBuffer(engine.driver());
@@ -496,13 +548,18 @@ Material::Material() = default;
 Material::~Material() = default;
 
 void IMaterial::addTexture(
-    Engine* engine, Texture* texture, ImageType type, TextureSampler& sampler)
+    Engine* engine,
+    Texture* texture,
+    ImageType type,
+    backend::ShaderStage stage,
+    TextureSampler& sampler)
 {
     uint32_t binding = util::ecast(type);
     addImageTexture(
         reinterpret_cast<IEngine*>(engine)->driver(),
         reinterpret_cast<IMappedTexture*>(texture),
         type,
+        stage,
         sampler.get(),
         binding);
 }
@@ -514,6 +571,7 @@ void IMaterial::addTexture(
     uint32_t height,
     backend::TextureFormat format,
     Material::ImageType type,
+    backend::ShaderStage stage,
     TextureSampler& sampler)
 {
     ASSERT_LOG(imageBuffer);
@@ -521,7 +579,7 @@ void IMaterial::addTexture(
     IEngine* iengine = reinterpret_cast<IEngine*>(engine);
     IMappedTexture* tex = iengine->createMappedTextureI();
     tex->setTextureI(imageBuffer, width, height, 1, 1, format, backend::ImageUsage::Sampled);
-    addTexture(engine, tex, type, sampler);
+    addTexture(engine, tex, type, stage, sampler);
 }
 
 void IMaterial::updatePushConstantParam(

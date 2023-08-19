@@ -88,7 +88,8 @@ void PostProcess::init(IScene& scene)
         size_t binding = 0;
         for (const auto& element : reg.samplers)
         {
-            mat->setSamplerParamI(element, binding++, SamplerSet::SamplerType::e2d);
+            mat->setSamplerParamI(
+                element, binding++, backend::ShaderStage::Fragment, SamplerSet::SamplerType::e2d);
         }
 
         render->setPrimitiveCount(1);
@@ -263,9 +264,14 @@ rg::RenderGraphHandle PostProcess::bloom(
                 "LuminanceAvgLut",
                 driver,
                 averageLumLut_->getBackendHandle(),
+                backend::ShaderStage::Fragment,
                 {backend::SamplerFilter::Nearest});
             mat->addImageTexture(
-                "ColourSampler", driver, lightTex, {backend::SamplerFilter::Nearest});
+                "ColourSampler",
+                driver,
+                lightTex,
+                backend::ShaderStage::Fragment,
+                {backend::SamplerFilter::Nearest});
             mat->updateUboParam("gamma", backend::ShaderStage::Fragment, (void*)&options.gamma);
             mat->update(engine_);
 

@@ -84,7 +84,7 @@ public:
     ISkybox* createSkyboxI(IScene& scene) noexcept;
     IIndirectLight* createIndirectLightI() noexcept;
     ICamera* createCameraI() noexcept;
-    IWaveGenerator* createWaveGeneratorI() noexcept;
+    IWaveGenerator* createWaveGeneratorI(IScene& scene) noexcept;
 
     void setCurrentSwapchainI(const SwapchainHandle& handle) noexcept;
     vkapi::Swapchain* getCurrentSwapchain() noexcept;
@@ -125,9 +125,10 @@ public:
     auto getQuadBuffers() noexcept { return std::make_pair(&quadVertexBuffer_, &quadIndexBuffer_); }
     IRenderPrimitive* getQuadPrimitive() noexcept { return &quadPrimitive_; }
 
-    IMappedTexture* getDummyIrradianceMap() noexcept { return dummyIrradianceMap_; }
-    IMappedTexture* getDummySpecularMap() noexcept { return dummySpecularMap_; }
-    IMappedTexture* getDummyBrdfLut() noexcept { return dummyBrdfLut_; }
+    IMappedTexture* getDummyCubeMap() noexcept { return dummyCubeMap_; }
+    IMappedTexture* getDummyTexture() noexcept { return dummyTexture_; }
+
+    Window* getCurrentWindow() noexcept { return currentWindow_; }
 
     // ==================== client api ========================
 
@@ -147,7 +148,7 @@ public:
     Skybox* createSkybox(Scene* scene) override;
     IndirectLight* createIndirectLight() override;
     Camera* createCamera() override;
-    WaveGenerator* createWaveGenerator() override;
+    WaveGenerator* createWaveGenerator(Scene* scene) override;
     void flushCmds() override;
 
     void destroy(VertexBuffer* buffer) override;
@@ -190,9 +191,8 @@ private:
     IRenderPrimitive quadPrimitive_;
 
     // dummy textures
-    IMappedTexture* dummyIrradianceMap_;
-    IMappedTexture* dummySpecularMap_;
-    IMappedTexture* dummyBrdfLut_;
+    IMappedTexture* dummyCubeMap_;
+    IMappedTexture* dummyTexture_;
 
     // =========== vk backend ============================
 

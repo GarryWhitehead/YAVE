@@ -167,6 +167,8 @@ public:
 
     void setViewport(uint32_t width, uint32_t height, float minDepth, float maxDepth);
 
+    void setTesselationVertCount(size_t count) noexcept;
+
     void addTextureSampler(vk::Sampler sampler, uint32_t binding);
 
     void addRenderPrimitive(
@@ -243,6 +245,8 @@ private:
 
     vk::Rect2D scissor_;
     vk::Viewport viewport_;
+
+    size_t tesselationVertCount_;
 
 public:
     // The rasterisation and depth/stencil states used for pipeline

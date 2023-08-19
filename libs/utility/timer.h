@@ -51,11 +51,13 @@ class Timer
 public:
     static_assert(is_chrono_duration<TimeType>::value, "TimeType must be a std::chrono::duration");
 
-    Timer() {};
+    Timer() { startTimer(); };
 
     void startTimer()
     {
-        current = std::chrono::duration_cast<TimeType>(std::chrono::high_resolution_clock::now());
+        current = std::chrono::duration_cast<TimeType>(
+                      std::chrono::steady_clock::now().time_since_epoch())
+                      .count();
         isRunning = true;
     }
 
@@ -63,16 +65,18 @@ public:
 
     void resetTime()
     {
-        auto timeNow =
-            std::chrono::duration_cast<TimeType>(std::chrono::high_resolution_clock::now());
+        auto timeNow = std::chrono::duration_cast<TimeType>(
+                           std::chrono::steady_clock::now().time_since_epoch())
+                           .count();
         current = timeNow;
     }
 
-    TimeType getTimeElapsed()
+    double getTimeElapsed()
     {
-        auto timeNow =
-            std::chrono::duration_cast<TimeType>(std::chrono::high_resolution_clock::now());
-        auto deltaTime = timeNow - current;
+        double timeNow = std::chrono::duration_cast<TimeType>(
+                             std::chrono::steady_clock::now().time_since_epoch())
+                             .count();
+        double deltaTime = timeNow - current;
 
         return deltaTime;
     }
@@ -84,7 +88,7 @@ public:
     }
 
 private:
-    Time current;
+    double current;
 
     bool isRunning = false;
 };

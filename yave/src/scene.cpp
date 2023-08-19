@@ -218,6 +218,7 @@ bool IScene::update()
     // ================== update ubos =================================
     sceneUbo_->updateCamera(*camera_);
     sceneUbo_->updateIbl(indirectLight_);
+    sceneUbo_->updateDirLight(engine_, lm->getDirLightParams());
     sceneUbo_->upload(engine_);
 
     // we also update the transforms every frame though could have a dirty flag

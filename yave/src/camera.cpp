@@ -34,6 +34,7 @@ namespace yave
 ICamera::ICamera()
     : projection_(mathfu::mat4::Identity()),
       view_(mathfu::mat4::Identity()),
+      model_(mathfu::mat4::Identity()),
       fov_(0.0f),
       near_(0.0f),
       far_(0.0f),

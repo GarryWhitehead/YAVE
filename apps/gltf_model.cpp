@@ -102,7 +102,12 @@ yave::Object GltfModelApp::buildModel(
         {
             yave::Texture* tex =
                 loader.loadFromFile(info.texturePath, backend::TextureFormat::RGBA8);
-            mat->addTexture(engine_, tex, mat->convertImageType(info.type), sampler);
+            mat->addTexture(
+                engine_,
+                tex,
+                mat->convertImageType(info.type),
+                backend::ShaderStage::Fragment,
+                sampler);
         }
 
         yave::VertexBuffer* vBuffer = engine_->createVertexBuffer();

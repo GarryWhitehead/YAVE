@@ -43,8 +43,5 @@ public:
     yave::Scene* scene_ = nullptr;
     yave::Engine* engine_ = nullptr;
 
-    yave::Object dirLightObj;
-    yave::Object spotLightObj;
-
-    std::vector<yave::Material*> materials;
+    yave::Object sunObj_;
 };

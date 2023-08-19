@@ -33,6 +33,7 @@ namespace yave
 class IEngine;
 class ICamera;
 class IIndirectLight;
+class LightInstance;
 
 /* A all-in-one ne uniform buffer that holds all the dynamic information
  *  that is required by the scene.
@@ -47,6 +48,8 @@ public:
     void updateCamera(ICamera& camera);
 
     void updateIbl(IIndirectLight* il);
+
+    void updateDirLight(IEngine& engine, LightInstance* instance);
 
     void upload(IEngine& engine);
 

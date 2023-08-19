@@ -119,6 +119,8 @@ void PipelineLayout::addDescriptorLayout(
                 "last addition.",
                 std::to_string(set).c_str(),
                 std::to_string(binding).c_str());
+            // if the set and binding have already been added, this may be another shader stage
+            result->stageFlags |= stageFlags;
             return;
         }
     }
@@ -199,6 +201,10 @@ void GraphicsPipeline::create(
     viewportState.viewportCount = 1;
     viewportState.scissorCount = 1;
 
+    // =============== tesselation =======================
+    vk::PipelineTessellationStateCreateInfo tessCreateInfo;
+    tessCreateInfo.patchControlPoints = key.tesselationVertCount;
+
     // ============= colour attachment =================
     // all blend attachments are the same for each pass
     vk::PipelineColorBlendStateCreateInfo colourBlendState;
@@ -242,7 +248,7 @@ void GraphicsPipeline::create(
         shaders.data(),
         &vertexInputState,
         &assemblyState,
-        nullptr,
+        key.tesselationVertCount > 0 ? &tessCreateInfo : VK_NULL_HANDLE,
         &viewportState,
         &rasterState,
         &sampleState,

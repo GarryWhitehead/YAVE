@@ -102,15 +102,28 @@ public:
         vkapi::VkDriver& driver,
         IMappedTexture* texture,
         Material::ImageType type,
+        backend::ShaderStage stage,
         backend::TextureSamplerParams& params,
         uint32_t binding);
 
-    // use this override when the sampler details have already been
-    // added for the shader and no variant is required (image type variant)
+    // Uses custom image sampler naming - but doesn't set the
+    // shader variant (i.e. base colour).
     void addImageTexture(
         const std::string& samplerName,
         vkapi::VkDriver& driver,
         const vkapi::TextureHandle& handle,
+        backend::ShaderStage stage,
+        const backend::TextureSamplerParams& params,
+        uint32_t binding);
+
+    // and this overload is for using when the sampler
+    // set has already been defined (does a lookup using
+    // the samplerName)
+    void addImageTexture(
+        const std::string& samplerName,
+        vkapi::VkDriver& driver,
+        const vkapi::TextureHandle& handle,
+        backend::ShaderStage stage,
         const backend::TextureSamplerParams& params);
 
     void build(
@@ -146,10 +159,15 @@ public:
         pushBlock_[util::ecast(stage)]->addElement(elementName, type, (void*)value);
     }
 
-    void setSamplerParamI(const std::string& name, uint8_t binding, SamplerSet::SamplerType type)
+    void setSamplerParamI(
+        const std::string& name,
+        uint8_t binding,
+        backend::ShaderStage stage,
+        SamplerSet::SamplerType type)
     {
         // all samplers use the same set
-        samplerSet_.pushSampler(name, vkapi::PipelineCache::SamplerSetValue, binding, type);
+        samplerSet_[util::ecast(stage)].pushSampler(
+            name, vkapi::PipelineCache::SamplerSetValue, binding, type);
     }
 
     // ====== material state setters ========
@@ -242,10 +260,15 @@ public:
         uint32_t height,
         backend::TextureFormat format,
         ImageType type,
+        backend::ShaderStage stage,
         TextureSampler& sampler) override;
 
-    void
-    addTexture(Engine* engine, Texture* texture, ImageType type, TextureSampler& sampler) override;
+    void addTexture(
+        Engine* engine,
+        Texture* texture,
+        ImageType type,
+        backend::ShaderStage stage,
+        TextureSampler& sampler) override;
 
 private:
     // handle to ourself
@@ -257,15 +280,15 @@ private:
     // used to generate the push block for the material shader -
     // push blocks are allowed for the vertex (0) and fragment (1)
     // stages at present.
-    std::unique_ptr<PushBlock> pushBlock_[2];
+    std::unique_ptr<PushBlock> pushBlock_[util::ecast(backend::ShaderStage::Count)];
 
     // uniform buffers - only vertex and fragment shader for now
-    std::unique_ptr<UniformBuffer> ubos_[2];
+    std::unique_ptr<UniformBuffer> ubos_[util::ecast(backend::ShaderStage::Count)];
 
     std::vector<std::pair<backend::ShaderStage, BufferBase*>> buffers_;
 
     // used to generate the samplers for this material
-    SamplerSet samplerSet_;
+    SamplerSet samplerSet_[util::ecast(backend::ShaderStage::Count)];
 
     bool doubleSided_;
 

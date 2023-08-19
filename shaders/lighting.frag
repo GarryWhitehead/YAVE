@@ -134,8 +134,7 @@ void main()
         }
     }
 
-#ifdef IBL_ENABLED
-
+#if defined(IBL_ENABLED)
     // add the ibl contribution to the fragment
 	float NdotV = max(dot(N, V), 0.0);
 	
@@ -155,7 +154,6 @@ void main()
 
     vec3 ambient = (kD * diffuse + specular) * occlusion;
     vec3 finalColour = colour + ambient;
-
 #else
     // occlusion
     vec3 finalColour = mix(colour, colour * occlusion, 1.0);

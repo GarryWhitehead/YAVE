@@ -195,18 +195,18 @@ void Commands::flush()
         currentSignal_};
     VK_CHECK_RESULT(queue_.submit(1, &info, currentCmdBuffer_->fence->fence));
 
-    SPDLOG_INFO("Command flush:");
+    SPDLOG_DEBUG("Command flush:");
     if (submittedSignal_)
     {
-        SPDLOG_INFO("wait signal (submitted): {:p}", fmt::ptr((void*)*submittedSignal_));
+        SPDLOG_DEBUG("wait signal (submitted): {:p}", fmt::ptr((void*)*submittedSignal_));
     }
     if (externalSignal_)
     {
-        SPDLOG_INFO("wait signal (external): {:p}", fmt::ptr((void*)*externalSignal_));
+        SPDLOG_DEBUG("wait signal (external): {:p}", fmt::ptr((void*)*externalSignal_));
     }
     if (currentSignal_)
     {
-        SPDLOG_INFO("signal: {:p}", fmt::ptr((void*)*currentSignal_));
+        SPDLOG_DEBUG("signal: {:p}", fmt::ptr((void*)*currentSignal_));
     }
 
     currentCmdBuffer_ = nullptr;
@@ -219,7 +219,8 @@ vk::Semaphore* Commands::getFinishedSignal() noexcept
     vk::Semaphore* output = submittedSignal_;
     submittedSignal_ = nullptr;
 
-    SPDLOG_INFO("Acquired finished signal: {:p}", fmt::ptr((void*)*output));
+    SPDLOG_DEBUG("Acquired finished signal: {:p}", fmt::ptr((void*)*output));
+
     return output;
 }
 

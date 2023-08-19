@@ -48,7 +48,7 @@ public:
     constexpr static uint32_t InitialDescriptorPoolSize = 1000;
 
     constexpr static uint8_t MaxSamplerBindCount = 10;
-    constexpr static uint8_t MaxUboBindCount = 6;
+    constexpr static uint8_t MaxUboBindCount = 8;
     constexpr static uint8_t MaxUboDynamicBindCount = 4;
     constexpr static uint8_t MaxSsboBindCount = 4;
     constexpr static uint8_t MaxVertexAttributeCount = 8;
@@ -121,6 +121,7 @@ public:
         vk::PipelineShaderStageCreateInfo shaders[util::ecast(backend::ShaderStage::Count)];
         vk::VertexInputAttributeDescription vertAttrDesc[MaxVertexAttributeCount];
         vk::VertexInputBindingDescription vertBindDesc[MaxVertexAttributeCount];
+        size_t tesselationVertCount;
 
         bool operator==(const GraphicsPlineKey& rhs) const noexcept;
     };
@@ -215,6 +216,7 @@ public:
     void bindDepthStencilBlock(const DepthStencilBlock& dsBlock);
     void bindColourAttachCount(uint32_t count) noexcept;
     void bindBlendFactorBlock(const BlendFactorBlock& block) noexcept;
+    void bindTesselationVertCount(size_t count) noexcept;
 
     // =============== compute pipelines =============
 

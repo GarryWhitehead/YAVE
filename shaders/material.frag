@@ -1,3 +1,6 @@
+
+#include "include/math.h"
+
 #if defined(HAS_UV_ATTR_INPUT)
 layout(location = 0) in vec2 inUv;
 #endif

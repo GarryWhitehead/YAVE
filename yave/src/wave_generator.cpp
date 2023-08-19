@@ -24,18 +24,27 @@
 
 #include "compute.h"
 #include "engine.h"
+#include "index_buffer.h"
+#include "managers/renderable_manager.h"
 #include "mapped_texture.h"
+#include "material.h"
+#include "object_manager.h"
+#include "renderable.h"
 #include "scene.h"
+#include "vertex_buffer.h"
 #include "yave/texture_sampler.h"
 
 #include <image_utils/noise_generator.h>
+#include <yave_app/window.h>
 
+#include <numeric>
 #include <random>
+
 
 namespace yave
 {
 
-IWaveGenerator::IWaveGenerator(IEngine& engine)
+IWaveGenerator::IWaveGenerator(IEngine& engine, IScene& scene)
     : engine_(engine),
       initialSpecCompute_(std::make_unique<Compute>(engine)),
       specCompute_(std::make_unique<Compute>(engine)),
@@ -115,10 +124,28 @@ IWaveGenerator::IWaveGenerator(IEngine& engine)
     // displacement
     fftOutputImage_ = engine_.createMappedTextureI();
     fftOutputImage_->setEmptyTexture(
-        Resolution, Resolution, Texture::TextureFormat::RG32F, backend::ImageUsage::Storage, 1, 1);
+        Resolution,
+        Resolution,
+        Texture::TextureFormat::RG32F,
+        backend::ImageUsage::Storage | backend::ImageUsage::Sampled,
+        1,
+        1);
     heightMap_ = engine_.createMappedTextureI();
     heightMap_->setEmptyTexture(
-        Resolution, Resolution, Texture::TextureFormat::R32F, backend::ImageUsage::Storage, 1, 1);
+        Resolution,
+        Resolution,
+        Texture::TextureFormat::R32F,
+        backend::ImageUsage::Storage | backend::ImageUsage::Sampled,
+        1,
+        1);
+    normalMap_ = engine_.createMappedTextureI();
+    normalMap_->setEmptyTexture(
+        Resolution,
+        Resolution,
+        Texture::TextureFormat::RG32F,
+        backend::ImageUsage::Storage | backend::ImageUsage::Sampled,
+        1,
+        1);
 
     // map generation
     displacementMap_ = engine_.createMappedTextureI();
@@ -126,7 +153,7 @@ IWaveGenerator::IWaveGenerator(IEngine& engine)
         Resolution,
         Resolution,
         Texture::TextureFormat::RGBA32F,
-        backend::ImageUsage::Storage,
+        backend::ImageUsage::Storage | backend::ImageUsage::Sampled,
         1,
         1);
     gradientMap_ = engine_.createMappedTextureI();
@@ -134,18 +161,167 @@ IWaveGenerator::IWaveGenerator(IEngine& engine)
         Resolution,
         Resolution,
         Texture::TextureFormat::RGBA32F,
-        backend::ImageUsage::Storage,
+        backend::ImageUsage::Storage | backend::ImageUsage::Sampled,
         1,
         1);
+
+    // create the material objects
+    IRenderableManager* rm = engine_.getRenderableManagerI();
+    IObjectManager* om = engine_.getObjManagerI();
+    waterObj_ = om->createObjectI();
+    scene.addObject(waterObj_);
+
+    material_ = rm->createMaterialI();
+
+    // create the vertices for the tessletaion patch
+    // NOTE: The patch size can not be changed during runtime at present
+    generatePatch();
+
+    buildMaterial(scene);
 }
 
 IWaveGenerator::~IWaveGenerator() {}
 
-void IWaveGenerator::render(
+void IWaveGenerator::generatePatch() noexcept
+{
+    patchVertices.reserve(options.patchCount * options.patchCount * 5);
+
+    int patchCount = static_cast<int>(options.patchCount);
+    float width = 10.0f;
+    float height = 10.0f;
+
+    // interleaved pos and uv data for tesselation patch
+    // Note: The y axis for position is calculated from the height map on the tesse shader
+    for (size_t y = 0; y < options.patchCount; ++y)
+    {
+        for (size_t x = 0; x < options.patchCount; ++x)
+        {
+            uint32_t index = (x + y * options.patchCount);
+            patchVertices.push_back(
+                x * width + width / 2.0f - (float)options.patchCount * width / 2.0f);
+            patchVertices.push_back(0.0f);
+            patchVertices.push_back(
+                y * height + height / 2.0f - (float)options.patchCount * height / 2.0f);
+            patchVertices.push_back((float)x / (options.patchCount - 1));
+            patchVertices.push_back((float)y / (options.patchCount - 1));
+        }
+    }
+
+    // indices
+    const uint32_t w = (patchCount - 1);
+    patchIndices.resize(w * w * 4);
+
+    for (uint32_t x = 0; x < w; ++x)
+    {
+        for (uint32_t y = 0; y < w; ++y)
+        {
+            uint32_t index = (x + y * w) * 4;
+            patchIndices[index] = (x + y * options.patchCount);
+            patchIndices[index + 1] = patchIndices[index] + options.patchCount;
+            patchIndices[index + 2] = patchIndices[index + 1] + 1;
+            patchIndices[index + 3] = patchIndices[index] + 1;
+        }
+    }
+}
+
+void IWaveGenerator::buildMaterial(IScene& scene)
+{
+    auto& driver = engine_.driver();
+    IRenderableManager* rm = engine_.getRenderableManagerI();
+
+    TextureSampler sampler(
+        backend::SamplerFilter::Linear,
+        backend::SamplerFilter::Linear,
+        backend::SamplerAddressMode::ClampToEdge,
+        16);
+
+    // tesselation evaluation shader
+    mathfu::vec2 viewportDim {
+        (float)engine_.getCurrentWindow()->width(), (float)engine_.getCurrentWindow()->height()};
+    material_->addUboParamI(
+        "tessEdgeSize",
+        backend::BufferElementType::Float,
+        1,
+        backend::ShaderStage::TesselationCon,
+        &options.tessEdgeSize);
+    material_->addUboParamI(
+        "tessFactor",
+        backend::BufferElementType::Float,
+        1,
+        backend::ShaderStage::TesselationCon,
+        &options.tessFactor);
+    material_->addUboParamI(
+        "screenSize",
+        backend::BufferElementType::Float2,
+        1,
+        backend::ShaderStage::TesselationCon,
+        &viewportDim);
+
+    // tesselation control shader
+    material_->addImageTexture(
+        "DisplacementMap",
+        engine_.driver(),
+        displacementMap_->getBackendHandle(),
+        backend::ShaderStage::TesselationEval,
+        sampler.get(),
+        0);
+    material_->addUboParamI(
+        "dispFactor",
+        backend::BufferElementType::Float,
+        1,
+        backend::ShaderStage::TesselationEval,
+        &options.dispFactor);
+
+    // fragment shader
+    material_->addImageTexture(
+        "GradientMap",
+        engine_.driver(),
+        displacementMap_->getBackendHandle(),
+        backend::ShaderStage::Fragment,
+        sampler.get(),
+        0);
+    material_->addImageTexture(
+        "NormalMap",
+        engine_.driver(),
+        normalMap_->getBackendHandle(),
+        backend::ShaderStage::Fragment,
+        sampler.get(),
+        1);
+
+    IRenderable* render = engine_.createRenderableI();
+    IVertexBuffer* vBuffer = engine_.createVertexBufferI();
+    IIndexBuffer* iBuffer = engine_.createIndexBufferI();
+    IRenderPrimitive* prim = engine_.createRenderPrimitiveI();
+    render->setPrimitiveCount(1);
+    render->skipVisibilityChecks();
+
+    size_t verticesCount = patchVertices.size();
+    vBuffer->addAttribute(VertexBuffer::BindingType::Position, backend::BufferElementType::Float3);
+    vBuffer->addAttribute(VertexBuffer::BindingType::Uv, backend::BufferElementType::Float2);
+    vBuffer->buildI(driver, verticesCount * sizeof(float), patchVertices.data());
+    iBuffer->buildI(
+        driver, patchIndices.size(), patchIndices.data(), backend::IndexBufferType::Uint32);
+    prim->addMeshDrawDataI(patchIndices.size(), 0, 0);
+
+    prim->setVertexBuffer(vBuffer);
+    prim->setIndexBuffer(iBuffer);
+    prim->setTopologyI(backend::PrimitiveTopology::PatchList);
+    render->setPrimitive(prim, 0);
+    render->setTesselationVertCount(4);
+
+    material_->setCullMode(backend::CullMode::Back);
+    material_->setViewLayer(0x3);
+    prim->setMaterialI(material_);
+
+    rm->buildI(scene, render, waterObj_, {}, "water.glsl");
+}
+
+void IWaveGenerator::updateCompute(
     rg::RenderGraph& rGraph, IScene& scene, float dt, util::Timer<NanoSeconds>& timer)
 {
     float N = static_cast<float>(Resolution);
     float log2N = static_cast<float>(log2N_);
+    auto elapsed = timer.getTimeElapsed();
 
     // only generate the initial spectrum data if something has changed - i.e wind speed or
     // direction
@@ -226,7 +402,7 @@ void IWaveGenerator::render(
         updateSpectrum_ = false;
     }
 
-    rGraph.addExecutorPass("spectrum", [=](vkapi::VkDriver& driver) {
+    rGraph.addExecutorPass("spectrum", [=, &timer](vkapi::VkDriver& driver) {
         auto& cmds = driver.getCommands();
         auto& cmdBuffer = cmds.getCmdBuffer().cmdBuffer;
 
@@ -254,9 +430,11 @@ void IWaveGenerator::render(
             nullptr,
             dxyzBufferSize);
 
+        float time = timer.getTimeElapsed() / 1'000'000'000;
+
         specCompute_->addUboParam("N", backend::BufferElementType::Int, (void*)&Resolution);
         specCompute_->addUboParam("L", backend::BufferElementType::Int, (void*)&options.L);
-        specCompute_->addUboParam("time", backend::BufferElementType::Float, (void*)&dt);
+        specCompute_->addUboParam("time", backend::BufferElementType::Float, (void*)&time);
         specCompute_->addUboParam("offset_dx", backend::BufferElementType::Int, (void*)&dxOffset);
         specCompute_->addUboParam("offset_dy", backend::BufferElementType::Int, (void*)&dyOffset);
         specCompute_->addUboParam("offset_dz", backend::BufferElementType::Int, (void*)&dzOffset);
@@ -333,12 +511,14 @@ void IWaveGenerator::render(
             fftHorizCompute_->updateGpuPush();
             driver.dispatchCompute(
                 cmds.getCmdBuffer().cmdBuffer, horizBundle, Resolution / 16, Resolution / 16, 1);
+            vkapi::VkContext::writeReadComputeBarrier(cmdBuffer);
 
             // horizontal dy
             fftHorizCompute_->updatePushConstantParam("offset", (void*)&dyOffset);
             fftHorizCompute_->updateGpuPush();
             driver.dispatchCompute(
                 cmds.getCmdBuffer().cmdBuffer, horizBundle, Resolution / 16, Resolution / 16, 1);
+            vkapi::VkContext::writeReadComputeBarrier(cmdBuffer);
 
             // horizontal dz
             fftHorizCompute_->updatePushConstantParam("offset", (void*)&dzOffset);
@@ -361,12 +541,14 @@ void IWaveGenerator::render(
             fftVertCompute_->updateGpuPush();
             driver.dispatchCompute(
                 cmds.getCmdBuffer().cmdBuffer, vertBundle, Resolution / 16, Resolution / 16, 1);
+            vkapi::VkContext::writeReadComputeBarrier(cmdBuffer);
 
             // vertical dy
             fftVertCompute_->updatePushConstantParam("offset", (void*)&dyOffset);
             fftVertCompute_->updateGpuPush();
             driver.dispatchCompute(
                 cmds.getCmdBuffer().cmdBuffer, vertBundle, Resolution / 16, Resolution / 16, 1);
+            vkapi::VkContext::writeReadComputeBarrier(cmdBuffer);
 
             // vertical dz
             fftVertCompute_->updatePushConstantParam("offset", (void*)&dzOffset);
@@ -412,6 +594,12 @@ void IWaveGenerator::render(
             "HeightMap",
             heightMap_->getBackendHandle(),
             1,
+            ImageStorageSet::StorageType::WriteOnly);
+        displaceCompute_->addStorageImage(
+            driver,
+            "NormalMap",
+            normalMap_->getBackendHandle(),
+            2,
             ImageStorageSet::StorageType::WriteOnly);
 
         displaceCompute_->addUboParam("N", backend::BufferElementType::Float, (void*)&N);
@@ -476,6 +664,60 @@ void IWaveGenerator::render(
             cmds.getCmdBuffer().cmdBuffer, bundle, Resolution / 16, Resolution / 16, 1);
 
         cmds.flush();
+    });
+}
+
+void IWaveGenerator::transitionImagesToShaderRead(rg::RenderGraph& rGraph)
+{
+    rGraph.addExecutorPass("transition_images_shader_read", [=](vkapi::VkDriver& driver) {
+        auto& cmds = driver.getCommands();
+        auto& cmdBuffer = cmds.getCmdBuffer().cmdBuffer;
+
+        displacementMap_->getBackendHandle().getResource()->transition(
+            vk::ImageLayout::eGeneral,
+            vk::ImageLayout::eShaderReadOnlyOptimal,
+            cmdBuffer,
+            vk::PipelineStageFlagBits::eComputeShader,
+            vk::PipelineStageFlagBits::eTessellationEvaluationShader);
+        normalMap_->getBackendHandle().getResource()->transition(
+            vk::ImageLayout::eGeneral,
+            vk::ImageLayout::eShaderReadOnlyOptimal,
+            cmdBuffer,
+            vk::PipelineStageFlagBits::eComputeShader,
+            vk::PipelineStageFlagBits::eFragmentShader);
+        gradientMap_->getBackendHandle().getResource()->transition(
+            vk::ImageLayout::eGeneral,
+            vk::ImageLayout::eShaderReadOnlyOptimal,
+            cmdBuffer,
+            vk::PipelineStageFlagBits::eComputeShader,
+            vk::PipelineStageFlagBits::eFragmentShader);
+    });
+}
+
+void IWaveGenerator::transitionImagesToCompute(rg::RenderGraph& rGraph)
+{
+    rGraph.addExecutorPass("transition_images_compute", [=](vkapi::VkDriver& driver) {
+        auto& cmds = driver.getCommands();
+        auto& cmdBuffer = cmds.getCmdBuffer().cmdBuffer;
+
+        displacementMap_->getBackendHandle().getResource()->transition(
+            vk::ImageLayout::eShaderReadOnlyOptimal,
+            vk::ImageLayout::eGeneral,
+            cmdBuffer,
+            vk::PipelineStageFlagBits::eTessellationEvaluationShader,
+            vk::PipelineStageFlagBits::eComputeShader);
+        normalMap_->getBackendHandle().getResource()->transition(
+            vk::ImageLayout::eShaderReadOnlyOptimal,
+            vk::ImageLayout::eGeneral,
+            cmdBuffer,
+            vk::PipelineStageFlagBits::eFragmentShader,
+            vk::PipelineStageFlagBits::eComputeShader);
+        gradientMap_->getBackendHandle().getResource()->transition(
+            vk::ImageLayout::eShaderReadOnlyOptimal,
+            vk::ImageLayout::eGeneral,
+            cmdBuffer,
+            vk::PipelineStageFlagBits::eFragmentShader,
+            vk::PipelineStageFlagBits::eComputeShader);
     });
 }
 

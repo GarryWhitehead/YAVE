@@ -101,9 +101,11 @@ void RenderQueue::render(
     size_t endIdx)
 {
     const auto& queue = renderables_[type];
-    ASSERT_LOG(startIdx < queue.size());
-    ASSERT_LOG(startIdx < endIdx);
-
+    ASSERT_FATAL(
+        startIdx <= endIdx,
+        "Start index is greater than the end index (start: %i; end: %i)",
+        startIdx,
+        endIdx);
     sortQueue(type);
     for (size_t i = startIdx; i < endIdx; ++i)
     {

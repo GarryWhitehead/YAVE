@@ -10,19 +10,26 @@ void main()
 		return;
 	}
 
-	uint res = ((id.x + id.y) & 1);
+	uint res = int(id.x + id.y) & 1;
 	float signCorrect = (res == 0) ? 1.0 : -1.0;
 
 	float N2 = compute_ubo.N * compute_ubo.N;
 
 	uint index = id.y * uint(compute_ubo.N) + id.x;
 	
+	// height map
 	float height = (ssbo.out_dxyz[index + compute_ubo.offset_dy].x / N2) * signCorrect;
 	imageStore(HeightMap, id, vec4(height, 0.0, 0.0, 1.0));
 
+	// displacement map
 	vec2 displace;
-	displace.x = (ssbo.out_dxyz[index + compute_ubo.offset_dx].x / N2) * signCorrect * compute_ubo.choppyFactor;	// use the real number from the fft compute
-	displace.y = (ssbo.out_dxyz[index + compute_ubo.offset_dz].x / N2) * signCorrect * compute_ubo.choppyFactor;
-	
+	displace.x = (ssbo.out_dxyz[index + compute_ubo.offset_dx].x / N2) * signCorrect * compute_ubo.choppyFactor;	
+	displace.y = (ssbo.out_dxyz[index + compute_ubo.offset_dx].y / N2) * signCorrect * compute_ubo.choppyFactor;
 	imageStore(DisplacementMap, id, vec4(displace, 0.0, 1.0));
+	
+	// normal map
+	vec2 normal;
+	normal.x = (ssbo.out_dxyz[index + compute_ubo.offset_dz].x / N2) * signCorrect * compute_ubo.choppyFactor;
+	normal.y = (ssbo.out_dxyz[index + compute_ubo.offset_dz].y / N2) * signCorrect * compute_ubo.choppyFactor;
+	imageStore(NormalMap, id, vec4(normal, 0.0, 1.0));
 }

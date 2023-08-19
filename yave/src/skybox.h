@@ -34,6 +34,8 @@
 #include "yave/skybox.h"
 #include "yave/texture.h"
 
+#include <utility/colour.h>
+
 #include <cstdint>
 
 namespace yave
@@ -63,6 +65,8 @@ public:
 
     void setTexture(Texture* texture) noexcept override;
     void build(Scene* scene, Camera* camera) override;
+    void setColour(const util::Colour4& col) noexcept override;
+    void renderSun(bool state) noexcept override;
 
 private:
     IEngine& engine_;
@@ -71,6 +75,11 @@ private:
 
     IMaterial* material_;
     Object skyboxObj_;
+
+    // not used if cube texture is specified
+    util::Colour4 skyboxCol_;
+
+    bool showSun_;
 };
 
 } // namespace yave

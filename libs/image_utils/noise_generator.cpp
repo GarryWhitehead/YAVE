@@ -61,9 +61,9 @@ double NoiseGenerator::grad(int hash, double x, double y, double z)
 
 double NoiseGenerator::generateNoise(double x, double y, double z)
 {
-    int X = (int)floor(x) & 255;
-    int Y = (int)floor(y) & 255;
-    int Z = (int)floor(z) & 255;
+    int X = (int)floor(x) & 0xFF;
+    int Y = (int)floor(y) & 0xFF;
+    int Z = (int)floor(z) & 0xFF;
 
     x -= floor(x);
     y -= floor(y);

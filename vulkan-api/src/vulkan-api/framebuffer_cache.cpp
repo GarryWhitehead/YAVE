@@ -97,10 +97,12 @@ RenderPass* FramebufferCache::findOrCreateRenderPass(const RPassKey& key)
     auto iter = renderPasses_.find(key);
     if (iter != renderPasses_.end())
     {
+        iter->second->lastUsedFrameStamp_ = driver_.getCurrentFrame();
         return iter->second;
     }
     // create a new renderpass
     RenderPass* rpass = new RenderPass(context_);
+    rpass->lastUsedFrameStamp_ = driver_.getCurrentFrame();
 
     // add the colour attachments
     for (int idx = 0; idx < RenderTarget::MaxColourAttachCount; ++idx)
@@ -156,7 +158,7 @@ void FramebufferCache::cleanCache(uint64_t currentFrame) noexcept
     for (auto iter = frameBuffers_.begin(); iter != frameBuffers_.end();)
     {
         vk::Framebuffer fb = iter->second->get();
-        uint32_t framesUntilCollection =
+        uint64_t framesUntilCollection =
             iter->second->lastUsedFrameStamp_ + FrameBuffer::LifetimeFrameCount;
         if (fb && framesUntilCollection < currentFrame)
         {
@@ -172,7 +174,7 @@ void FramebufferCache::cleanCache(uint64_t currentFrame) noexcept
     for (auto iter = renderPasses_.begin(); iter != renderPasses_.end();)
     {
         vk::RenderPass rpass = iter->second->get();
-        uint8_t framesUntilCollection =
+        uint64_t framesUntilCollection =
             iter->second->lastUsedFrameStamp_ + RenderPass::LifetimeFrameCount;
         if (rpass && framesUntilCollection < currentFrame)
         {

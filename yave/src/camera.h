@@ -46,9 +46,10 @@ public:
 
     // ============== getters ==========================
 
-    mathfu::mat4& projMatrix() { return projection_; }
+    mathfu::mat4& projMatrix() noexcept { return projection_; }
     mathfu::mat4& viewMatrix();
     mathfu::vec3 position();
+    mathfu::mat4& modelMatrix() noexcept { return model_; }
 
     float getNear() const noexcept { return near_; }
     float getFar() const noexcept { return far_; }
@@ -73,6 +74,7 @@ private:
     // current matrices
     mathfu::mat4 projection_;
     mathfu::mat4 view_;
+    mathfu::mat4 model_;
 
     float fov_;
     float near_;

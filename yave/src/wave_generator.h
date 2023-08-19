@@ -22,6 +22,7 @@
 
 #pragma once
 #include "render_graph/render_graph.h"
+#include "yave/object.h"
 #include "yave/wave_generator.h"
 
 #include <mathfu/glsl_mappings.h>
@@ -35,6 +36,8 @@ class IEngine;
 class IScene;
 class Compute;
 class IMappedTexture;
+class Object;
+class IMaterial;
 
 class IWaveGenerator : public WaveGenerator
 {
@@ -56,15 +59,43 @@ public:
         float windSpeed = 40.0f;
         float choppyFactor = 1.0f;
         float gridLength = 1024.0f;
+        // clamps the patch to a min/max distance
+        float minDistance = 20.0f;
+        float maxDistance = 800.0f;
+        // min/max tesselation levels
+        float minTessLevel = 4.0f;
+        float maxTessLevel = 64.0f;
+        float dispFactor = 20.0f;
+        float tessFactor = 0.75f;
+        float tessEdgeSize = 20.0f;
+        size_t patchCount = 64;
     };
 
-    IWaveGenerator(IEngine& engine);
+    IWaveGenerator(IEngine& engine, IScene& scene);
     ~IWaveGenerator();
 
-    void render(rg::RenderGraph& rGraph, IScene& scene, float dt, util::Timer<NanoSeconds>& timer);
+    void generatePatch() noexcept;
+
+    void buildMaterial(IScene& scene);
+
+    void updateCompute(
+        rg::RenderGraph& rGraph, IScene& scene, float dt, util::Timer<NanoSeconds>& timer);
+
+    // ensures compute shaders with images that are to be used by the compute shaders have finished
+    // and transitions layouts from general state to shader read
+    void transitionImagesToShaderRead(rg::RenderGraph& rGraph);
+
+    // alternative to the above, transition from shader read to general
+    void transitionImagesToCompute(rg::RenderGraph& rGraph);
 
 private:
     IEngine& engine_;
+
+    Object waterObj_;
+    IMaterial* material_;
+
+    std::vector<float> patchVertices;
+    std::vector<uint32_t> patchIndices;
 
     size_t log2N_;
     uint32_t reversedBits_[Resolution];
@@ -97,6 +128,7 @@ private:
     // displacement
     IMappedTexture* fftOutputImage_;
     IMappedTexture* heightMap_;
+    IMappedTexture* normalMap_;
     std::unique_ptr<Compute> displaceCompute_;
 
     // map generation
