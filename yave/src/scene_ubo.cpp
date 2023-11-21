@@ -59,7 +59,6 @@ SceneUbo::SceneUbo(vkapi::VkDriver& driver)
     ubo_->addElement("sun", backend::BufferElementType::Float4);
 
     ubo_->createGpuBuffer(driver);
-    uboSize_ = ubo_->size();
 }
 
 void SceneUbo::updateCamera(ICamera& camera)
@@ -88,7 +87,7 @@ void SceneUbo::updateIbl(IIndirectLight* il)
     {
         return;
     }
-    int mips = il->getMipLevels();
+    uint32_t mips = il->getMipLevels();
     ubo_->updateElement("iblMipLevels", &mips);
 }
 
@@ -118,9 +117,6 @@ void SceneUbo::updateDirLight(IEngine& engine, LightInstance* instance)
     ubo_->updateElement("sun", &sun);
 }
 
-void SceneUbo::upload(IEngine& engine)
-{
-    ubo_->mapGpuBuffer(engine.driver(), ubo_->getBlockData());
-}
+void SceneUbo::upload(IEngine& engine) { ubo_->mapGpuBuffer(ubo_->getBlockData()); }
 
 } // namespace yave

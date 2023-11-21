@@ -29,7 +29,7 @@ namespace vkapi
 {
 
 SamplerCache::SamplerCache(VkDriver& driver) : driver_(driver) {}
-SamplerCache::~SamplerCache() {}
+SamplerCache::~SamplerCache() = default;
 
 vk::Sampler SamplerCache::createSampler(const backend::TextureSamplerParams& params)
 {
@@ -55,7 +55,7 @@ vk::Sampler SamplerCache::createSampler(const backend::TextureSamplerParams& par
         params.enableCompare,
         backend::compareOpToVk(params.compareOp),
         0.0f,
-        params.mipLevels == 0 ? 0.25 : static_cast<float>(params.mipLevels),
+        params.mipLevels == 0 ? 0.25f : static_cast<float>(params.mipLevels),
         vk::BorderColor::eFloatOpaqueWhite,
         VK_FALSE);
 

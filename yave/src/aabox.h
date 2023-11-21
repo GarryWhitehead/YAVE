@@ -35,7 +35,7 @@ struct AABBox
     mathfu::vec3 min {-1.0f};
     mathfu::vec3 max {1.0f};
 
-    static AABBox calculateRigidTransform(AABBox& box, mathfu::mat4 world)
+    static AABBox calculateRigidTransform(AABBox& box, const mathfu::mat4& world)
     {
         AABBox ret;
         mathfu::mat3 rot = util::maths::ToRotationMatrix(world);
@@ -48,12 +48,12 @@ struct AABBox
     /**
      * Calculates the center position of the box
      */
-    mathfu::vec3 getCenter() const { return (max + min) * mathfu::vec3 {0.5f}; }
+    [[nodiscard]] mathfu::vec3 getCenter() const { return (max + min) * mathfu::vec3 {0.5f}; }
 
     /**
      * Calculates the half extent of the box
      */
-    mathfu::vec3 getHalfExtent() const { return (max - min) * mathfu::vec3 {0.5f}; }
+    [[nodiscard]] mathfu::vec3 getHalfExtent() const { return (max - min) * mathfu::vec3 {0.5f}; }
 };
 
 } // namespace yave

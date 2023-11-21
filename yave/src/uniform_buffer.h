@@ -40,9 +40,9 @@ public:
     struct BackendBufferParams
     {
         vk::Buffer buffer;
-        size_t size;
-        uint32_t set;
-        uint32_t binding;
+        size_t size = 0;
+        uint32_t set = 0;
+        uint32_t binding = 0;
         vk::DescriptorType type;
     };
 
@@ -81,11 +81,9 @@ public:
 
     void* getBlockData() noexcept;
 
-    size_t size() const noexcept { return accumSize_; }
+    [[nodiscard]] size_t size() const noexcept { return accumSize_; }
 
-    size_t getOffset(const std::string& name);
-
-    bool empty() const noexcept { return elements_.empty(); }
+    [[nodiscard]] bool empty() const noexcept { return elements_.empty(); }
 
     virtual std::string createShaderStr() noexcept { return ""; };
 
@@ -102,12 +100,8 @@ protected:
 class UniformBuffer : public BufferBase
 {
 public:
-    UniformBuffer(
-        uint32_t set,
-        uint32_t binding,
-        const std::string& memberName,
-        const std::string& aliasName);
-    ~UniformBuffer();
+    UniformBuffer(uint32_t set, uint32_t binding, std::string memberName, std::string aliasName);
+    ~UniformBuffer() override;
 
     std::string createShaderStr() noexcept override;
 
@@ -115,14 +109,11 @@ public:
 
     void createGpuBuffer(vkapi::VkDriver& driver) noexcept;
 
-    void mapGpuBuffer(vkapi::VkDriver& driver, void* data) noexcept;
+    void mapGpuBuffer(void* data) noexcept;
 
-    void mapGpuBuffer(vkapi::VkDriver& driver, void* data, size_t size) noexcept;
+    void mapGpuBuffer(void* data, size_t size) noexcept;
 
     BackendBufferParams getBufferParams(vkapi::VkDriver& driver) noexcept override;
-
-    uint8_t getBinding() const noexcept { return binding_; }
-    std::string& getAliasName() noexcept { return aliasName_; }
 
 protected:
     std::string memberName_;
@@ -152,9 +143,9 @@ public:
         const std::string& memberName,
         const std::string& aliasName);
 
-    ~StorageBuffer();
+    ~StorageBuffer() override;
 
-    virtual std::string createShaderStr() noexcept override;
+    std::string createShaderStr() noexcept override;
 
     void createGpuBuffer(vkapi::VkDriver& driver, uint32_t size) noexcept;
 
@@ -171,8 +162,8 @@ private:
 class PushBlock : public BufferBase
 {
 public:
-    PushBlock(const std::string memberName, const std::string& aliasName);
-    ~PushBlock();
+    PushBlock(std::string memberName, std::string aliasName);
+    ~PushBlock() override;
 
     std::string createShaderStr() noexcept override;
 

@@ -26,7 +26,6 @@
 #include "context.h"
 #include "driver.h"
 #include "utility/assertion.h"
-#include "utility/logger.h"
 
 namespace vkapi
 {
@@ -87,7 +86,6 @@ void ImageView::create(
     const vk::Image& image,
     vk::Format format,
     uint8_t faceCount,
-    uint8_t mipLevels,
     uint8_t arrayCount,
     uint32_t level)
 {
@@ -119,7 +117,6 @@ void ImageView::create(const vk::Device& dev, const Image& image, uint32_t level
         image.get(),
         image.context().format,
         image.context().faceCount,
-        image.context().mipLevels,
         image.context().arrayCount,
         level);
 }
@@ -144,7 +141,7 @@ Image::Image(
     tex_.height = height;
 }
 
-Image::~Image() {}
+Image::~Image() = default;
 
 void Image::destroy() noexcept
 {
@@ -168,7 +165,7 @@ vk::Filter Image::getFilterType(const vk::Format& format)
     return filter;
 }
 
-void Image::create(const VmaAllocator& vmaAlloc, vk::ImageUsageFlags usageFlags)
+void Image::create(vk::ImageUsageFlags usageFlags)
 {
     ASSERT_LOG(tex_.format != vk::Format::eUndefined);
 

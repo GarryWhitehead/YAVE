@@ -53,13 +53,13 @@ public:
     bool operator!=(const ResourceHandle& rhs) const { return resource_ != rhs.getResource(); }
 
     ResourceHandle() : resource_(nullptr) {}
-    ResourceHandle(T* key) : resource_(key) {}
+    explicit ResourceHandle(T* key) : resource_(key) {}
 
-    ~ResourceHandle() {}
+    ~ResourceHandle() = default;
 
     ResourceHandle(const ResourceHandle&) = default;
     ResourceHandle& operator=(const ResourceHandle&) = default;
-    ResourceHandle(ResourceHandle&&) = default;
+    ResourceHandle(ResourceHandle&&) noexcept = default;
     ResourceHandle& operator=(ResourceHandle&&) = default;
 
     const T* getResource() const noexcept { return resource_; }
@@ -82,21 +82,21 @@ public:
 
     TextureHandle createTexture2d(
         vk::Format format,
-        const uint32_t width,
-        const uint32_t height,
-        const uint8_t mipLevels,
+        uint32_t width,
+        uint32_t height,
+        uint8_t mipLevels,
         vk::ImageUsageFlags usageFlags,
-        const uint8_t faceCount = 1,
-        const uint8_t arrayCount = 1);
+        uint8_t faceCount = 1,
+        uint8_t arrayCount = 1);
 
-    TextureHandle createTexture2d(
-        vk::Format format, const uint32_t width, const uint32_t height, vk::Image image);
+    TextureHandle
+    createTexture2d(vk::Format format, uint32_t width, uint32_t height, vk::Image image);
 
-    BufferHandle createUbo(const size_t size, VkBufferUsageFlags usage);
+    BufferHandle createUbo(size_t size, VkBufferUsageFlags usage);
 
-    void deleteUbo(BufferHandle& handle, GarbageCollector& gc);
+    void deleteUbo(BufferHandle& handle);
 
-    void deleteTexture(TextureHandle& handle, GarbageCollector& gc);
+    void deleteTexture(TextureHandle& handle);
 
     void garbageCollection() noexcept;
 

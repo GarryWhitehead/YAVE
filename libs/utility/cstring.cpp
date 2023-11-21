@@ -24,7 +24,6 @@
 
 #include <cassert>
 #include <cstdlib>
-#include <string>
 #include <utility>
 #include <vector>
 
@@ -89,7 +88,7 @@ CString::~CString()
     }
 }
 
-bool CString::compare(CString str) const
+bool CString::compare(const CString& str) const
 {
     assert(buffer);
     assert(str.buffer);
@@ -98,16 +97,8 @@ bool CString::compare(CString str) const
     return diff == 0;
 }
 
-float CString::toFloat() const { return std::atof(buffer); }
-
-uint32_t CString::toUInt32() const { return std::atoi(buffer); }
-
-uint64_t CString::toUInt64() const { return std::atoll(buffer); }
-
-int CString::toInt() const { return std::atoi(buffer); }
-
 // =============== static functions =============================
-std::vector<CString> CString::split(CString str, char identifier)
+std::vector<CString> CString::split(const CString& str, char identifier)
 {
     if (str.empty())
     {

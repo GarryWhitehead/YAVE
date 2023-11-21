@@ -38,7 +38,7 @@
 
 namespace yave
 {
-// forward declerations
+// forward declarations
 class Object;
 class IRenderable;
 struct TransformInfo;
@@ -56,7 +56,7 @@ public:
 
     /**
      * @brief A temp struct used to gather viable renderable object data ready
-     * for visibilty checks and passing to the render queue
+     * for visibility checks and passing to the render queue
      */
     struct VisibleCandidate
     {
@@ -66,8 +66,8 @@ public:
         mathfu::mat4 worldTransform;
     };
 
-    IScene(IEngine& engine);
-    ~IScene();
+    explicit IScene(IEngine& engine);
+    ~IScene() override;
 
     bool update();
 
@@ -75,15 +75,15 @@ public:
 
     VisibleCandidate buildRendCandidate(Object& obj, const mathfu::mat4& worldMatrix);
 
-    void
+    static void
     getVisibleRenderables(Frustum& frustum, std::vector<IScene::VisibleCandidate>& renderables);
 
-    void getVisibleLights(Frustum& frustum, std::vector<LightInstance*>& candLightObjs);
+    static void getVisibleLights(Frustum& frustum, std::vector<LightInstance*>& candLightObjs);
 
     void updateTransformBuffer(
         const std::vector<IScene::VisibleCandidate>& candObjects,
-        const size_t staticModelCount,
-        const size_t skinnedModelCount);
+        size_t staticModelCount,
+        size_t skinnedModelCount);
 
     void setSkyboxI(ISkybox* skybox) noexcept;
 
@@ -95,16 +95,16 @@ public:
 
     // ============== getters ============================
 
-    ISkybox* getSkybox() noexcept { return skybox_; }
+    [[maybe_unused]] ISkybox* getSkybox() noexcept { return skybox_; }
     IIndirectLight* getIndirectLight() noexcept { return indirectLight_; }
     ICamera* getCurrentCameraI() noexcept { return camera_; }
     RenderQueue& getRenderQueue() noexcept { return renderQueue_; }
     UniformBuffer& getTransUbo() noexcept { return *transUbo_; }
-    UniformBuffer& getSkinUbo() noexcept { return *skinUbo_; }
+    [[maybe_unused]] UniformBuffer& getSkinUbo() noexcept { return *skinUbo_; }
     SceneUbo& getSceneUbo() noexcept { return *sceneUbo_; }
     IWaveGenerator* getWaveGenerator() noexcept { return waveGen_; }
-    bool withPostProcessing() const noexcept { return usePostProcessing_; }
-    bool withGbuffer() const noexcept { return useGbuffer_; }
+    [[nodiscard]] bool withPostProcessing() const noexcept { return usePostProcessing_; }
+    [[nodiscard]] bool withGbuffer() const noexcept { return useGbuffer_; }
 
     // ================== client api =======================
 

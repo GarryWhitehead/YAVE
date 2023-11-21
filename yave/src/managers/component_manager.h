@@ -39,7 +39,7 @@ public:
     ComponentManager();
     ~ComponentManager();
 
-    // component managers are neither copyable or moveable
+    // component managers are neither copyable nor moveable
     ComponentManager(const ComponentManager&) = delete;
     ComponentManager& operator=(const ComponentManager&) = delete;
 

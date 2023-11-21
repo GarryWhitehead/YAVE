@@ -33,15 +33,15 @@
 
 namespace yave
 {
-// forward declerations
+// forward declarations
 class IScene;
 class IEngine;
 
 class IRenderer : public Renderer
 {
 public:
-    IRenderer(IEngine* engine);
-    ~IRenderer();
+    explicit IRenderer(IEngine* engine);
+    ~IRenderer() override;
 
     void shutDown(vkapi::VkDriver& driver) noexcept;
 

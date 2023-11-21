@@ -34,10 +34,11 @@
 namespace vkapi
 {
 
-Texture::Texture(VkContext& context) : context_(context), imageLayout_(vk::ImageLayout::eUndefined)
+Texture::Texture(VkContext& context)
+    : context_(context), imageLayout_(vk::ImageLayout::eUndefined), framesUntilGc_(0)
 {
 }
-Texture::~Texture() {}
+Texture::~Texture() = default;
 
 uint32_t Texture::getFormatCompSize(vk::Format format)
 {
@@ -169,7 +170,7 @@ void Texture::destroy() const
     {
         image_->destroy();
     }
-    for (int level = 0; level < texContext_.mipLevels; ++level)
+    for (uint32_t level = 0; level < texContext_.mipLevels; ++level)
     {
         context_.device().destroyImageView(imageView_[level]->get(), nullptr);
     }
@@ -191,11 +192,11 @@ void Texture::createTexture2d(
         mipLevels,
         MaxMipCount);
 
-    texContext_ = TextureContext {format, width, height, mipLevels, faceCount, arrayCount};
+    texContext_ = {format, width, height, mipLevels, faceCount, arrayCount};
 
     // create an empty image
     image_ = std::make_unique<Image>(driver.context(), *this);
-    image_->create(driver.vmaAlloc(), usageFlags);
+    image_->create(usageFlags);
 
     // and a image view for each mip level
     for (int level = 0; level < mipLevels; ++level)
@@ -218,7 +219,7 @@ void Texture::createTexture2d(
 
     // assume a mip level count of one
     imageView_[0] = std::make_unique<ImageView>(driver.context());
-    imageView_[0]->create(driver.context().device(), image, format, 1, 1, 0, 0);
+    imageView_[0]->create(driver.context().device(), image, format, 1, 1, 0);
 
     imageLayout_ = (isDepth(format) || isStencil(format))
         ? vk::ImageLayout::eDepthStencilReadOnlyOptimal

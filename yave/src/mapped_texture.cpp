@@ -26,15 +26,23 @@
 #include "backend/enums.h"
 #include "engine.h"
 #include "utility/assertion.h"
-#include "utility/logger.h"
 #include "yave/texture.h"
 
 namespace yave
 {
 
-IMappedTexture::IMappedTexture(IEngine& engine) : engine_(engine), buffer_(nullptr) {}
+IMappedTexture::IMappedTexture(IEngine& engine)
+    : engine_(engine),
+      buffer_(nullptr),
+      format_(vk::Format::eUndefined),
+      width_(0),
+      height_(0),
+      mipLevels_(0),
+      faceCount_(0)
+{
+}
 
-IMappedTexture::~IMappedTexture() {}
+IMappedTexture::~IMappedTexture() = default;
 
 uint32_t IMappedTexture::getFormatByteSize(backend::TextureFormat format)
 {
@@ -53,11 +61,14 @@ uint32_t IMappedTexture::getFormatByteSize(backend::TextureFormat format)
         case backend::TextureFormat::RGBA16F:
             output = 4;
             break;
+        case backend::TextureFormat::R32U:
         case backend::TextureFormat::R32F:
         case backend::TextureFormat::RG32F:
         case backend::TextureFormat::RGB32F:
         case backend::TextureFormat::RGBA32F:
             output = 8;
+            break;
+        case backend::TextureFormat::Undefined:
             break;
     }
     return output;
@@ -74,7 +85,7 @@ uint32_t IMappedTexture::totalTextureSize(
     size_t byteSize = getFormatByteSize(format);
 
     size_t totalSize = 0;
-    for (int i = 0; i < mipLevels; ++i)
+    for (uint32_t i = 0; i < mipLevels; ++i)
     {
         totalSize += ((width >> i) * (height >> i) * 4 * byteSize) * faceCount * layerCount;
     }
@@ -126,13 +137,13 @@ void IMappedTexture::generateMipMapsI()
 
     auto& driver = engine_.driver();
     auto& cmds = driver.getCommands();
-    driver.generateMipMaps(tHandle_, cmds.getCmdBuffer().cmdBuffer);
+    vkapi::VkDriver::generateMipMaps(tHandle_, cmds.getCmdBuffer().cmdBuffer);
 }
 
 // ================================== client api ===========================
 
-Texture::Texture() {}
-Texture::~Texture() {}
+Texture::Texture() = default;
+Texture::~Texture() = default;
 
 void IMappedTexture::setTexture(const Params& params, size_t* offsets) noexcept
 {
@@ -160,8 +171,8 @@ void IMappedTexture::setEmptyTexture(
     uint32_t height,
     backend::TextureFormat format,
     uint32_t usageFlags,
-    uint32_t levels = 1,
-    uint32_t faces = 1) noexcept
+    uint32_t levels,
+    uint32_t faces) noexcept
 {
     uint32_t bufferSize = totalTextureSize(width, height, 1, faces, levels, format);
     void* buffer = (uint8_t*)new uint8_t[bufferSize];

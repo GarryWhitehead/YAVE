@@ -28,9 +28,7 @@
 #include <string>
 #include <unordered_map>
 
-namespace yave
-{
-namespace rg
+namespace yave::rg
 {
 
 class BlackBoard
@@ -53,5 +51,4 @@ private:
     std::unordered_map<std::string, RenderGraphHandle> blackboard_;
 };
 
-} // namespace rg
-} // namespace yave
+} // namespace yave::rg

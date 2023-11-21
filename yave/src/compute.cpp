@@ -25,14 +25,13 @@
 #include "engine.h"
 #include "mapped_texture.h"
 
-#include <spdlog/spdlog.h>
 #include <vulkan-api/common.h>
 #include <vulkan-api/sampler_cache.h>
 
 namespace yave
 {
 
-Compute::Compute(IEngine& engine) : extSsboRead_(nullptr)
+Compute::Compute(IEngine& engine)
 {
     ubo_ = std::make_unique<UniformBuffer>(
         vkapi::PipelineCache::UboSetValue, UboBindPoint, "ComputeUbo", "compute_ubo");
@@ -41,10 +40,9 @@ Compute::Compute(IEngine& engine) : extSsboRead_(nullptr)
 
     bundle_ = engine.driver().progManager().createProgramBundle();
 }
-Compute::~Compute() {}
+Compute::~Compute() = default;
 
 void Compute::addStorageImage(
-    vkapi::VkDriver& driver,
     const std::string& name,
     const vkapi::TextureHandle& texture,
     uint32_t binding,
@@ -184,27 +182,27 @@ vkapi::ShaderProgramBundle* Compute::build(IEngine& engine, const std::string& c
     {
         program->addAttributeBlock(ubo_->createShaderStr());
         ubo_->createGpuBuffer(driver);
-        ubo_->mapGpuBuffer(driver, ubo_->getBlockData());
+        ubo_->mapGpuBuffer(ubo_->getBlockData());
     }
     auto params = ubo_->getBufferParams(driver);
     bundle_->addDescriptorBinding(params.size, params.binding, params.buffer, params.type);
 
     // storage buffers
-    for (int i = 0; i < MaxSsboCount; ++i)
+    for (const auto& ssbo : ssbos_)
     {
-        if (ssbos_[i])
+        if (ssbo)
         {
-            ASSERT_LOG(!ssbos_[i]->empty());
-            program->addAttributeBlock(ssbos_[i]->createShaderStr());
-            ssbos_[i]->createGpuBuffer(driver);
+            ASSERT_LOG(!ssbo->empty());
+            program->addAttributeBlock(ssbo->createShaderStr());
+            ssbo->createGpuBuffer(driver);
 
-            void* data = ssbos_[i]->getBlockData();
+            void* data = ssbo->getBlockData();
             if (data)
             {
-                ssbos_[i]->mapGpuBuffer(driver, data);
+                ssbo->mapGpuBuffer(data);
             }
 
-            params = ssbos_[i]->getBufferParams(driver);
+            params = ssbo->getBufferParams(driver);
             bundle_->addDescriptorBinding(params.size, params.binding, params.buffer, params.type);
         }
     }

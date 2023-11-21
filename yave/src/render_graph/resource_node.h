@@ -27,10 +27,9 @@
 
 #include <memory>
 
-namespace yave
+namespace yave::rg
 {
-namespace rg
-{
+
 // forward declerations
 class RenderGraph;
 struct Edge;
@@ -78,9 +77,9 @@ public:
 
     void setAliasResourceEdge(ResourceNode* alias) noexcept;
 
-    bool hasWriterPass() const;
+    [[nodiscard]] bool hasWriterPass() const;
 
-    bool hasReaders() const;
+    [[nodiscard]] bool hasReaders() const;
 
     bool hasWriters();
 
@@ -89,7 +88,7 @@ public:
     void updateResourceUsage() noexcept;
 
     // ===================== getters =====================
-    const RenderGraphHandle& resourceHandle() const { return resource_; }
+    [[nodiscard]] const RenderGraphHandle& resourceHandle() const { return resource_; }
 
 private:
     RenderGraph& rGraph_;
@@ -111,5 +110,4 @@ private:
     std::vector<ResourceBase*> resourcesToDestroy_;
 };
 
-} // namespace rg
-} // namespace yave
+} // namespace yave::rg

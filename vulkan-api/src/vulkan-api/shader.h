@@ -42,12 +42,12 @@
 
 namespace vkapi
 {
-// forward decleartions
+// forward declarations
 class VkContext;
 
 using VDefinitions = std::unordered_map<std::string, uint8_t>;
 
-// This is a callback class to impelement shaderc's include interface
+// This is a callback class to implement shaderc's include interface
 class IncludeInterface : public shaderc::CompileOptions::IncluderInterface
 {
 public:
@@ -118,10 +118,8 @@ struct ShaderBinding
 class Shader
 {
 public:
-    Shader(VkContext& context, const backend::ShaderStage type);
+    Shader(VkContext& context, backend::ShaderStage type);
     ~Shader();
-
-    bool loadAsBinary(const std::filesystem::path shaderPath, uint32_t* output);
 
     /**
      * Gathers the createInfo for all shaders into one blob in a format needed
@@ -130,7 +128,7 @@ public:
     vk::PipelineShaderStageCreateInfo& get() { return createInfo_; }
 
     /**
-     * @brief Converts the StageType enum into a vulkan recognisible format
+     * @brief Converts the StageType enum into a vulkan recognisable format
      */
     static vk::ShaderStageFlagBits getStageFlags(backend::ShaderStage type);
 
@@ -143,13 +141,13 @@ public:
      * @param type From spirv reflection - the type - i.e. float, integer
      */
     static std::tuple<vk::Format, uint32_t>
-    getVkFormatFromSize(uint32_t width, uint32_t vecSize, const spirv_cross::SPIRType type);
+    getVkFormatFromSize(uint32_t width, uint32_t vecSize, const spirv_cross::SPIRType& type);
 
     /**
      * @brief compiles the specified code into glsl bytecode, and then creates
      * a shader module and createInfo ready for using with a vulkan pipeline
      */
-    bool compile(std::string shaderCode, const VDefinitions& variants);
+    bool compile(const std::string& shaderCode, const VDefinitions& variants);
 
     /**
      * @brief Performs reflection on the shader code and fills the shader
@@ -162,9 +160,7 @@ public:
     // ================== getters ========================
 
     ShaderBinding& getShaderBinding() { return resourceBinding_; }
-    vk::ShaderModule getShaderModule() { return module_; }
     vk::PipelineShaderStageCreateInfo& getCreateInfo() { return createInfo_; }
-    backend::ShaderStage getStageType() const noexcept { return type_; }
 
 private:
     VkContext& context_;
@@ -184,7 +180,7 @@ private:
 class ShaderCompiler
 {
 public:
-    ShaderCompiler(std::string shaderCode, const backend::ShaderStage type);
+    ShaderCompiler(std::string shaderCode, backend::ShaderStage type);
     ~ShaderCompiler();
 
     bool compile(bool optimise);

@@ -298,7 +298,7 @@ bool VkContext::createInstance(const char** glfwExtension, uint32_t extCount)
     return true;
 }
 
-bool VkContext::prepareDevice(const vk::SurfaceKHR windowSurface)
+bool VkContext::prepareDevice(vk::SurfaceKHR windowSurface)
 {
     if (!instance_)
     {
@@ -484,7 +484,6 @@ bool VkContext::prepareDevice(const vk::SurfaceKHR windowSurface)
 
     const uint32_t driverVersion = props.driverVersion;
     const uint32_t vendorID = props.vendorID;
-    const uint32_t deviceID = props.deviceID;
     const char* deviceName = props.deviceName;
 
     SPDLOG_INFO(

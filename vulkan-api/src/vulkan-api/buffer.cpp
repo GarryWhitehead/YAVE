@@ -39,7 +39,7 @@ StagingPool::StageInfo* StagingPool::create(const VkDeviceSize size)
 {
     ASSERT_LOG(size > 0);
 
-    StageInfo* stage = new StageInfo();
+    auto* stage = new StageInfo();
     stage->size = size;
 
     VkBufferCreateInfo bufferInfo = {};
@@ -68,7 +68,7 @@ StagingPool::StageInfo* StagingPool::getStage(VkDeviceSize reqSize)
         reqSize,
         [](StageInfo* lhs, const VkDeviceSize rhs) { return lhs->size < rhs; });
 
-    // if we have a free staging area, return that. Otherwise allocate a new
+    // if we have a free staging area, return that. Otherwise, allocate a new
     // stage
     if (iter != freeStages_.end())
     {
@@ -177,7 +177,7 @@ void Buffer::mapToStage(void* data, size_t dataSize, StagingPool::StageInfo* sta
     memcpy(stage->allocInfo.pMappedData, data, dataSize);
 }
 
-void Buffer::mapToGpuBuffer(void* data, size_t dataSize)
+void Buffer::mapToGpuBuffer(void* data, size_t dataSize) const
 {
     ASSERT_FATAL(data, "Data pointer is nullptr for buffer mapping.");
     memcpy(allocInfo_.pMappedData, data, dataSize);
@@ -253,11 +253,9 @@ void Buffer::copyStagedToGpu(
 
 void Buffer::destroy(VmaAllocator& vmaAlloc) { vmaDestroyBuffer(vmaAlloc, buffer_, mem_); }
 
-vk::Buffer Buffer::get() { return vk::Buffer(buffer_); }
+vk::Buffer Buffer::get() { return vk::Buffer {buffer_}; }
 
 uint64_t Buffer::getSize() const { return size_; }
-
-uint64_t Buffer::getOffset() const { return allocInfo_.offset; }
 
 // ================ Vertex buffer =======================
 // Note: The following functions use VMA hence don't use the vulkan hpp C++
@@ -266,7 +264,6 @@ uint64_t Buffer::getOffset() const { return allocInfo_.offset; }
 
 void VertexBuffer::create(
     VkDriver& driver,
-    VkContext& context,
     VmaAllocator& vmaAlloc,
     StagingPool& pool,
     void* data,
@@ -286,7 +283,6 @@ void VertexBuffer::create(
 
 void IndexBuffer::create(
     VkDriver& driver,
-    VkContext& context,
     VmaAllocator& vmaAlloc,
     StagingPool& pool,
     void* data,

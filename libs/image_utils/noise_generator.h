@@ -33,7 +33,7 @@ namespace yave
 class NoiseGenerator
 {
 public:
-    NoiseGenerator(uint32_t seed);
+    explicit NoiseGenerator(uint32_t seed);
     ~NoiseGenerator();
 
     double generateNoise(double x, double y, double z);

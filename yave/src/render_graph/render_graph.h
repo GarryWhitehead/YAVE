@@ -38,9 +38,7 @@
 #include <memory>
 #include <vector>
 
-namespace yave
-{
-namespace rg
+namespace yave::rg
 {
 
 // forward declerations
@@ -50,7 +48,7 @@ class PassNodeBase;
 class RenderGraph
 {
 public:
-    RenderGraph(vkapi::VkDriver& driver);
+    explicit RenderGraph(vkapi::VkDriver& driver);
     ~RenderGraph();
 
     // not copyable
@@ -99,7 +97,7 @@ public:
 
     std::vector<std::unique_ptr<ResourceBase>>& getResources();
 
-    ResourceBase* getResource(const RenderGraphHandle& handle) const;
+    [[nodiscard]] ResourceBase* getResource(const RenderGraphHandle& handle) const;
 
     RenderGraphHandle addResource(std::unique_ptr<ResourceBase> resource);
 
@@ -111,7 +109,7 @@ public:
     // =================== getters ==================================
 
     DependencyGraph& getDependencyGraph() { return dGraph_; }
-    vkapi::VkDriver& driver() const { return driver_; }
+    [[nodiscard]] vkapi::VkDriver& driver() const { return driver_; }
 
 private:
     DependencyGraph dGraph_;
@@ -169,5 +167,4 @@ void RenderGraph::addExecutorPass(const util::CString& name, ExecuteFunc&& execu
         });
 }
 
-} // namespace rg
-} // namespace yave
+} // namespace yave::rg

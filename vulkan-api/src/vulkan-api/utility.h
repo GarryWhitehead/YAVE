@@ -29,8 +29,8 @@
 namespace vkapi
 {
 
-bool isDepth(const vk::Format format);
-bool isStencil(const vk::Format format);
+bool isDepth(vk::Format format);
+bool isStencil(vk::Format format);
 bool isBufferType(const vk::DescriptorType& type);
 bool isSamplerType(const vk::DescriptorType& type);
 
@@ -42,11 +42,11 @@ vk::Format findSupportedFormat(
 
 vk::Format getSupportedDepthFormat(vk::PhysicalDevice& gpu);
 
-// Takes a string of certain type and if valid, returns as a vulkan recognisible
+// Takes a string of certain type and if valid, returns as a vulkan recognisable
 // type.
-vk::Format convertToVk(std::string type, uint32_t width);
+vk::Format convertToVk(const std::string& type, uint32_t width);
 
-// Derieves from the type specified, the stride in bytes
-uint32_t getStrideFromType(std::string type);
+// Derives from the type specified, the stride in bytes
+uint32_t getStrideFromType(const std::string& type);
 
 } // namespace vkapi

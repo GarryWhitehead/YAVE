@@ -42,10 +42,10 @@ public:
     constexpr static uint32_t UNINITIALISED = std::numeric_limits<uint32_t>::max();
 
     IRenderable();
-    ~IRenderable();
+    ~IRenderable() override;
 
     /**
-     * Bit flags for specifying the visibilty of renderables
+     * Bit flags for specifying the visibility of renderables
      */
     enum class Visible : uint8_t
     {
@@ -78,10 +78,10 @@ public:
 
     util::BitSetEnum<Visible>& getVisibility() { return visibility_; }
 
-    uint32_t getMeshDynamicOffset() const noexcept;
-    uint32_t getSkinDynamicOffset() const noexcept;
+    [[nodiscard]] uint32_t getMeshDynamicOffset() const noexcept;
+    [[nodiscard]] uint32_t getSkinDynamicOffset() const noexcept;
 
-    size_t getTesselationVertCount() const noexcept { return tesselationVertCount_; }
+    [[nodiscard]] size_t getTesselationVertCount() const noexcept { return tesselationVertCount_; }
 
     // ================ client api ==========================
 

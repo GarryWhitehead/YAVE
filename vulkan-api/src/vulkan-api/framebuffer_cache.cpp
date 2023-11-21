@@ -101,7 +101,7 @@ RenderPass* FramebufferCache::findOrCreateRenderPass(const RPassKey& key)
         return iter->second;
     }
     // create a new renderpass
-    RenderPass* rpass = new RenderPass(context_);
+    auto* rpass = new RenderPass(context_);
     rpass->lastUsedFrameStamp_ = driver_.getCurrentFrame();
 
     // add the colour attachments
@@ -147,7 +147,7 @@ FrameBuffer* FramebufferCache::findOrCreateFrameBuffer(FboKey& key, uint32_t cou
         return iter->second;
     }
 
-    FrameBuffer* fbo = new FrameBuffer(context_);
+    auto* fbo = new FrameBuffer(context_);
     fbo->create(key.renderpass, key.views, count, key.width, key.height, key.layer);
     frameBuffers_.emplace(key, fbo);
     return fbo;

@@ -34,14 +34,10 @@
 #include "scene.h"
 #include "utility/assertion.h"
 #include "vertex_buffer.h"
-#include "yave/object_manager.h"
 #include "yave/scene.h"
 #include "yave/texture_sampler.h"
 
 #include <image_utils/cubemap.h>
-#include <mathfu/glsl_mappings.h>
-
-#include <array>
 
 namespace yave
 {
@@ -57,7 +53,7 @@ ISkybox::ISkybox(IEngine& engine, IScene& scene)
     material_ = rm->createMaterialI();
 }
 
-void ISkybox::buildI(IScene& scene, ICamera& cam)
+void ISkybox::buildI(IScene& scene)
 {
     auto& driver = engine_.driver();
     IRenderableManager* rm = engine_.getRenderableManagerI();
@@ -135,18 +131,15 @@ void ISkybox::update(ICamera& camera) noexcept {}
 
 // ======================== client api =======================
 
-Skybox::Skybox() {}
-Skybox::~Skybox() {}
+Skybox::Skybox() = default;
+Skybox::~Skybox() = default;
 
 void ISkybox::setTexture(Texture* texture) noexcept
 {
     setCubeMap(reinterpret_cast<IMappedTexture*>(texture));
 }
 
-void ISkybox::build(Scene* scene, Camera* camera)
-{
-    buildI(*(reinterpret_cast<IScene*>(scene)), *(reinterpret_cast<ICamera*>(camera)));
-}
+void ISkybox::build(Scene* scene) { buildI(*(reinterpret_cast<IScene*>(scene))); }
 
 void ISkybox::setColour(const util::Colour4& col) noexcept { skyboxCol_ = col; }
 

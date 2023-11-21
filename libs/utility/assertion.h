@@ -24,18 +24,15 @@
 
 #include <string>
 
-namespace util
+namespace util::assertion
 {
 
-namespace assertion
-{
 std::string formatArgs(char const* format, va_list args);
 std::string createErrorMsg(const char* function, const char* file, int line, const char* error);
 void fatal(char const* function, char const* file, int line, const char* format, ...);
 void log(char const* function, char const* file, int line, const char* format, ...);
-} // namespace assertion
 
-} // namespace util
+} // namespace util::assertion
 
 #ifdef NDEBUG
 

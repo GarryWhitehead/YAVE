@@ -55,7 +55,7 @@ private:
     uint64_t handle_;
 };
 
-class Object : public Object
+class IObject : public Object
 {
 public:
     Object() : id_(0) {}

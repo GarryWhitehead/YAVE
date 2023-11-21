@@ -31,9 +31,7 @@
 #include "utility/logger.h"
 #include "vulkan-api/driver.h"
 
-namespace yave
-{
-namespace rg
+namespace yave::rg
 {
 
 void RenderPassInfo::bake(const RenderGraph& rGraph)
@@ -46,11 +44,11 @@ void RenderPassInfo::bake(const RenderGraph& rGraph)
 
     std::array<vkapi::RenderTarget::AttachmentInfo, vkapi::RenderTarget::MaxColourAttachCount>
         colourInfo;
-    for (uint8_t i = 0; i < colourInfo.size(); ++i)
+    for (size_t i = 0; i < colourInfo.size(); ++i)
     {
         if (desc.attachments.attachArray[i])
         {
-            TextureResource* texture = reinterpret_cast<TextureResource*>(
+            auto* texture = reinterpret_cast<TextureResource*>(
                 rGraph.getResource(desc.attachments.attachArray[i]));
             colourInfo[i].handle = texture->handle();
             ASSERT_FATAL(texture->handle(), "Invalid handle for colour attchment at index %d.", i);
@@ -72,14 +70,13 @@ void RenderPassInfo::bake(const RenderGraph& rGraph)
     }
 
     std::array<vkapi::RenderTarget::AttachmentInfo, 2> depthStencilInfo;
-    for (uint8_t i = 0; i < depthStencilInfo.size(); ++i)
+    for (size_t i = 0; i < depthStencilInfo.size(); ++i)
     {
         auto& attachment =
             desc.attachments.attachArray[vkapi::RenderTarget::MaxColourAttachCount + i];
         if (attachment)
         {
-            TextureResource* texture =
-                reinterpret_cast<TextureResource*>(rGraph.getResource(attachment));
+            auto* texture = reinterpret_cast<TextureResource*>(rGraph.getResource(attachment));
             depthStencilInfo[i].handle = texture->handle();
             ASSERT_FATAL(texture->handle(), "Invalid handle for depth/stencil attchment.");
             // TODO: also fill the layer and level from the subresource of the texture
@@ -88,22 +85,14 @@ void RenderPassInfo::bake(const RenderGraph& rGraph)
 
     auto& driver = rGraph.driver();
     desc.vkBackend.rtHandle = driver.createRenderTarget(
-        name,
-        vkBackend.rPassData.width,
-        vkBackend.rPassData.height,
-        false,
-        desc.samples,
-        desc.clearColour,
-        colourInfo,
-        depthStencilInfo[0],
-        depthStencilInfo[1]);
+        false, desc.clearColour, colourInfo, depthStencilInfo[0], depthStencilInfo[1]);
 }
 
 PassNodeBase::PassNodeBase(RenderGraph& rGraph, const util::CString& name)
     : Node(name, rGraph.getDependencyGraph()), rGraph_(rGraph)
 {
 }
-PassNodeBase::~PassNodeBase() {}
+PassNodeBase::~PassNodeBase() = default;
 
 void PassNodeBase::addToBakeList(ResourceBase* res)
 {
@@ -170,8 +159,7 @@ RenderPassNode::createRenderTarget(const util::CString& name, const PassDescript
             RenderGraphHandle handle = desc.attachments.attachArray[i];
             for (const auto* edge : readerEdges)
             {
-                ResourceNode* node =
-                    reinterpret_cast<ResourceNode*>(depGraph.getNode(edge->fromId));
+                auto* node = reinterpret_cast<ResourceNode*>(depGraph.getNode(edge->fromId));
                 ASSERT_LOG(node);
                 if (node->resourceHandle() == handle)
                 {
@@ -239,8 +227,7 @@ void RenderPassNode::build()
 
                 // work out the min and max width/height resource size across
                 // all targets
-                TextureResource* texture =
-                    reinterpret_cast<TextureResource*>(rGraph_.getResource(attachment));
+                auto* texture = reinterpret_cast<TextureResource*>(rGraph_.getResource(attachment));
                 uint32_t textureWidth = texture->descriptor().width;
                 uint32_t textureHeight = texture->descriptor().height;
                 minWidth = std::min(minWidth, textureWidth);
@@ -298,13 +285,6 @@ void RenderPassNode::execute(vkapi::VkDriver& driver, const RenderGraphResource&
     // and delete the targets TODO
 }
 
-RenderPassInfo::VkBackend
-RenderPassNode::getRenderTargetBackendInfo(const RenderGraphHandle& handle)
-{
-    RenderPassInfo info = renderPassTargets_[handle.getKey()];
-    return info.vkBackend;
-}
-
 const RenderPassInfo& RenderPassNode::getRenderTargetInfo(const RenderGraphHandle& handle)
 {
     ASSERT_FATAL(
@@ -320,11 +300,10 @@ const RenderPassInfo& RenderPassNode::getRenderTargetInfo(const RenderGraphHandl
 
 PresentPassNode::PresentPassNode(RenderGraph& rGraph) : PassNodeBase(rGraph, "present") {}
 
-PresentPassNode::~PresentPassNode() {}
+PresentPassNode::~PresentPassNode() = default;
 
 void PresentPassNode::build() {}
 
 void PresentPassNode::execute(vkapi::VkDriver& driver, const RenderGraphResource& graphResource) {}
 
-} // namespace rg
-} // namespace yave
+} // namespace yave::rg

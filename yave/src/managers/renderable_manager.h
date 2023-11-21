@@ -41,19 +41,18 @@
 
 namespace yave
 {
-// forard declerations
+// forward declarations
 class Object;
 class IEngine;
 class IRenderable;
-class IMaterialBuilder;
 
 class IRenderableManager : public ComponentManager, public RenderableManager
 {
 public:
     constexpr static uint32_t MeshInitContainerSize = 50;
 
-    IRenderableManager(IEngine& engine);
-    ~IRenderableManager();
+    explicit IRenderableManager(IEngine& engine);
+    ~IRenderableManager() override;
 
     /**
      * @brief Returns a instance of a mesh based on the specified Object

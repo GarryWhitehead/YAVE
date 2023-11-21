@@ -27,11 +27,10 @@
 #include <string>
 #include <vector>
 
-namespace yave
+namespace yave::rg
 {
-namespace rg
-{
-// forward declerations
+
+// forward declarations
 class DependencyGraph;
 class Node;
 
@@ -39,28 +38,26 @@ struct Edge
 {
     Edge(DependencyGraph& graph, Node* from, Node* to);
 
-    // the node Id that this edge projects from
+    // the node id that this edge projects from
     size_t fromId;
-    // the node Id that this edge projects to
+    // the node id that this edge projects to
     size_t toId;
 };
 
 class Node
 {
 public:
-    Node(const util::CString& name, DependencyGraph& graph);
+    Node(util::CString name, DependencyGraph& graph);
 
     void declareSideEffect() { refCount = 0xFFFF; }
 
-    bool isCulled() const { return refCount == 0; }
+    [[nodiscard]] bool isCulled() const { return refCount == 0; }
 
-    uint64_t getId() const noexcept { return id_; }
-
-    util::CString& getName() noexcept { return name_; }
+    [[nodiscard]] uint64_t getId() const noexcept { return id_; }
 
     std::string getGraphViz();
 
-    // this is public for convienence reasons, myabe shouldn't be.
+    // this is public for convenience reasons, maybe shouldn't be.
     size_t refCount;
 
 protected:
@@ -76,9 +73,9 @@ public:
 
     void addNode(Node* node);
 
-    uint64_t createId() const;
+    [[nodiscard]] uint64_t createId() const;
 
-    Node* getNode(const uint64_t id);
+    Node* getNode(uint64_t id);
 
     void addEdge(Edge* edge);
 
@@ -105,5 +102,4 @@ private:
     std::vector<Edge*> edges_;
 };
 
-} // namespace rg
-} // namespace yave
+} // namespace yave::rg

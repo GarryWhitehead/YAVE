@@ -31,7 +31,7 @@
 
 namespace vkapi
 {
-// forward declerations
+// forward declarations
 class VkContext;
 class VkDriver;
 
@@ -43,7 +43,7 @@ class VkDriver;
 class SamplerCache
 {
 public:
-    SamplerCache(VkDriver& driver);
+    explicit SamplerCache(VkDriver& driver);
     ~SamplerCache();
 
     vk::Sampler createSampler(const backend::TextureSamplerParams& params);

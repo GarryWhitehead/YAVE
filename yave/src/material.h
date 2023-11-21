@@ -82,8 +82,8 @@ public:
         __SENTINEL__
     };
 
-    IMaterial(IEngine& engine);
-    ~IMaterial();
+    explicit IMaterial(IEngine& engine);
+    virtual ~IMaterial();
 
     // no copy allowed
     IMaterial(const IMaterial&) = delete;
@@ -93,7 +93,7 @@ public:
 
     static vkapi::VDefinitions createVariants(util::BitSetEnum<IMaterial::Variants>& bits);
 
-    void addVariant(const Material::ImageType type);
+    void addVariant(Material::ImageType type);
     void addVariant(Variants variant);
 
     void addBuffer(BufferBase* buffer, backend::ShaderStage type);
@@ -204,8 +204,8 @@ public:
 
     Material::Pipeline getPipelineState() noexcept;
 
-    uint8_t getViewLayer() const noexcept { return viewLayer_; }
-    uint32_t getPipelineId() const noexcept { return pipelineId_; }
+    [[nodiscard]] uint8_t getViewLayer() const noexcept { return viewLayer_; }
+    [[nodiscard]] uint32_t getPipelineId() const noexcept { return pipelineId_; }
 
     // ================= client api =========================
 

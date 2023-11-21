@@ -76,7 +76,7 @@ public:
         rg::RenderGraphHandle light;
     };
 
-    PostProcess(IEngine& engine);
+    explicit PostProcess(IEngine& engine);
     ~PostProcess();
 
     void init(IScene& scene);

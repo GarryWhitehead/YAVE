@@ -51,27 +51,16 @@ public:
     Swapchain();
     ~Swapchain();
 
-    // moveable
-    Swapchain(Swapchain&&) = default;
-    Swapchain& operator=(Swapchain&&) = default;
-
-    /**
-     * @brief Creates the swapchain using the supplied native window surface
-     * Note: The surface is obtained by calling **createSurface**.
-     * Note: This function must be called before using with a **IScene** object.
-     * @param context An initialised vulkan device object
-     * @param surface A vk surface object for the given platform
-     */
     bool
     create(VkDriver& driver, const vk::SurfaceKHR& surface, uint32_t winWidth, uint32_t winHeight);
 
     void destroy(VkContext& context);
 
-    const vk::SwapchainKHR& get() const;
-    uint32_t extentsHeight() const;
-    uint32_t extentsWidth() const;
+    [[nodiscard]] const vk::SwapchainKHR& get() const;
+    [[nodiscard]] uint32_t extentsHeight() const;
+    [[nodiscard]] uint32_t extentsWidth() const;
 
-    TextureHandle& getTexture(const uint32_t index);
+    TextureHandle& getTexture(uint32_t index);
 
 private:
     /// creates the image views for the swapchain

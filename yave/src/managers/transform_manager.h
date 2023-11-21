@@ -36,7 +36,7 @@
 
 namespace yave
 {
-// forward decleartions
+// forward declarations
 class Object;
 class SkinInstance;
 struct NodeInfo;
@@ -65,19 +65,19 @@ class ITransformManager : public ComponentManager, public TransformManager
 public:
     static constexpr uint32_t MaxBoneCount = 25;
 
-    ITransformManager(IEngine& engine);
-    ~ITransformManager();
+    explicit ITransformManager(IEngine& engine);
+    virtual ~ITransformManager();
 
 
-    bool addNodeHierachy(NodeInstance& node, Object& obj, SkinInstance* skin);
+    [[maybe_unused]] bool addNodeHierachy(NodeInstance& node, Object& obj, SkinInstance* skin);
 
     void addTransformI(const mathfu::mat4& local, Object& obj);
 
-    mathfu::mat4 updateMatrix(NodeInfo* node);
+    static mathfu::mat4 updateMatrix(NodeInfo* node);
 
     void updateModelTransform(NodeInfo* parent, TransformInfo& transInfo);
 
-    void updateModel(const Object& obj);
+    [[maybe_unused]] void updateModel(const Object& obj);
 
     // =================== getters ==========================
 
@@ -88,8 +88,8 @@ public:
     void addModelTransform(const ModelTransform& transform, Object& obj) override;
 
 private:
-    // transform data preserved in the node hierachal format
-    // referenced by assoociated Object
+    // transform data preserved in the node hierarchical format
+    // referenced by associated Object
     std::vector<TransformInfo> nodes_;
 
     // skinned data - inverse bind matrices and bone info

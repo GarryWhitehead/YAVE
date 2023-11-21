@@ -38,10 +38,10 @@ public:
     explicit ObjectHandle(uint64_t h) : handle_(h) {}
 
     explicit operator bool() const noexcept { return handle_ != InvalidHandle; }
-    bool operator==(const ObjectHandle rhs) { return handle_ == rhs.handle_; }
-    bool operator!=(const ObjectHandle rhs) { return handle_ != rhs.handle_; }
+    bool operator==(const ObjectHandle rhs) const { return handle_ == rhs.handle_; }
+    bool operator!=(const ObjectHandle rhs) const { return handle_ != rhs.handle_; }
 
-    uint64_t get() const noexcept
+    [[nodiscard]] uint64_t get() const noexcept
     {
         ASSERT_LOG(handle_ != InvalidHandle);
         return handle_;

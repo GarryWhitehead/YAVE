@@ -71,7 +71,7 @@ std::string SamplerSet::createShaderStr() noexcept
         std::string type = samplerTypeToStr(sampler.type);
         output += "layout (set = " + std::to_string(sampler.set) +
             ", binding = " + std::to_string(sampler.binding) + ") uniform " + type + " " +
-            sampler.name.c_str() + ";\n";
+            sampler.name + ";\n";
     }
     return output;
 }
@@ -195,9 +195,17 @@ std::string ImageStorageSet::createShaderStr() noexcept
         std::string imageType = samplerTypeToStr(sampler.type);
         std::string storageType = storageTypeToStr(sampler.storageType);
 
-        output += "layout (set = " + std::to_string(sampler.set) +
-            ", binding = " + std::to_string(sampler.binding) + ", " + sampler.formatLayout +
-            ") uniform " + storageType + " " + imageType + " " + sampler.name.c_str() + ";\n";
+        output += "layout (set = ";
+        output += std::to_string(sampler.set);
+        output += ", binding = ";
+        output += std::to_string(sampler.binding);
+        output += ", ";
+        output += sampler.formatLayout;
+        output += ") uniform ";
+        output += storageType;
+        output += " " + imageType + " ";
+        output += sampler.name;
+        output += ";\n";
     }
     return output;
 }

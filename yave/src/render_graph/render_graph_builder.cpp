@@ -27,9 +27,7 @@
 #include "render_pass_node.h"
 #include "utility/logger.h"
 
-namespace yave
-{
-namespace rg
+namespace yave::rg
 {
 
 RenderGraphBuilder::RenderGraphBuilder(RenderGraph* rGraph, PassNodeBase* node)
@@ -79,5 +77,4 @@ void RenderGraphBuilder::addPresent(const RenderGraphHandle& presentHandle)
     rGraph_->addPresentPass(presentHandle);
 }
 
-} // namespace rg
-} // namespace yave
+} // namespace yave::rg

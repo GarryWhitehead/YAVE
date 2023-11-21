@@ -55,7 +55,7 @@ T radians(const T deg)
 /// @return rotation Matrix containing the result.
 static inline mathfu::mat3 ToRotationMatrix(const mathfu::mat4& m)
 {
-    return mathfu::mat3(m[0], m[1], m[2], m[4], m[5], m[6], m[8], m[9], m[10]);
+    return mathfu::mat3 {m[0], m[1], m[2], m[4], m[5], m[6], m[8], m[9], m[10]};
 }
 
 } // namespace maths

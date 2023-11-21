@@ -42,7 +42,7 @@ IRenderer::IRenderer(IEngine* engine) : engine_(engine), rGraph_(engine->driver(
 {
     createBackbufferRT();
 }
-IRenderer::~IRenderer() {}
+IRenderer::~IRenderer() = default;
 
 void IRenderer::createBackbufferRT() noexcept
 {
@@ -74,16 +74,7 @@ void IRenderer::createBackbufferRT() noexcept
             colourAttach;
         colourAttach[0] = {0, 0, scTextureHandle};
         vkapi::RenderTarget::AttachmentInfo depth {0, 0, depthHandle_};
-        auto handle = driver.createRenderTarget(
-            "backbuffer",
-            swapchain->extentsWidth(),
-            swapchain->extentsHeight(),
-            false,
-            1,
-            {},
-            colourAttach,
-            depth,
-            {});
+        auto handle = driver.createRenderTarget(false, {}, colourAttach, depth, {});
         rtHandles_[idx] = handle;
     }
 }
@@ -128,7 +119,7 @@ void IRenderer::renderSingleSceneI(vkapi::VkDriver& driver, IScene* scene, Rende
 
     driver.beginRenderpass(cmdBuffer, data, rTarget.getHandle());
     queue.render(*engine_, *scene, cmdBuffer, RenderQueue::Type::Colour);
-    driver.endRenderpass(cmdBuffer);
+    vkapi::VkDriver::endRenderpass(cmdBuffer);
 }
 
 void IRenderer::renderI(
@@ -235,8 +226,8 @@ void IRenderer::shutDown(vkapi::VkDriver& driver) noexcept {}
 
 // ================== client api =====================
 
-Renderer::Renderer() {}
-Renderer::~Renderer() {}
+Renderer::Renderer() = default;
+Renderer::~Renderer() = default;
 
 void IRenderer::beginFrame() { beginFrameI(); }
 
@@ -322,7 +313,7 @@ void RenderTarget::build(Engine* engine, const util::CString& name, bool multiVi
         attachments_[0].texture || attachments_[DepthAttachIdx].texture,
         "Render target must contain either a valid colour or depth attachment.");
 
-    IEngine* iengine = reinterpret_cast<IEngine*>(engine);
+    auto* iengine = reinterpret_cast<IEngine*>(engine);
     auto& driver = iengine->driver();
 
     // convert attachment information to vulkan api format
@@ -338,7 +329,7 @@ void RenderTarget::build(Engine* engine, const util::CString& name, bool multiVi
     {
         if (attachments_[i].texture)
         {
-            IMappedTexture* mT = reinterpret_cast<IMappedTexture*>(attachments_[i].texture);
+            auto* mT = reinterpret_cast<IMappedTexture*>(attachments_[i].texture);
 
             vkRt.colours[i].handle = mT->getBackendHandle();
             vkRt.colours[i].level = attachments_[i].mipLevel;
@@ -357,14 +348,12 @@ void RenderTarget::build(Engine* engine, const util::CString& name, bool multiVi
 
     if (attachments_[DepthAttachIdx].texture)
     {
-        IMappedTexture* dT =
-            reinterpret_cast<IMappedTexture*>(attachments_[DepthAttachIdx].texture);
+        auto* dT = reinterpret_cast<IMappedTexture*>(attachments_[DepthAttachIdx].texture);
         vkRt.depth.handle = dT->getBackendHandle();
         vkRt.depth.level = attachments_[DepthAttachIdx].mipLevel;
     }
 
-    handle_ = driver.createRenderTarget(
-        name, minWidth, minHeight, multiView, samples_, clearCol_, vkRt.colours, vkRt.depth, {});
+    handle_ = driver.createRenderTarget(multiView, clearCol_, vkRt.colours, vkRt.depth, {});
 }
 
 } // namespace yave

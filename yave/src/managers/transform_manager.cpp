@@ -28,17 +28,15 @@
 #include <model_parser/gltf/skin_instance.h>
 #include <utility/assertion.h>
 #include <utility/logger.h>
-#include <vulkan-api/driver.h>
 
 #include <algorithm>
-#include <cstdint>
 
 namespace yave
 {
 
 ITransformManager::ITransformManager(IEngine& engine) {}
 
-ITransformManager::~ITransformManager() {}
+ITransformManager::~ITransformManager() = default;
 
 bool ITransformManager::addNodeHierachy(NodeInstance& node, Object& obj, SkinInstance* skin)
 {
@@ -132,7 +130,7 @@ void ITransformManager::updateModelTransform(NodeInfo* parent, TransformInfo& tr
         {
             // the transform data index for this Object is stored on the
             // component
-            uint32_t skinIndex = static_cast<uint32_t>(parent->skinIndex);
+            auto skinIndex = static_cast<uint32_t>(parent->skinIndex);
             ASSERT_LOG(skinIndex >= 0);
             SkinInstance& skin = skins_[skinIndex];
 
@@ -187,8 +185,8 @@ TransformInfo* ITransformManager::getTransform(const Object& obj)
 
 // ===================== client api ==============================
 
-TransformManager::TransformManager() {}
-TransformManager::~TransformManager() {}
+TransformManager::TransformManager() = default;
+TransformManager::~TransformManager() = default;
 
 void ITransformManager::addModelTransform(const ModelTransform& transform, Object& obj)
 {

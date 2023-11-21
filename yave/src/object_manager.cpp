@@ -22,10 +22,8 @@
 
 #include "object_manager.h"
 
-#include "object_instance.h"
 #include "yave/object.h"
 
-#include <cstdint>
 #include <cstring>
 
 namespace yave
@@ -67,14 +65,14 @@ Object IObjectManager::createObjectI()
 
 void IObjectManager::destroyObjectI(Object& obj)
 {
-    int index = getIndex(obj);
+    uint32_t index = getIndex(obj);
     freeIds_.push_back(index);
     generations_[index]++;
 }
 
-uint32_t IObjectManager::getIndex(const Object& obj) const { return obj.getId() & IndexMask; }
+uint32_t IObjectManager::getIndex(const Object& obj) { return obj.getId() & IndexMask; }
 
-uint8_t IObjectManager::getGeneration(const Object& obj) const
+uint8_t IObjectManager::getGeneration(const Object& obj)
 {
     return (obj.getId() >> IndexBits) & GenerationMask;
 }

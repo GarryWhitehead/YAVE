@@ -65,7 +65,7 @@ class IEngine : public Engine
 {
 public:
     IEngine();
-    ~IEngine();
+    ~IEngine() override;
 
     static IEngine* create(Window* window);
     static void destroy(IEngine* engine);
@@ -98,7 +98,7 @@ public:
     template <typename RESOURCE, typename... ARGS>
     RESOURCE* createResource(std::unordered_set<RESOURCE*>& container, ARGS&&... args)
     {
-        RESOURCE* resource = new RESOURCE(std::forward<ARGS>(args)...);
+        auto* resource = new RESOURCE(std::forward<ARGS>(args)...);
         if (resource)
         {
             container.insert(resource);
@@ -122,8 +122,11 @@ public:
     IObjectManager* getObjManagerI() noexcept { return objManager_.get(); }
     PostProcess* getPostProcess() noexcept { return postProcess_.get(); }
 
-    auto getQuadBuffers() noexcept { return std::make_pair(&quadVertexBuffer_, &quadIndexBuffer_); }
-    IRenderPrimitive* getQuadPrimitive() noexcept { return &quadPrimitive_; }
+    [[maybe_unused]] auto getQuadBuffers() noexcept
+    {
+        return std::make_pair(&quadVertexBuffer_, &quadIndexBuffer_);
+    }
+    [[maybe_unused]] IRenderPrimitive* getQuadPrimitive() noexcept { return &quadPrimitive_; }
 
     IMappedTexture* getDummyCubeMap() noexcept { return dummyCubeMap_; }
     IMappedTexture* getDummyTexture() noexcept { return dummyTexture_; }
@@ -159,7 +162,7 @@ public:
     void destroy(Camera* buffer) override;
     void destroy(Renderer* renderer) override;
 
-    void deleteRenderTarget(const vkapi::RenderTargetHandle& handle);
+    void deleteRenderTarget(const vkapi::RenderTargetHandle& handle) override;
 
 private:
     Window* currentWindow_;

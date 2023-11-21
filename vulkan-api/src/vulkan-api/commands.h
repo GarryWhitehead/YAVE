@@ -33,13 +33,13 @@
 
 namespace vkapi
 {
-// forward declerations
+// forward declarations
 class VkDriver;
 class VkContext;
 
 struct CmdFence
 {
-    CmdFence(VkContext& context);
+    explicit CmdFence(VkContext& context);
 
     VkContext& context_;
     vk::Fence fence;
@@ -54,7 +54,7 @@ struct CmdBuffer
 class Commands
 {
 public:
-    // some erbitarty numbers which need monitoring for possible issues due to
+    // some arbitrary numbers which need monitoring for possible issues due to
     // overflow
     constexpr static uint32_t MaxCommandBufferSize = 10;
 

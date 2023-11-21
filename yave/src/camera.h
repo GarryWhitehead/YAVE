@@ -35,7 +35,7 @@ class ICamera : public Camera
 {
 public:
     ICamera();
-    ~ICamera();
+    virtual ~ICamera();
 
     void shutDown(vkapi::VkDriver& driver) noexcept;
 
@@ -51,8 +51,8 @@ public:
     mathfu::vec3 position();
     mathfu::mat4& modelMatrix() noexcept { return model_; }
 
-    float getNear() const noexcept { return near_; }
-    float getFar() const noexcept { return far_; }
+    [[nodiscard]] float getNear() const noexcept { return near_; }
+    [[nodiscard]] float getFar() const noexcept { return far_; }
 
     // =============== setters =========================
 

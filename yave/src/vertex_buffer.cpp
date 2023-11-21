@@ -54,6 +54,11 @@ auto IVertexBuffer::attributeToWidthFormat(backend::BufferElementType attr)
             format = vk::Format::eR32G32B32A32Sfloat;
             break;
         }
+        case backend::BufferElementType::Uint: {
+            width = 1;
+            format = vk::Format::eR8Uint;
+            break;
+        }
         case backend::BufferElementType::Int: {
             width = 1;
             format = vk::Format::eR8Unorm;
@@ -138,8 +143,8 @@ void IVertexBuffer::buildI(vkapi::VkDriver& driver, uint32_t vertexCount, void* 
         }
     }
 
-    int currOffset = 0;
-    int prevOffset = 0;
+    uint32_t currOffset = 0;
+    uint32_t prevOffset = 0;
     for (size_t idx = 0; idx < vkapi::PipelineCache::MaxVertexAttributeCount; ++idx)
     {
         if (attributes_[idx].format != vk::Format::eUndefined)
@@ -162,8 +167,8 @@ vkapi::VertexBuffer* IVertexBuffer::getGpuBuffer(vkapi::VkDriver& driver) noexce
 
 // ====================== client api ========================
 
-VertexBuffer::VertexBuffer() {}
-VertexBuffer::~VertexBuffer() {}
+VertexBuffer::VertexBuffer() = default;
+VertexBuffer::~VertexBuffer() = default;
 
 void IVertexBuffer::build(Engine* engine, uint32_t vertexCount, void* vertexData)
 {

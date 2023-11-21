@@ -35,19 +35,14 @@ vk::Format findSupportedFormat(
 {
     vk::Format outputFormat;
 
-    for (auto format : formats)
+    for (const auto& format : formats)
     {
         vk::FormatProperties properties = gpu.getFormatProperties(format);
 
-        if (tiling == vk::ImageTiling::eLinear &&
-            formatFeature == (properties.linearTilingFeatures & formatFeature))
-        {
-            outputFormat = format;
-            break;
-        }
-        else if (
-            tiling == vk::ImageTiling::eOptimal &&
-            formatFeature == (properties.optimalTilingFeatures & formatFeature))
+        if ((tiling == vk::ImageTiling::eLinear &&
+             formatFeature == (properties.linearTilingFeatures & formatFeature)) ||
+            (tiling == vk::ImageTiling::eOptimal &&
+             formatFeature == (properties.optimalTilingFeatures & formatFeature)))
         {
             outputFormat = format;
             break;
@@ -75,7 +70,7 @@ vk::Format getSupportedDepthFormat(vk::PhysicalDevice& gpu)
         gpu);
 }
 
-vk::Format convertToVk(std::string type, uint32_t width)
+vk::Format convertToVk(const std::string& type, uint32_t width)
 {
     // TODO: add other base types and widths
     vk::Format format = vk::Format::eUndefined;
@@ -125,7 +120,7 @@ vk::Format convertToVk(std::string type, uint32_t width)
     return format;
 }
 
-uint32_t getStrideFromType(std::string type)
+uint32_t getStrideFromType(const std::string& type)
 {
     // TODO: add other base types and widths
     uint32_t size = 0;

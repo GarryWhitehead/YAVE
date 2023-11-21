@@ -36,8 +36,6 @@
 #include "vulkan-api/common.h"
 #include "vulkan-api/driver.h"
 #include "vulkan-api/image.h"
-#include "vulkan-api/pipeline.h"
-#include "vulkan-api/pipeline_cache.h"
 
 namespace yave
 {
@@ -129,9 +127,7 @@ rg::RenderGraphHandle ColourPass::render(
 
             driver.beginRenderpass(cmdBuffer, info.data, info.handle);
             queue.render(engine, scene, cmdBuffer, RenderQueue::Type::Colour);
-            driver.endRenderpass(cmdBuffer);
-
-            // cmds.flush();
+            vkapi::VkDriver::endRenderpass(cmdBuffer);
         });
 
     return rg.getData().colour;
@@ -146,10 +142,10 @@ void ColourPass::drawCallback(
 {
     auto& driver = engine.driver();
 
-    IRenderable* renderData = static_cast<IRenderable*>(renderableData);
+    auto* renderData = static_cast<IRenderable*>(renderableData);
     ASSERT_LOG(renderData);
 
-    IRenderPrimitive* prim = static_cast<IRenderPrimitive*>(primitiveData);
+    auto* prim = static_cast<IRenderPrimitive*>(primitiveData);
     IMaterial* mat = prim->getMaterial();
     auto* programBundle = mat->getProgram();
 

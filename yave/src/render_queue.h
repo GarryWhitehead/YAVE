@@ -31,7 +31,7 @@
 namespace yave
 {
 
-// forward declerations
+// forward declarations
 class IScene;
 class IEngine;
 
@@ -106,7 +106,7 @@ public:
 
     static SortKey createSortKey(uint8_t screenLayer, uint8_t viewLayer, size_t pipelineId);
 
-    void sortQueue(const Type type);
+    void sortQueue(Type type);
 
     void sortAll();
 
@@ -126,7 +126,8 @@ public:
      * @param part Specifies whether the queue should be sorted before fetching
      * @return A vector containing the renderables in the specified range
      */
-    const std::vector<RenderableQueueInfo>& queue(const RenderQueue::Type type) const noexcept;
+    [[nodiscard]] const std::vector<RenderableQueueInfo>&
+    queue(RenderQueue::Type type) const noexcept;
 
 private:
     // ordered by queue type

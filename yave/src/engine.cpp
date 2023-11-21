@@ -32,7 +32,6 @@
 #include "renderable.h"
 #include "scene.h"
 #include "skybox.h"
-#include "utility/timer.h"
 #include "vulkan-api/swapchain.h"
 #include "wave_generator.h"
 #include "yave/renderable.h"
@@ -52,6 +51,8 @@ IEngine::IEngine()
       transformManager_(std::make_unique<ITransformManager>(*this)),
       objManager_(std::make_unique<IObjectManager>()),
       currentSwapchain_(nullptr),
+      dummyCubeMap_(nullptr),
+      dummyTexture_(nullptr),
       driver_(nullptr)
 {
 }
@@ -61,7 +62,7 @@ IEngine::~IEngine() = default;
 IEngine* IEngine::create(Window* win)
 {
     // Create and initialise the vulkan backend
-    vkapi::VkDriver* driver = new vkapi::VkDriver;
+    auto* driver = new vkapi::VkDriver;
     ASSERT_LOG(win);
     const auto& [ext, count] = win->getInstanceExt();
     driver->createInstance(ext, count);
@@ -72,11 +73,11 @@ IEngine* IEngine::create(Window* win)
     // Create the abstract physical device object
     driver->init(win->getSurface());
 
-    IEngine* engine = new IEngine();
+    auto* engine = new IEngine();
     engine->currentWindow_ = win;
     engine->driver_ = std::unique_ptr<vkapi::VkDriver>(driver);
 
-    // its safe to initialise the lighting manager and post process now
+    // it's safe to initialise the lighting manager and post process now
     // (requires the device to be init)
     engine->lightManager_ = std::make_unique<ILightManager>(*engine);
     engine->postProcess_ = std::make_unique<PostProcess>(*engine);
@@ -243,8 +244,8 @@ void IEngine::deleteRenderTargetI(const vkapi::RenderTargetHandle& handle)
 
 // ==================== client api ========================
 
-Engine::Engine() {}
-Engine::~Engine() {}
+Engine::Engine() = default;
+Engine::~Engine() = default;
 
 Engine* Engine::create(Window* win) { return reinterpret_cast<Engine*>(IEngine::create(win)); }
 

@@ -199,7 +199,7 @@ int main()
     // add the skybox to the scene
     yave::Skybox* skybox = engine->createSkybox(scene);
     skybox->setTexture(skyboxTexture);
-    skybox->build(scene, app.getWindow()->getCamera());
+    skybox->build(scene);
 
     scene->setSkybox(skybox);
 

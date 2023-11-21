@@ -59,12 +59,6 @@ public:
         float windSpeed = 40.0f;
         float choppyFactor = 1.0f;
         float gridLength = 1024.0f;
-        // clamps the patch to a min/max distance
-        float minDistance = 20.0f;
-        float maxDistance = 800.0f;
-        // min/max tesselation levels
-        float minTessLevel = 4.0f;
-        float maxTessLevel = 64.0f;
         float dispFactor = 20.0f;
         float tessFactor = 0.75f;
         float tessEdgeSize = 20.0f;
@@ -72,7 +66,7 @@ public:
     };
 
     IWaveGenerator(IEngine& engine, IScene& scene);
-    ~IWaveGenerator();
+    ~IWaveGenerator() override;
 
     void generatePatch() noexcept;
 
@@ -102,7 +96,7 @@ private:
     // 4 channels for our noise texture
     float noiseMap_[Resolution * Resolution * 4];
 
-    // inital spectrum compute
+    // initial spectrum compute
     // output textures
     IMappedTexture* h0kTexture_;
     IMappedTexture* h0minuskTexture_;

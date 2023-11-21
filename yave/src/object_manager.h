@@ -47,15 +47,15 @@ public:
     constexpr static int MinimumFreeIds = 1024;
 
     IObjectManager();
-    ~IObjectManager();
+    virtual ~IObjectManager();
 
     Object createObjectI();
 
     void destroyObjectI(Object& obj);
 
-    uint32_t getIndex(const Object& obj) const;
+    [[nodiscard]] static uint32_t getIndex(const Object& obj);
 
-    uint8_t getGeneration(const Object& obj) const;
+    [[nodiscard]] static uint8_t getGeneration(const Object& obj);
 
     bool isAlive(Object& obj) const noexcept;
 
@@ -70,7 +70,7 @@ private:
 
 private:
     int currentIdx_;
-    std::deque<int> freeIds_;
+    std::deque<uint32_t> freeIds_;
     uint8_t* generations_;
 };
 

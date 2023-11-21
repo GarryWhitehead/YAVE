@@ -34,9 +34,7 @@ class Image;
 class ImageView;
 } // namespace vkapi
 
-namespace yave
-{
-namespace rg
+namespace yave::rg
 {
 
 // forward declerations
@@ -88,5 +86,4 @@ private:
     RenderPassNode* passNode_;
 };
 
-} // namespace rg
-} // namespace yave
+} // namespace yave::rg

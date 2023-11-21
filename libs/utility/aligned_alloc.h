@@ -39,7 +39,8 @@ void* align_alloc(size_t size, size_t alignment)
     return _aligned_malloc(size, alignment);
 #else
     void* data = nullptr;
-    posix_memalign((void**)&data, alignment, size);
+    int error = posix_memalign((void**)&data, alignment, size);
+    ASSERT_FATAL(!error, "Error allocating aligned memory - error code: %i", error);
     return data;
 #endif
 }

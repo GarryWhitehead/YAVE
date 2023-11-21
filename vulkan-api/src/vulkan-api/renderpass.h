@@ -39,7 +39,7 @@
 namespace vkapi
 {
 
-// forward declerations
+// forward declarations
 class ImageView;
 class VkContext;
 
@@ -85,7 +85,7 @@ public:
     };
 
 
-    // Describe the elements of an colour/depth/stencil attachment.
+    // Describe the elements of a colour/depth/stencil attachment.
     struct Attachment
     {
         vk::Format format;
@@ -100,7 +100,7 @@ public:
         uint32_t height;
     };
 
-    RenderPass(VkContext& context);
+    explicit RenderPass(VkContext& context);
     ~RenderPass();
 
     // static functions
@@ -117,16 +117,12 @@ public:
 
     // ====================== the getter and setters
     // =================================
-    const vk::RenderPass& get() const;
-
-    void setDepthClear(float col);
+    [[nodiscard]] const vk::RenderPass& get() const;
 
     // Functions that return the state of various aspects of this pass
     std::vector<vk::AttachmentDescription>& getAttachments();
 
-    std::vector<vk::PipelineColorBlendAttachmentState> getColourAttachs();
-
-    uint32_t colAttachCount() const noexcept
+    [[nodiscard]] uint32_t colAttachCount() const noexcept
     {
         return static_cast<uint32_t>(colourAttachRefs_.size());
     }
@@ -149,9 +145,6 @@ private:
 
     // The dependencies between renderpasses and external sources
     std::array<vk::SubpassDependency, 2> dependencies_;
-
-    // The clear colour for this pass - for each attachment
-    float depthClear_;
 };
 
 /**
@@ -160,19 +153,18 @@ private:
  */
 struct RenderPassData
 {
-    std::array<backend::LoadClearFlags, RenderTarget::MaxAttachmentCount> loadClearFlags = {
-        backend::LoadClearFlags::DontCare};
-    std::array<backend::StoreClearFlags, RenderTarget::MaxAttachmentCount> storeClearFlags = {
-        backend::StoreClearFlags::DontCare};
+    template <typename T>
+    using AttachArray = std::array<T, RenderTarget::MaxAttachmentCount>;
+
+    AttachArray<backend::LoadClearFlags> loadClearFlags {backend::LoadClearFlags::DontCare};
+    AttachArray<backend::StoreClearFlags> storeClearFlags {backend::StoreClearFlags::DontCare};
     // initial layout is usually undefined, but needs to be the layout used in the previous pass
     // when load-clear flags are set to 'load'
-    std::array<vk::ImageLayout, RenderTarget::MaxAttachmentCount> initialLayouts = {
-        vk::ImageLayout::eUndefined};
-    std::array<vk::ImageLayout, RenderTarget::MaxAttachmentCount> finalLayouts = {
-        vk::ImageLayout::eShaderReadOnlyOptimal};
-    util::Colour4 clearCol;
+    AttachArray<vk::ImageLayout> initialLayouts {vk::ImageLayout::eUndefined};
+    AttachArray<vk::ImageLayout> finalLayouts {vk::ImageLayout::eShaderReadOnlyOptimal};
     uint32_t width = 0;
     uint32_t height = 0;
+    util::Colour4 clearCol {0.0f};
 };
 
 class FrameBuffer
@@ -180,7 +172,7 @@ class FrameBuffer
 public:
     static constexpr int LifetimeFrameCount = 10;
 
-    FrameBuffer(VkContext& context);
+    explicit FrameBuffer(VkContext& context);
     ~FrameBuffer();
 
     void create(
@@ -191,10 +183,10 @@ public:
         uint32_t height,
         uint8_t layers);
 
-    const vk::Framebuffer& get() const;
+    [[nodiscard]] const vk::Framebuffer& get() const;
 
-    uint32_t getWidth() const;
-    uint32_t getHeight() const;
+    [[nodiscard]] uint32_t getWidth() const;
+    [[nodiscard]] uint32_t getHeight() const;
 
     // The frame in which this framebuffer was created. Used to
     // work out the point at which it will be destroyed based on its
@@ -206,8 +198,8 @@ private:
 
     vk::Framebuffer fbo_;
 
-    uint32_t width_ = 0;
-    uint32_t height_ = 0;
+    uint32_t width_;
+    uint32_t height_;
 };
 
 } // namespace vkapi

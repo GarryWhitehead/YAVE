@@ -108,26 +108,25 @@ public:
         __SENTINEL__
     };
 
-    ILightManager(IEngine& engine);
-    ~ILightManager();
+    explicit ILightManager(IEngine& engine);
+    ~ILightManager() override;
 
     void update(const ICamera& camera);
 
     void setVariant(Variants variant);
-    void removeVariant(Variants variant);
+    [[maybe_unused]] void removeVariant(Variants variant);
     vkapi::VDefinitions createShaderVariants();
 
     void prepare(IScene* scene);
 
     void updateSsbo(std::vector<LightInstance*>& lights);
 
-    void setIntensity(float intensity, LightManager::Type type, LightInstance& light);
-
-    void calculateSpotCone(float outerCone, float innerCone, LightInstance& spotLight);
-
-    void setRadius(float fallout, LightInstance& light);
+    static void setIntensity(float intensity, LightManager::Type type, LightInstance& light);
+    static void calculateSpotCone(float outerCone, float innerCone, LightInstance& spotLight);
+    static void setRadius(float fallout, LightInstance& light);
 
     void setIntensityI(float intensity, Object& obj);
+
     void setFalloutI(float fallout, Object& obj);
     void setPositionI(const mathfu::vec3& pos, Object& obj);
     void setTargetI(const mathfu::vec3& target, Object& obj);
@@ -140,7 +139,7 @@ public:
 
     void createLight(const CreateInfo& ci, Object& obj, LightManager::Type type);
 
-    size_t getLightCount() const;
+    [[maybe_unused]] size_t getLightCount() const;
 
     LightInstance* getLightInstance(Object& obj);
 

@@ -40,11 +40,11 @@ namespace yave
 
 ILightManager::ILightManager(IEngine& engine)
     : engine_(engine),
-      programBundle_(nullptr),
       currentScene_(nullptr),
       sunAngularRadius_(0.0f),
       sunHaloSize_(0.0f),
-      sunHaloFalloff_(0.0f)
+      sunHaloFalloff_(0.0f),
+      programBundle_(nullptr)
 {
     ssbo_ = std::make_unique<StorageBuffer>(
         StorageBuffer::AccessType::ReadOnly,
@@ -102,7 +102,7 @@ ILightManager::ILightManager(IEngine& engine)
         SamplerSet::SamplerType::e2d);
 }
 
-ILightManager::~ILightManager() {}
+ILightManager::~ILightManager() = default;
 
 void ILightManager::prepare(IScene* scene)
 {
@@ -132,13 +132,10 @@ void ILightManager::prepare(IScene* scene)
     // clear the shader program data
     programBundle_->clear();
 
-    ICamera* camera = scene->getCurrentCameraI();
-
     programBundle_->rasterState_.cullMode = vk::CullModeFlagBits::eFront;
     programBundle_->rasterState_.frontFace = vk::FrontFace::eCounterClockwise;
 
     // The camera uniform buffer required by the vertex shader.
-    auto* vProgram = programBundle_->getProgram(backend::ShaderStage::Vertex);
     auto* fProgram = programBundle_->getProgram(backend::ShaderStage::Fragment);
 
     fProgram->addAttributeBlock(samplerSets_.createShaderStr());
@@ -254,7 +251,7 @@ void ILightManager::createLight(
     setSunHaloSize(ci.sunHaloSize, *instance);
     setSunHaloFalloff(ci.sunHaloFalloff, *instance);
 
-    // keep track of the directonal light as its parameters are needed
+    // keep track of the directional light as its parameters are needed
     // for rendering the sun.
     if (type == LightManager::Type::Directional)
     {
@@ -347,7 +344,7 @@ void ILightManager::updateSsbo(std::vector<LightInstance*>& lights)
     auto& driver = engine_.driver();
     uint32_t lightCount = lights.size() + 1;
     size_t mappedSize = lightCount * sizeof(ILightManager::LightSsbo);
-    ssbo_->mapGpuBuffer(driver, ssboBuffer_, mappedSize);
+    ssbo_->mapGpuBuffer(ssboBuffer_, mappedSize);
 }
 
 void ILightManager::setVariant(Variants variant) { variants_.setBit(variant); }
@@ -452,7 +449,6 @@ rg::RenderGraphHandle ILightManager::render(
             auto normal = blackboard->get("normal");
             auto emissive = blackboard->get("emissive");
             auto pbr = blackboard->get("pbr");
-            auto gbDepth = blackboard->get("gbufferDepth");
 
             rg::TextureResource::Descriptor texDesc;
             texDesc.format = vk::Format::eR16G16B16A16Unorm;
@@ -547,7 +543,7 @@ rg::RenderGraphHandle ILightManager::render(
 
             driver.draw(cmdBuffer, *programBundle_);
 
-            driver.endRenderpass(cmdBuffer);
+            vkapi::VkDriver::endRenderpass(cmdBuffer);
             // cmds.flush();
         });
 

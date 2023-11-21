@@ -27,7 +27,6 @@
 #include <utility/colour.h>
 #include <utility/cstring.h>
 
-#include <cassert>
 #include <cstdint>
 #include <filesystem>
 
@@ -64,7 +63,7 @@ public:
 
     bool create(cgltf_material& mat, GltfExtension& extensions);
 
-    static float convertToAlpha(const cgltf_alpha_mode mode);
+    static float convertToAlpha(cgltf_alpha_mode mode);
     static std::string textureTypeToStr(TextureType type);
     /**
      * @brief The main attributes for this material.
@@ -114,17 +113,13 @@ private:
     Sampler::AddressMode getAddressMode(int mode);
 
 public:
-    // ====================== material data (public)
-    // ========================================
+    // ==== material data (public) ========
 
     /// used to identify this material.
-    util::CString name;
+    util::CString name_;
 
-    /// a hash of the material name; used as a unique id
-    uint32_t materialId;
-
-    Attributes attributes;
-    Sampler sampler;
+    Attributes attributes_;
+    Sampler sampler_;
 
     struct TextureInfo
     {
@@ -132,12 +127,12 @@ public:
         TextureType type;
     };
     /// the paths for all textures that are used by the material
-    std::vector<TextureInfo> textures;
+    std::vector<TextureInfo> textures_;
 
     /// the material pipeline to use
-    PbrPipeline pipeline = PbrPipeline::None;
+    PbrPipeline pipeline_ = PbrPipeline::None;
 
-    bool doubleSided = false;
+    bool doubleSided_ = false;
 };
 
 } // namespace yave

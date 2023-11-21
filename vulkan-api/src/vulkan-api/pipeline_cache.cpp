@@ -31,7 +31,6 @@
 #include "texture.h"
 #include "utility.h"
 
-#include <spdlog/spdlog.h>
 #include <utility/assertion.h>
 
 namespace vkapi
@@ -43,11 +42,11 @@ PipelineCache::PipelineCache(VkContext& context, VkDriver& driver)
     setPipelineKeyToDefault();
 }
 
-PipelineCache::~PipelineCache() {}
+PipelineCache::~PipelineCache() = default;
 
 bool PipelineCache::GraphicsPlineKey::operator==(const GraphicsPlineKey& rhs) const noexcept
 {
-    // this compare could be one big memcpy but for debugging purposes its
+    // this compare could be one big memcpy but for debugging purposes it's
     // easier to split the comparisons into their component parts.
     if (memcmp(&rasterState, &rhs.rasterState, sizeof(RasterStateBlock)) != 0)
     {
@@ -235,13 +234,13 @@ GraphicsPipeline* PipelineCache::findOrCreateGraphicsPipeline(PipelineLayout& pi
 {
     auto iter = pipelines_.find(graphicsPlineRequires_);
 
-    // if the pipeline has already has an instance return this
+    // if the pipeline already has an instance return this
     if (iter != pipelines_.end())
     {
         return iter->second.get();
     }
 
-    // else create a new pipeline - If we are in a threaded environemt then we
+    // else create a new pipeline - If we are in a threaded environment then we
     // can't add to the list until we are out of the thread
     std::unique_ptr<GraphicsPipeline> pline = std::make_unique<GraphicsPipeline>(context_);
     GraphicsPipeline* output = pline.get();
@@ -263,7 +262,7 @@ ComputePipeline* PipelineCache::findOrCreateComputePipeline(PipelineLayout& pipe
 {
     auto iter = computePipelines_.find(computePlineRequires_);
 
-    // if the pipeline has already has an instance return this
+    // if the pipeline already has an instance return this
     if (iter != computePipelines_.end())
     {
         return iter->second.get();
@@ -521,8 +520,8 @@ void PipelineCache::createDescriptorSets(
         bufferInfo.offset = 0;
         bufferInfo.range = range;
 
-        writeSets.push_back(
-            {set, static_cast<uint32_t>(bind), 0, 1, type, nullptr, &bufferInfo, nullptr});
+        writeSets.emplace_back(
+            set, static_cast<uint32_t>(bind), 0, 1, type, nullptr, &bufferInfo, nullptr);
     };
 
     // ==================== buffer descriptor writes ===============
@@ -589,8 +588,8 @@ void PipelineCache::createDescriptorSets(
         imageInfo.imageView = desc.imageView;
         imageInfo.sampler = desc.imageSampler;
 
-        writeSets.push_back(
-            {set, static_cast<uint32_t>(binding), 0, 1, type, &imageInfo, nullptr, nullptr});
+        writeSets.emplace_back(
+            set, static_cast<uint32_t>(binding), 0, 1, type, &imageInfo, nullptr, nullptr);
     };
 
     for (uint8_t bind = 0; bind < MaxSamplerBindCount; ++bind)

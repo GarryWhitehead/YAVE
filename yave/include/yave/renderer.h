@@ -64,19 +64,19 @@ public:
 
     void build(Engine* engine, const util::CString& name, bool multiView = false);
 
-    vkapi::RenderTargetHandle getHandle() const { return handle_; }
+    [[nodiscard]] vkapi::RenderTargetHandle getHandle() const { return handle_; }
 
     backend::LoadClearFlags* getLoadFlags() noexcept { return loadFlags_; }
     backend::StoreClearFlags* getStoreFlags() noexcept { return storeFlags_; }
 
-    uint32_t getWidth() const { return width_; }
-    uint32_t getHeight() const { return height_; }
+    [[nodiscard]] uint32_t getWidth() const { return width_; }
+    [[nodiscard]] uint32_t getHeight() const { return height_; }
 
 private:
     Attachment attachments_[MaxAttachCount] = {};
     uint8_t samples_ = 1;
     vkapi::RenderTargetHandle handle_;
-    util::Colour4 clearCol_ = {0.0f};
+    util::Colour4 clearCol_ {0.0f};
     backend::LoadClearFlags loadFlags_[MaxAttachCount];
     backend::StoreClearFlags storeFlags_[MaxAttachCount];
     uint32_t width_;

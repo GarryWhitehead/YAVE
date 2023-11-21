@@ -70,7 +70,7 @@ public:
     /**
      * @brief Sets up all the vulkan devices and queues.
      */
-    bool prepareDevice(const vk::SurfaceKHR windowSurface);
+    bool prepareDevice(vk::SurfaceKHR windowSurface);
 
     uint32_t selectMemoryType(uint32_t flags, vk::MemoryPropertyFlags reqs);
 
@@ -88,15 +88,13 @@ public:
 
 
     // All the getters
-    const vk::Instance& instance() const { return instance_; }
-    const vk::Device& device() const { return device_; }
-    const vk::PhysicalDevice physical() const { return physical_; }
-    const vk::PhysicalDeviceFeatures features() const { return features_; }
-    const QueueInfo& queueIndices() const { return queueFamilyIndex_; }
-    const vk::Queue& graphicsQueue() const { return graphicsQueue_; }
-    const vk::Queue& presentQueue() const { return presentQueue_; }
-    const vk::Queue& computeQueue() const { return computeQueue_; }
-    const Extensions& deviceExt() const { return deviceExtensions_; }
+    [[nodiscard]] const vk::Instance& instance() const { return instance_; }
+    [[nodiscard]] const vk::Device& device() const { return device_; }
+    [[nodiscard]] const vk::PhysicalDevice& physical() const { return physical_; }
+    [[nodiscard]] const vk::PhysicalDeviceFeatures& features() const { return features_; }
+    [[nodiscard]] const QueueInfo& queueIndices() const { return queueFamilyIndex_; }
+    [[nodiscard]] const vk::Queue& graphicsQueue() const { return graphicsQueue_; }
+    [[nodiscard]] const vk::Queue& presentQueue() const { return presentQueue_; }
 
 private:
     vk::Instance instance_;

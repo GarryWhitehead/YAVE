@@ -33,10 +33,7 @@ BufferBase::BufferBase() : bufferData_(nullptr), currentBufferSize_(0), accumSiz
 
 BufferBase::~BufferBase()
 {
-    if (bufferData_)
-    {
-        delete bufferData_;
-    }
+    delete bufferData_;
     for (const auto& element : elements_)
     {
         if (element.value)
@@ -48,7 +45,7 @@ BufferBase::~BufferBase()
 
 auto elementTypeSizeof(backend::BufferElementType type)
 {
-    int output;
+    int output = 0;
     switch (type)
     {
         case backend::BufferElementType::Uint:
@@ -142,13 +139,10 @@ vk::DescriptorType bufferTypeFromSet(uint32_t set)
     {
         case vkapi::PipelineCache::UboSetValue:
             return vk::DescriptorType::eUniformBuffer;
-            break;
         case vkapi::PipelineCache::UboDynamicSetValue:
             return vk::DescriptorType::eUniformBufferDynamic;
-            break;
         case vkapi::PipelineCache::SsboSetValue:
             return vk::DescriptorType::eStorageBuffer;
-            break;
         default:
             SPDLOG_WARN("Unrecognised buffer type when converting from set value.");
             break;
@@ -158,7 +152,7 @@ vk::DescriptorType bufferTypeFromSet(uint32_t set)
 
 void* BufferBase::getBlockData() noexcept
 {
-    ASSERT_LOG(elements_.size() > 0);
+    ASSERT_LOG(!elements_.empty());
 
     if (bufferData_ && currentBufferSize_ < accumSize_)
     {
@@ -248,29 +242,11 @@ void BufferBase::updateElement(const std::string& name, void* data) noexcept
     memcpy(iter->value, data, size);
 }
 
-size_t BufferBase::getOffset(const std::string& name)
-{
-    size_t offset = 0;
-    for (const auto& element : elements_)
-    {
-        if (element.name == name)
-        {
-            return offset;
-        }
-        offset += element.size;
-    }
-    SPDLOG_ERROR(
-        "Invalid offset call: Uniform buffer name {} not found in elements "
-        "list",
-        name.c_str());
-    return -1;
-}
-
-PushBlock::PushBlock(const std::string memberName, const std::string& aliasName)
-    : memberName_(memberName), aliasName_(aliasName)
+PushBlock::PushBlock(std::string memberName, std::string aliasName)
+    : memberName_(std::move(memberName)), aliasName_(std::move(aliasName))
 {
 }
-PushBlock::~PushBlock() {}
+PushBlock::~PushBlock() = default;
 
 std::string PushBlock::createShaderStr() noexcept
 {
@@ -294,16 +270,16 @@ std::string PushBlock::createShaderStr() noexcept
 }
 
 UniformBuffer::UniformBuffer(
-    uint32_t set, uint32_t binding, const std::string& memberName, const std::string& aliasName)
-    : memberName_(memberName),
-      aliasName_(aliasName),
+    uint32_t set, uint32_t binding, std::string memberName, std::string aliasName)
+    : memberName_(std::move(memberName)),
+      aliasName_(std::move(aliasName)),
       binding_(binding),
       set_(set),
       currentGpuBufferSize_(0)
 {
 }
 
-UniformBuffer::~UniformBuffer() {}
+UniformBuffer::~UniformBuffer() = default;
 
 std::string UniformBuffer::createShaderStr() noexcept
 {
@@ -334,7 +310,7 @@ std::string UniformBuffer::createShaderStr() noexcept
 
 void UniformBuffer::createGpuBuffer(vkapi::VkDriver& driver, size_t size) noexcept
 {
-    ASSERT_FATAL(elements_.size() > 0, "This uniform has no elements added.");
+    ASSERT_FATAL(!elements_.empty(), "This uniform has no elements added.");
     if (size > currentGpuBufferSize_)
     {
         vkHandle_ = driver.addUbo(size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
@@ -347,7 +323,7 @@ void UniformBuffer::createGpuBuffer(vkapi::VkDriver& driver) noexcept
     createGpuBuffer(driver, accumSize_);
 }
 
-void UniformBuffer::mapGpuBuffer(vkapi::VkDriver& driver, void* data, size_t size) noexcept
+void UniformBuffer::mapGpuBuffer(void* data, size_t size) noexcept
 {
     vkapi::Buffer* buffer = vkHandle_.getResource();
     ASSERT_FATAL(
@@ -355,10 +331,7 @@ void UniformBuffer::mapGpuBuffer(vkapi::VkDriver& driver, void* data, size_t siz
     buffer->mapToGpuBuffer(data, size);
 }
 
-void UniformBuffer::mapGpuBuffer(vkapi::VkDriver& driver, void* data) noexcept
-{
-    mapGpuBuffer(driver, data, accumSize_);
-}
+void UniformBuffer::mapGpuBuffer(void* data) noexcept { mapGpuBuffer(data, accumSize_); }
 
 UniformBuffer::BackendBufferParams UniformBuffer::getBufferParams(vkapi::VkDriver& driver) noexcept
 {
@@ -375,7 +348,7 @@ StorageBuffer::StorageBuffer(
 {
 }
 
-StorageBuffer::~StorageBuffer() {}
+StorageBuffer::~StorageBuffer() = default;
 
 std::string StorageBuffer::createShaderStr() noexcept
 {
@@ -421,7 +394,7 @@ std::string StorageBuffer::createShaderStr() noexcept
 
 void StorageBuffer::createGpuBuffer(vkapi::VkDriver& driver, uint32_t size) noexcept
 {
-    ASSERT_FATAL(elements_.size() > 0, "This storage buffer has no elements added.");
+    ASSERT_FATAL(!elements_.empty(), "This storage buffer has no elements added.");
     ASSERT_LOG(size > 0);
 
     if (size > currentGpuBufferSize_)

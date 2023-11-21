@@ -30,12 +30,8 @@
 #include "vulkan-api/driver.h"
 #include "vulkan-api/image.h"
 #include "vulkan-api/texture.h"
-#include "vulkan-api/utility.h"
 
-
-namespace yave
-{
-namespace rg
+namespace yave::rg
 {
 
 void ResourceBase::registerPass(PassNodeBase* node)
@@ -99,10 +95,9 @@ void TextureResource::updateResourceUsage(
     std::vector<std::unique_ptr<ResourceEdge>>& edges,
     ResourceEdge* writer) noexcept
 {
-    for (size_t i = 0; i < edges.size(); ++i)
+    for (const auto& edge : edges)
     {
-        ResourceEdge* edge = edges[i].get();
-        if (graph.isValidEdge(reinterpret_cast<Edge*>(edge)))
+        if (graph.isValidEdge(reinterpret_cast<Edge*>(edge.get())))
         {
             imageUsage_ |= edge->usage_;
         }
@@ -115,7 +110,7 @@ void TextureResource::updateResourceUsage(
     TextureResource* resource = this;
     while (resource != resource->getParent())
     {
-        resource = static_cast<TextureResource*>(resource->getParent());
+        resource = dynamic_cast<TextureResource*>(resource->getParent());
         resource->imageUsage_ = imageUsage_;
     }
 }
@@ -128,33 +123,6 @@ void TextureResource::bake(vkapi::VkDriver& driver)
 }
 
 void TextureResource::destroy(vkapi::VkDriver& driver) { driver.destroyTexture2D(handle_); }
-
-bool TextureResource::isDepthFormat()
-{
-    if (vkapi::isDepth(desc_.format))
-    {
-        return true;
-    }
-    return false;
-}
-
-bool TextureResource::isColourFormat()
-{
-    if (!vkapi::isDepth(desc_.format) && !vkapi::isStencil(desc_.format))
-    {
-        return true;
-    }
-    return false;
-}
-
-bool TextureResource::isStencilFormat()
-{
-    if (vkapi::isStencil(desc_.format))
-    {
-        return true;
-    }
-    return false;
-}
 
 ImportedResource::ImportedResource(
     const util::CString& name,
@@ -188,6 +156,4 @@ ImportedRenderTarget::ImportedRenderTarget(
 
 ImportedRenderTarget::~ImportedRenderTarget() = default;
 
-
-} // namespace rg
-} // namespace yave
+} // namespace yave::rg

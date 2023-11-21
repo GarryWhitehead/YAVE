@@ -33,9 +33,7 @@
 #include <array>
 #include <functional>
 
-namespace yave
-{
-namespace rg
+namespace yave::rg
 {
 
 class RenderGraph;
@@ -75,8 +73,8 @@ struct PassDescriptor
 class RenderGraphPassBase
 {
 public:
-    RenderGraphPassBase() = default;
-    virtual ~RenderGraphPassBase() {}
+    RenderGraphPassBase() : node_(nullptr) {}
+    virtual ~RenderGraphPassBase() = default;
 
     void setNode(RenderPassNode* node) { node_ = node; }
     RenderPassNode const* node() { return node_; }
@@ -91,7 +89,7 @@ template <typename DataType, typename ExecuteFunc>
 class RenderGraphPass : public RenderGraphPassBase
 {
 public:
-    RenderGraphPass(ExecuteFunc&& execute) : execute_(std::move(execute)) {}
+    explicit RenderGraphPass(ExecuteFunc&& execute) : execute_(std::move(execute)) {}
 
     void execute(vkapi::VkDriver& driver, const RenderGraphResource& resource) override
     {
@@ -105,5 +103,4 @@ private:
     ExecuteFunc execute_;
 };
 
-} // namespace rg
-} // namespace yave
+} // namespace yave::rg

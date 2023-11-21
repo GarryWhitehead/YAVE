@@ -51,7 +51,7 @@ class Timer
 public:
     static_assert(is_chrono_duration<TimeType>::value, "TimeType must be a std::chrono::duration");
 
-    Timer() { startTimer(); };
+    Timer() : current(0.0) { startTimer(); };
 
     void startTimer()
     {

@@ -148,8 +148,6 @@ void Window::updateCameraForWindow()
 
     int fbWidth, fbHeight;
     glfwGetFramebufferSize(window_, &fbWidth, &fbHeight);
-    float dpiScaleX = static_cast<float>(width / fbWidth);
-    float dpiScaleY = static_cast<float>(height / fbHeight);
 
     camera_->setProjection(
         app_.cameraFov_, static_cast<float>(width / height), app_.cameraNear_, app_.cameraFar_);
@@ -180,7 +178,7 @@ CameraView::Movement convertKeyCode(int code)
 
 void Window::poll() noexcept { glfwPollEvents(); }
 
-const std::pair<const char**, uint32_t> Window::getInstanceExt() const noexcept
+std::pair<const char**, uint32_t> Window::getInstanceExt() const noexcept
 {
     uint32_t count = 0;
     const char** glfwExtensions;
@@ -192,7 +190,7 @@ const std::pair<const char**, uint32_t> Window::getInstanceExt() const noexcept
 bool Window::createSurfaceVk(const vk::Instance& instance)
 {
     VkSurfaceKHR surface;
-    VkResult err = glfwCreateWindowSurface(instance, window_, NULL, &surface);
+    VkResult err = glfwCreateWindowSurface(instance, window_, VK_NULL_HANDLE, &surface);
     surface_ = vk::SurfaceKHR(surface);
     if (err)
     {
@@ -201,7 +199,7 @@ bool Window::createSurfaceVk(const vk::Instance& instance)
     return true;
 }
 
-const vk::SurfaceKHR Window::getSurface() const { return surface_; }
+vk::SurfaceKHR Window::getSurface() const { return surface_; }
 
 void Window::updateUiMouseData()
 {

@@ -26,16 +26,13 @@
 
 #include <cstdint>
 
-namespace yave
+namespace yave::rg
 {
-namespace rg
-{
-// forward declerations
+
+// forward declarations
 class RenderGraph;
 class ResourceBase;
 
 using RenderGraphHandle = util::Handle<RenderGraph>;
-using ResourceHandle = util::Handle<ResourceBase>;
 
-} // namespace rg
-} // namespace yave
+} // namespace yave::rg
