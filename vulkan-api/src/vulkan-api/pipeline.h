@@ -35,7 +35,7 @@
 
 namespace vkapi
 {
-// forward declearions
+// forward declarations
 class VkContext;
 class VkDriver;
 class RenderPass;
@@ -101,14 +101,12 @@ class GraphicsPipeline
 public:
     static constexpr int LifetimeFrameCount = 10;
 
-    GraphicsPipeline(VkContext& context);
+    explicit GraphicsPipeline(VkContext& context);
     ~GraphicsPipeline();
-
-    static vk::PipelineBindPoint createBindPoint();
 
     void create(const PipelineCache::GraphicsPlineKey& key, PipelineLayout& pipelineLayout);
 
-    const vk::Pipeline& get() const { return pipeline_; }
+    [[nodiscard]] const vk::Pipeline& get() const { return pipeline_; }
 
     uint64_t lastUsedFrameStamp_;
 
@@ -126,12 +124,12 @@ private:
 class ComputePipeline
 {
 public:
-    ComputePipeline(VkContext& context);
+    explicit ComputePipeline(VkContext& context);
     ~ComputePipeline();
 
     void create(const PipelineCache::ComputePlineKey& key, PipelineLayout& pipelineLayout);
 
-    const vk::Pipeline& get() const { return pipeline_; }
+    [[nodiscard]] const vk::Pipeline& get() const { return pipeline_; }
 
 private:
     VkContext& context_;

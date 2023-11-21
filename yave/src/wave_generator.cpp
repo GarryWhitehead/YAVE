@@ -27,19 +27,15 @@
 #include "index_buffer.h"
 #include "managers/renderable_manager.h"
 #include "mapped_texture.h"
-#include "material.h"
 #include "object_manager.h"
 #include "renderable.h"
 #include "scene.h"
 #include "vertex_buffer.h"
 #include "yave/texture_sampler.h"
 
-#include <image_utils/noise_generator.h>
 #include <yave_app/window.h>
 
-#include <numeric>
 #include <random>
-
 
 namespace yave
 {
@@ -59,7 +55,7 @@ IWaveGenerator::IWaveGenerator(IEngine& engine, IScene& scene)
 {
     auto reverse = [this](int idx) -> uint32_t {
         uint32_t res = 0;
-        for (int i = 0; i < log2N_; ++i)
+        for (size_t i = 0; i < log2N_; ++i)
         {
             res = (res << 1) + (idx & 1);
             idx >>= 1;
@@ -173,14 +169,14 @@ IWaveGenerator::IWaveGenerator(IEngine& engine, IScene& scene)
 
     material_ = rm->createMaterialI();
 
-    // create the vertices for the tessletaion patch
-    // NOTE: The patch size can not be changed during runtime at present
+    // create the vertices for the tesselation patch
+    // NOTE: The patch size cannot be changed during runtime at present
     generatePatch();
 
     buildMaterial(scene);
 }
 
-IWaveGenerator::~IWaveGenerator() {}
+IWaveGenerator::~IWaveGenerator() = default;
 
 void IWaveGenerator::generatePatch() noexcept
 {
@@ -191,19 +187,22 @@ void IWaveGenerator::generatePatch() noexcept
     float height = 10.0f;
 
     // interleaved pos and uv data for tesselation patch
-    // Note: The y axis for position is calculated from the height map on the tesse shader
+    // Note: The y-axis for position is calculated from the height map on the tesselation shader
     for (size_t y = 0; y < options.patchCount; ++y)
     {
         for (size_t x = 0; x < options.patchCount; ++x)
         {
-            uint32_t index = (x + y * options.patchCount);
             patchVertices.push_back(
-                x * width + width / 2.0f - (float)options.patchCount * width / 2.0f);
+                static_cast<float>(x) * width + width / 2.0f -
+                static_cast<float>(options.patchCount) * width / 2.0f);
             patchVertices.push_back(0.0f);
             patchVertices.push_back(
-                y * height + height / 2.0f - (float)options.patchCount * height / 2.0f);
-            patchVertices.push_back((float)x / (options.patchCount - 1));
-            patchVertices.push_back((float)y / (options.patchCount - 1));
+                static_cast<float>(y) * height + height / 2.0f -
+                static_cast<float>(options.patchCount) * height / 2.0f);
+            patchVertices.push_back(
+                static_cast<float>(x) / static_cast<float>(options.patchCount - 1));
+            patchVertices.push_back(
+                static_cast<float>(y) / static_cast<float>(options.patchCount - 1));
         }
     }
 
@@ -319,9 +318,8 @@ void IWaveGenerator::buildMaterial(IScene& scene)
 void IWaveGenerator::updateCompute(
     rg::RenderGraph& rGraph, IScene& scene, float dt, util::Timer<NanoSeconds>& timer)
 {
-    float N = static_cast<float>(Resolution);
-    float log2N = static_cast<float>(log2N_);
-    auto elapsed = timer.getTimeElapsed();
+    auto N = static_cast<float>(Resolution);
+    auto log2N = static_cast<float>(log2N_);
 
     // only generate the initial spectrum data if something has changed - i.e wind speed or
     // direction
@@ -329,10 +327,8 @@ void IWaveGenerator::updateCompute(
     {
         rGraph.addExecutorPass("initial_spectrum", [=](vkapi::VkDriver& driver) {
             auto& cmds = driver.getCommands();
-            auto& cmdBuffer = cmds.getCmdBuffer().cmdBuffer;
 
             initialSpecCompute_->addStorageImage(
-                driver,
                 "NoiseImage",
                 noiseTexture_->getBackendHandle(),
                 0,
@@ -340,13 +336,11 @@ void IWaveGenerator::updateCompute(
 
             // the output textures - h0k and h0-k
             initialSpecCompute_->addStorageImage(
-                driver,
                 "H0kImage",
                 h0kTexture_->getBackendHandle(),
                 1,
                 ImageStorageSet::StorageType::WriteOnly);
             initialSpecCompute_->addStorageImage(
-                driver,
                 "H0minuskImage",
                 h0minuskTexture_->getBackendHandle(),
                 2,
@@ -368,14 +362,12 @@ void IWaveGenerator::updateCompute(
                 cmds.getCmdBuffer().cmdBuffer, bundle, Resolution / 16, Resolution / 16, 1);
         });
 
-        // Note: the butterfly image only needs updating if user deinfed chnages in resolution are
+        // Note: the butterfly image only needs updating if user defined changes in resolution are
         // allowed at some point. This may need moving under its own flag.
         rGraph.addExecutorPass("fft_butterfly", [=](vkapi::VkDriver& driver) {
             auto& cmds = driver.getCommands();
-            auto& cmdBuffer = cmds.getCmdBuffer().cmdBuffer;
 
             butterflyCompute_->addStorageImage(
-                driver,
                 "ButterflyImage",
                 butterflyLut_->getBackendHandle(),
                 0,
@@ -408,13 +400,8 @@ void IWaveGenerator::updateCompute(
 
         // input images from the initial spectrum compute call
         specCompute_->addStorageImage(
-            driver,
-            "H0kImage",
-            h0kTexture_->getBackendHandle(),
-            0,
-            ImageStorageSet::StorageType::ReadOnly);
+            "H0kImage", h0kTexture_->getBackendHandle(), 0, ImageStorageSet::StorageType::ReadOnly);
         specCompute_->addStorageImage(
-            driver,
             "H0minuskImage",
             h0minuskTexture_->getBackendHandle(),
             1,
@@ -430,7 +417,7 @@ void IWaveGenerator::updateCompute(
             nullptr,
             dxyzBufferSize);
 
-        float time = timer.getTimeElapsed() / 1'000'000'000;
+        float time = static_cast<float>(timer.getTimeElapsed()) / static_cast<float>(1'000'000'000);
 
         specCompute_->addUboParam("N", backend::BufferElementType::Int, (void*)&Resolution);
         specCompute_->addUboParam("L", backend::BufferElementType::Int, (void*)&options.L);
@@ -452,7 +439,6 @@ void IWaveGenerator::updateCompute(
 
         // setup horizontal fft
         fftHorizCompute_->addStorageImage(
-            driver,
             "ButterflySampler",
             butterflyLut_->getBackendHandle(),
             0,
@@ -479,7 +465,6 @@ void IWaveGenerator::updateCompute(
 
         // setup vertical fft
         fftVertCompute_->addStorageImage(
-            driver,
             "ButterflySampler",
             butterflyLut_->getBackendHandle(),
             0,
@@ -584,19 +569,16 @@ void IWaveGenerator::updateCompute(
         }
 
         displaceCompute_->addStorageImage(
-            driver,
             "DisplacementMap",
             fftOutputImage_->getBackendHandle(),
             0,
             ImageStorageSet::StorageType::WriteOnly);
         displaceCompute_->addStorageImage(
-            driver,
             "HeightMap",
             heightMap_->getBackendHandle(),
             1,
             ImageStorageSet::StorageType::WriteOnly);
         displaceCompute_->addStorageImage(
-            driver,
             "NormalMap",
             normalMap_->getBackendHandle(),
             2,
@@ -639,13 +621,11 @@ void IWaveGenerator::updateCompute(
 
         // output storage images
         genMapCompute_->addStorageImage(
-            driver,
             "DisplacementMap",
             displacementMap_->getBackendHandle(),
             2,
             ImageStorageSet::StorageType::WriteOnly);
         genMapCompute_->addStorageImage(
-            driver,
             "GradientMap",
             gradientMap_->getBackendHandle(),
             3,

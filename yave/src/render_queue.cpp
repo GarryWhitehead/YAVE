@@ -24,14 +24,11 @@
 
 #include "engine.h"
 
-#include <cassert>
-
 namespace yave
 {
 
-RenderQueue::RenderQueue() {}
-
-RenderQueue::~RenderQueue() {}
+RenderQueue::RenderQueue() = default;
+RenderQueue::~RenderQueue() = default;
 
 void RenderQueue::resetAll()
 {

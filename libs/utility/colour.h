@@ -31,19 +31,19 @@ public:
     Colour4() = default;
     Colour4(float r, float g, float b, float a) : data_ {r, g, b, a} {}
     Colour4(float r, float g, float b) : data_ {r, g, b, 1.0f} {}
-    Colour4(float col) : data_ {col, col, col, 1.0f} {}
+    explicit Colour4(float col) : data_ {col, col, col, 1.0f} {}
 
-    float r() const noexcept { return data_[0]; }
-    float g() const noexcept { return data_[1]; }
-    float b() const noexcept { return data_[2]; }
-    float a() const noexcept { return data_[3]; }
+    [[nodiscard]] float r() const noexcept { return data_[0]; }
+    [[nodiscard]] float g() const noexcept { return data_[1]; }
+    [[nodiscard]] float b() const noexcept { return data_[2]; }
+    [[nodiscard]] float a() const noexcept { return data_[3]; }
 
     float r() noexcept { return data_[0]; }
     float g() noexcept { return data_[1]; }
     float b() noexcept { return data_[2]; }
     float a() noexcept { return data_[3]; }
 
-    const float* getData() const noexcept { return data_; }
+    [[nodiscard]] const float* getData() const noexcept { return data_; }
     float* getData() noexcept { return data_; }
 
 private:

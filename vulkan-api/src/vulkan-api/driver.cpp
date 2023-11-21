@@ -22,7 +22,6 @@
 
 #include "driver.h"
 
-#include "../backend/enums.h"
 #include "framebuffer_cache.h"
 #include "image.h"
 #include "pipeline.h"
@@ -57,7 +56,7 @@ VkDriver::VkDriver()
 {
 }
 
-VkDriver::~VkDriver() {}
+VkDriver::~VkDriver() = default;
 
 bool VkDriver::createInstance(const char** instanceExt, uint32_t count)
 {
@@ -69,7 +68,7 @@ bool VkDriver::createInstance(const char** instanceExt, uint32_t count)
     return true;
 }
 
-bool VkDriver::init(const vk::SurfaceKHR surface)
+bool VkDriver::init(vk::SurfaceKHR surface)
 {
     // prepare the vulkan backend
     if (!context_->prepareDevice(surface))
@@ -111,11 +110,7 @@ void VkDriver::shutdown()
 
 
 RenderTargetHandle VkDriver::createRenderTarget(
-    const util::CString& name,
-    uint32_t width,
-    uint32_t height,
     bool multiView,
-    uint8_t samples,
     const util::Colour4& clearCol,
     const std::array<RenderTarget::AttachmentInfo, RenderTarget::MaxColourAttachCount>& colours,
     const RenderTarget::AttachmentInfo& depth,
@@ -126,10 +121,7 @@ RenderTargetHandle VkDriver::createRenderTarget(
     rt.stencil = stencil;
     rt.clearCol = clearCol;
     rt.multiView = multiView;
-    memcpy(
-        &rt.colours,
-        colours.data(),
-        sizeof(RenderTarget::AttachmentInfo) * RenderTarget::MaxColourAttachCount);
+    std::copy(colours.begin(), colours.end(), rt.colours.begin());
 
     RenderTargetHandle handle {static_cast<uint32_t>(renderTargets_.size())};
     renderTargets_.emplace_back(rt);
@@ -139,13 +131,13 @@ RenderTargetHandle VkDriver::createRenderTarget(
 // =========== functions for buffer/texture creation ================
 
 
-VertexBufferHandle VkDriver::addVertexBuffer(const size_t size, void* data)
+VertexBufferHandle VkDriver::addVertexBuffer(size_t size, void* data)
 {
     ASSERT_FATAL(data, "Data is nullptr when trying to add vertex buffer to vk backend.");
-    VertexBuffer* buffer = new VertexBuffer();
-    buffer->create(*this, *context_, vmaAlloc_, *stagingPool_, data, size);
+    auto* buffer = new VertexBuffer();
+    buffer->create(*this, vmaAlloc_, *stagingPool_, data, size);
     VertexBufferHandle handle {static_cast<uint32_t>(vertBuffers_.size())};
-    vertBuffers_.emplace_back(std::move(buffer));
+    vertBuffers_.emplace_back(buffer);
     return handle;
 }
 
@@ -165,13 +157,13 @@ void VkDriver::mapVertexBuffer(const VertexBufferHandle& handle, size_t count, v
     buffer->mapAndCopyToGpu(*this, *stagingPool_, count, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, data);
 }
 
-IndexBufferHandle VkDriver::addIndexBuffer(const size_t size, void* data)
+IndexBufferHandle VkDriver::addIndexBuffer(size_t size, void* data)
 {
     ASSERT_FATAL(data, "Data is nullptr when trying to add index buffer to vk backend.");
-    IndexBuffer* buffer = new IndexBuffer();
-    buffer->create(*this, *context_, vmaAlloc_, *stagingPool_, data, size);
+    auto* buffer = new IndexBuffer();
+    buffer->create(*this, vmaAlloc_, *stagingPool_, data, size);
     IndexBufferHandle handle {static_cast<uint32_t>(indexBuffers_.size())};
-    indexBuffers_.emplace_back(std::move(buffer));
+    indexBuffers_.emplace_back(buffer);
     return handle;
 }
 
@@ -214,7 +206,7 @@ void VkDriver::deleteVertexBuffer(const VertexBufferHandle& handle)
     ASSERT_FATAL(
         handle.getKey() < vertBuffers_.size(), "Invalid vertex buffer handle: %d", handle.getKey());
     VertexBuffer* buffer = vertBuffers_[handle.getKey()];
-    // We get the vulkan buffer handle so its safe to delete the associated
+    // We get the vulkan buffer handle, so it's safe to delete the associated
     // VertexBuffer object.
     gc.add([buffer, this]() {
         buffer->destroy(vmaAlloc_);
@@ -285,7 +277,7 @@ void VkDriver::beginRenderpass(
     RenderTarget::AttachmentInfo depth = renderTarget.depth;
 
     // find a renderpass from the cache or create a new one.
-    FramebufferCache::RPassKey rpassKey;
+    FramebufferCache::RPassKey rpassKey {};
     rpassKey.depth = vk::Format::eUndefined;
     if (depth.handle)
     {
@@ -295,7 +287,6 @@ void VkDriver::beginRenderpass(
     rpassKey.samples = renderTarget.samples;
     rpassKey.multiView = renderTarget.multiView;
 
-    int colourCount = 0;
     for (int i = 0; i < RenderTarget::MaxColourAttachCount; ++i)
     {
         RenderTarget::AttachmentInfo colour = renderTarget.colours[i];
@@ -309,7 +300,6 @@ void VkDriver::beginRenderpass(
             rpassKey.initialLayout[i] = data.initialLayouts[i];
             rpassKey.loadOp[i] = data.loadClearFlags[i];
             rpassKey.storeOp[i] = data.storeClearFlags[i];
-            ++colourCount;
         }
     }
     rpassKey.dsLoadOp[0] = data.loadClearFlags[RenderTarget::DepthIndex - 1];
@@ -351,7 +341,7 @@ void VkDriver::beginRenderpass(
     // sort out the clear values for the pass
     std::vector<vk::ClearValue> clearValues;
 
-    // setup the clear values for this pass - need one for each attachment
+    // set up the clear values for this pass - need one for each attachment
     auto& attachments = rpass->getAttachments();
     clearValues.resize(attachments.size());
 
@@ -476,7 +466,7 @@ void VkDriver::draw(
     pipelineCache_->bindDepthWriteEnable(srcDsState.writeEnable);
 
     // TODO: Need to support differences in front/back stencil
-    PipelineCache::DepthStencilBlock dsBlock;
+    PipelineCache::DepthStencilBlock dsBlock {};
     dsBlock.compareOp = srcDsState.frontStencil.compareOp;
     dsBlock.compareMask = srcDsState.frontStencil.compareMask;
     dsBlock.depthFailOp = srcDsState.frontStencil.depthFailOp;
@@ -487,7 +477,7 @@ void VkDriver::draw(
     pipelineCache_->bindDepthStencilBlock(dsBlock);
 
     // blend factors
-    PipelineCache::BlendFactorBlock blendState;
+    PipelineCache::BlendFactorBlock blendState {};
     blendState.blendEnable = srcBlendState.blendEnable;
     blendState.srcColorBlendFactor = srcBlendState.srcColor;
     blendState.dstColorBlendFactor = srcBlendState.dstColor;
@@ -502,8 +492,8 @@ void VkDriver::draw(
     pipelineCache_->bindTopology(programBundle.renderPrim_.topology);
     pipelineCache_->bindTesselationVertCount(programBundle.tesselationVertCount_);
 
-    // if the width and height are zero then ignore setting the scissor and/or
-    // viewport and go with the extents set aupon initiation of the renderpass
+    // if the width and height are zero then ignore setting the scissors and/or
+    // viewport and go with the extents set upon initiation of the renderpass
     if (programBundle.scissor_.extent.width != 0 && programBundle.scissor_.extent.height != 0)
     {
         pipelineCache_->bindScissor(cmdBuffer, programBundle.scissor_);
@@ -756,16 +746,13 @@ VkDriver::createTexture2d(vk::Format format, uint32_t width, uint32_t height, vk
 void VkDriver::mapTexture(
     const TextureHandle& handle, void* data, uint32_t dataSize, size_t* offsets)
 {
-    Texture* tex = const_cast<Texture*>(handle.getResource());
+    auto* tex = const_cast<Texture*>(handle.getResource());
     tex->map(*this, data, dataSize, offsets);
 }
 
-void VkDriver::destroyTexture2D(TextureHandle& handle)
-{
-    resourceCache_->deleteTexture(handle, gc);
-}
+void VkDriver::destroyTexture2D(TextureHandle& handle) { resourceCache_->deleteTexture(handle); }
 
-void VkDriver::destroyBuffer(BufferHandle& handle) { resourceCache_->deleteUbo(handle, gc); }
+void VkDriver::destroyBuffer(BufferHandle& handle) { resourceCache_->deleteUbo(handle); }
 
 void VkDriver::deleteRenderTarget(const RenderTargetHandle& rtHandle)
 {

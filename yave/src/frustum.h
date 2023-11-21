@@ -28,7 +28,7 @@
 namespace yave
 {
 
-// forward declerations
+// forward declarations
 struct AABBox;
 
 class Frustum

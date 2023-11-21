@@ -45,7 +45,7 @@ NoiseGenerator::NoiseGenerator(uint32_t seed)
     permutations_.insert(permutations_.end(), permutations_.begin(), permutations_.end());
 }
 
-NoiseGenerator::~NoiseGenerator() {}
+NoiseGenerator::~NoiseGenerator() = default;
 
 double NoiseGenerator::fade(double t) { return t * t * t * (t * (t * 6 - 15) + 10); }
 

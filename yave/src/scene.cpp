@@ -73,9 +73,9 @@ IScene::IScene(IEngine& engine)
     skinUbo_->createGpuBuffer(driver, ModelBufferInitialSize * skinUbo_->size());
 }
 
-IScene::~IScene() {}
+IScene::~IScene() = default;
 
-void IScene::shutDown(vkapi::VkDriver& driver) noexcept {}
+void IScene::shutDown(vkapi::VkDriver& driver) noexcept { YAVE_UNUSED(driver); }
 
 void IScene::setSkyboxI(ISkybox* skybox) noexcept
 {
@@ -316,6 +316,9 @@ void IScene::updateTransformBuffer(
     }
     if (skinnedModelCount > 0)
     {
+        // NOTE: This is wrong! The number of joint matrices per skinned model needs to be
+        // taken into account. Will probably need a loop to get the total size so memory
+        // can be allocated up front.
         skinPtr = static_cast<uint8_t*>(
             util::align_alloc(skinDynAlign * skinnedModelCount, skinDynAlign));
         ASSERT_FATAL(skinPtr, "Unable to allocate aligned memory for skin ubo");
@@ -335,8 +338,8 @@ void IScene::updateTransformBuffer(
         TransformInfo* transInfo = cand.transform;
 
         size_t meshOffset = staticDynAlign * staticCount++;
-        uint8_t* currStaticPtr = (uint8_t*)((uint64_t)transPtr + (meshOffset));
-        memcpy(currStaticPtr, &transInfo->modelTransform, sizeof(mathfu::mat4));
+        auto* currStaticPtr = reinterpret_cast<mathfu::mat4*>(transPtr + meshOffset);
+        *currStaticPtr = transInfo->modelTransform;
 
         // the dynamic buffer offsets are stored in the renderable for ease of
         // access when drawing
@@ -344,14 +347,16 @@ void IScene::updateTransformBuffer(
 
         if (!transInfo->jointMatrices.empty())
         {
+            // NOTE: The offset needs to take into account the number of joints per model skin (i.e.
+            // keep track of the previous count)
             size_t skinOffset = skinDynAlign * skinnedCount++;
-            uint8_t* currSkinPtr = (uint8_t*)((uint64_t)skinPtr + (skinDynAlign * skinnedCount++));
+            auto* currSkinPtr = reinterpret_cast<mathfu::mat4*>(skinPtr + skinDynAlign);
+            *currSkinPtr = *transInfo->jointMatrices.data();
 
             // rather than throw an error, clamp the joint if it exceeds the max
-            uint32_t jointCount = std::min(
+            /*uint32_t jointCount = std::min(
                 ITransformManager::MaxBoneCount,
-                static_cast<uint32_t>(transInfo->jointMatrices.size()));
-            memcpy(currSkinPtr, transInfo->jointMatrices.data(), jointCount * sizeof(mathfu::mat4));
+                static_cast<uint32_t>(transInfo->jointMatrices.size()));*/
 
             rend->setSkinDynamicOffset(static_cast<uint32_t>(skinOffset));
         }
@@ -361,22 +366,22 @@ void IScene::updateTransformBuffer(
     if (staticCount > 0)
     {
         size_t staticDataSize = staticModelCount * staticDynAlign;
-        transUbo_->mapGpuBuffer(driver, transPtr, staticDataSize);
+        transUbo_->mapGpuBuffer(transPtr, staticDataSize);
         util::align_free(transPtr);
     }
 
     if (skinnedCount > 0)
     {
         size_t skinnedDataSize = skinnedModelCount * skinDynAlign;
-        skinUbo_->mapGpuBuffer(driver, skinPtr, skinnedDataSize);
+        skinUbo_->mapGpuBuffer(skinPtr, skinnedDataSize);
         util::align_free(skinPtr);
     }
 }
 
 // ======================== client api =======================
 
-Scene::Scene() {}
-Scene::~Scene() {}
+Scene::Scene() = default;
+Scene::~Scene() = default;
 
 void IScene::setSkybox(Skybox* skybox) { setSkyboxI(reinterpret_cast<ISkybox*>(skybox)); }
 

@@ -47,7 +47,7 @@ public:
 
     vk::VertexInputBindingDescription* getInputBind() noexcept { return bindDesc_; }
 
-    util::BitSetEnum<VertexBuffer::BindingType> getAtrributeBits() const noexcept;
+    [[nodiscard]] util::BitSetEnum<VertexBuffer::BindingType> getAtrributeBits() const noexcept;
 
     vkapi::VertexBuffer* getGpuBuffer(vkapi::VkDriver& driver) noexcept;
 

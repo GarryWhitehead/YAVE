@@ -31,15 +31,14 @@
 
 #include <vector>
 
-namespace yave
+namespace yave::rg
 {
-namespace rg
-{
-// forward declerations
+
+// forward declarations
 class RenderGraphResource;
 
 /**
- * @brief All theinformation required to create a concrete vulkan renderpass
+ * @brief All the information required to create a concrete vulkan renderpass
  */
 struct RenderPassInfo
 {
@@ -57,7 +56,7 @@ struct RenderPassInfo
 
     /**
      * @brief Create a concrete vulkan renderpass object.
-     * @param rGraph A initilaised render graph.
+     * @param rGraph A initialised render graph.
      */
     void bake(const RenderGraph& rGraph);
 };
@@ -96,8 +95,6 @@ public:
 
     RenderGraphHandle createRenderTarget(const util::CString& name, const PassDescriptor& desc);
 
-    RenderPassInfo::VkBackend getRenderTargetBackendInfo(const RenderGraphHandle& handle);
-
     void build() override;
 
     void execute(vkapi::VkDriver& driver, const RenderGraphResource& graphResource) override;
@@ -113,8 +110,8 @@ private:
 class PresentPassNode : public PassNodeBase
 {
 public:
-    PresentPassNode(RenderGraph& rGraph);
-    ~PresentPassNode();
+    explicit PresentPassNode(RenderGraph& rGraph);
+    ~PresentPassNode() override;
 
     void build() override;
 
@@ -123,5 +120,4 @@ public:
 private:
 };
 
-} // namespace rg
-} // namespace yave
+} // namespace yave::rg

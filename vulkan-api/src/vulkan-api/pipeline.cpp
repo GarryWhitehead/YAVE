@@ -28,13 +28,12 @@
 #include "renderpass.h"
 #include "shader.h"
 #include "utility/assertion.h"
-#include "utility/logger.h"
 
 namespace vkapi
 {
 
-PipelineLayout::PipelineLayout() {}
-PipelineLayout::~PipelineLayout() {}
+PipelineLayout::PipelineLayout() = default;
+PipelineLayout::~PipelineLayout() = default;
 
 void PipelineLayout::createDescriptorLayouts(VkContext& context)
 {
@@ -132,7 +131,7 @@ GraphicsPipeline::GraphicsPipeline(VkContext& context) : lastUsedFrameStamp_(0),
 {
 }
 
-GraphicsPipeline::~GraphicsPipeline() {}
+GraphicsPipeline::~GraphicsPipeline() = default;
 
 void GraphicsPipeline::create(
     const PipelineCache::GraphicsPlineKey& key, PipelineLayout& pipelineLayout)
@@ -148,7 +147,7 @@ void GraphicsPipeline::create(
         }
     }
 
-    bool hasInputState = inputDesc.size() > 0;
+    bool hasInputState = !inputDesc.empty();
     vk::PipelineVertexInputStateCreateInfo vertexInputState;
     vertexInputState.vertexAttributeDescriptionCount = static_cast<uint32_t>(inputDesc.size());
     vertexInputState.pVertexAttributeDescriptions = hasInputState ? inputDesc.data() : nullptr;
@@ -266,14 +265,15 @@ void GraphicsPipeline::create(
 }
 
 ComputePipeline::ComputePipeline(VkContext& context) : context_(context) {}
-ComputePipeline::~ComputePipeline() {}
+ComputePipeline::~ComputePipeline() = default;
 
 void ComputePipeline::create(
     const PipelineCache::ComputePlineKey& key, PipelineLayout& pipelineLayout)
 {
     ASSERT_FATAL(pipelineLayout.get(), "The pipeline layout must be initialised.");
     vk::ComputePipelineCreateInfo createInfo {{}, key.shader, pipelineLayout.get()};
-    context_.device().createComputePipelines({}, 1, &createInfo, nullptr, &pipeline_);
+    VK_CHECK_RESULT(
+        context_.device().createComputePipelines({}, 1, &createInfo, nullptr, &pipeline_));
 }
 
 } // namespace vkapi

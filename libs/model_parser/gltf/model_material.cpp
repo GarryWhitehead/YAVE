@@ -129,10 +129,10 @@ std::filesystem::path ModelMaterial::getTextureUri(cgltf_texture_view& view)
         // values
         if (view.texture->sampler)
         {
-            sampler.magFilter = getSamplerFilter(view.texture->sampler->mag_filter);
-            sampler.minFilter = getSamplerFilter(view.texture->sampler->min_filter);
-            sampler.addressModeU = getAddressMode(view.texture->sampler->wrap_s);
-            sampler.addressModeV = getAddressMode(view.texture->sampler->wrap_t);
+            sampler_.magFilter = getSamplerFilter(view.texture->sampler->mag_filter);
+            sampler_.minFilter = getSamplerFilter(view.texture->sampler->min_filter);
+            sampler_.addressModeU = getAddressMode(view.texture->sampler->wrap_s);
+            sampler_.addressModeV = getAddressMode(view.texture->sampler->wrap_t);
         }
 
         // also set variant bit
@@ -143,46 +143,46 @@ std::filesystem::path ModelMaterial::getTextureUri(cgltf_texture_view& view)
 
 bool ModelMaterial::create(cgltf_material& mat, GltfExtension& extensions)
 {
-    name = mat.name;
+    name_ = util::CString {mat.name};
 
-    // two pipelines, either specular glosiness or metallic roughness
-    // according to the spec, metallic roughness shoule be preferred
+    // two pipelines, either specular glossiness or metallic roughness,
+    // according to the spec, metallic roughness should be preferred
     if (mat.has_pbr_specular_glossiness)
     {
-        pipeline = PbrPipeline::SpecularGlosiness;
+        pipeline_ = PbrPipeline::SpecularGlosiness;
 
         {
             TextureInfo colourInfo {
                 getTextureUri(mat.pbr_specular_glossiness.diffuse_texture),
                 TextureType::BaseColour};
-            textures.emplace_back(colourInfo);
+            textures_.emplace_back(colourInfo);
         }
 
         {
-            // instead of having a seperate entry for mr or specular gloss, the
+            // instead of having a separate entry for mr or specular gloss, the
             // two share the same slot. Should maybe be renamed to be more
             // transparent?
             TextureInfo mrInfo {
                 getTextureUri(mat.pbr_specular_glossiness.specular_glossiness_texture),
                 TextureType::MetallicRoughness};
-            textures.emplace_back(mrInfo);
+            textures_.emplace_back(mrInfo);
         }
         // block.specularGlossiness =
         // mat.pbr_specular_glossiness.glossiness_factor;
 
         auto* df = mat.pbr_specular_glossiness.diffuse_factor;
-        attributes.baseColour = {df[0], df[1], df[2], df[3]};
+        attributes_.baseColour = {df[0], df[1], df[2], df[3]};
     }
     else if (mat.has_pbr_metallic_roughness)
     {
-        pipeline = PbrPipeline::MetallicRoughness;
+        pipeline_ = PbrPipeline::MetallicRoughness;
 
         {
             auto path = getTextureUri(mat.pbr_metallic_roughness.base_color_texture);
             if (!path.empty())
             {
                 TextureInfo colourInfo {path, TextureType::BaseColour};
-                textures.emplace_back(colourInfo);
+                textures_.emplace_back(colourInfo);
             }
         }
         {
@@ -190,14 +190,14 @@ bool ModelMaterial::create(cgltf_material& mat, GltfExtension& extensions)
             if (!path.empty())
             {
                 TextureInfo mrInfo {path, TextureType::MetallicRoughness};
-                textures.emplace_back(mrInfo);
+                textures_.emplace_back(mrInfo);
             }
         }
-        attributes.roughness = mat.pbr_metallic_roughness.roughness_factor;
-        attributes.metallic = mat.pbr_metallic_roughness.metallic_factor;
+        attributes_.roughness = mat.pbr_metallic_roughness.roughness_factor;
+        attributes_.metallic = mat.pbr_metallic_roughness.metallic_factor;
 
         auto* bcf = mat.pbr_metallic_roughness.base_color_factor;
-        attributes.baseColour = {bcf[0], bcf[1], bcf[2], bcf[3]};
+        attributes_.baseColour = {bcf[0], bcf[1], bcf[2], bcf[3]};
     }
 
     {
@@ -206,7 +206,7 @@ bool ModelMaterial::create(cgltf_material& mat, GltfExtension& extensions)
         if (!path.empty())
         {
             TextureInfo normInfo {path, TextureType::Normal};
-            textures.emplace_back(normInfo);
+            textures_.emplace_back(normInfo);
         }
     }
     {
@@ -215,7 +215,7 @@ bool ModelMaterial::create(cgltf_material& mat, GltfExtension& extensions)
         if (!path.empty())
         {
             TextureInfo occInfo {path, TextureType::Occlusion};
-            textures.emplace_back(occInfo);
+            textures_.emplace_back(occInfo);
         }
     }
     {
@@ -224,27 +224,27 @@ bool ModelMaterial::create(cgltf_material& mat, GltfExtension& extensions)
         if (!path.empty())
         {
             TextureInfo emInfo {path, TextureType::Emissive};
-            textures.emplace_back(emInfo);
+            textures_.emplace_back(emInfo);
         }
     }
     // emissive factor
     auto* ef = mat.emissive_factor;
-    attributes.emissive = {ef[0], ef[1], ef[2], 1.0f};
+    attributes_.emissive = {ef[0], ef[1], ef[2], 1.0f};
 
     // specular - extension
     util::CString data = extensions.find("specular");
     if (!data.empty())
     {
         mathfu::vec3 vec = GltfExtension::tokenToVec3(data);
-        attributes.specular = {vec.x, vec.y, vec.z, 1.0f};
+        attributes_.specular = {vec.x, vec.y, vec.z, 1.0f};
     }
 
     // alpha blending
-    attributes.alphaMaskCutOff = mat.alpha_cutoff;
-    attributes.alphaMask = convertToAlpha(mat.alpha_mode);
+    attributes_.alphaMaskCutOff = mat.alpha_cutoff;
+    attributes_.alphaMask = convertToAlpha(mat.alpha_mode);
 
     // determines the type of culling required
-    doubleSided = mat.double_sided;
+    doubleSided_ = mat.double_sided;
 
     return true;
 }

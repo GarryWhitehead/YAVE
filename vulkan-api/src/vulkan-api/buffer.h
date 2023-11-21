@@ -30,18 +30,18 @@
 namespace vkapi
 {
 
-// forward declerations
+// forward declarations
 class VkContext;
 class VkDriver;
 
 /**
- * @brief A simplisitic staging pool for CPU-only stages. Used when copying to
+ * @brief A simplistic staging pool for CPU-only stages. Used when copying to
  * GPU only mem
  */
 class StagingPool
 {
 public:
-    StagingPool(VmaAllocator& vmaAlloc);
+    explicit StagingPool(VmaAllocator& vmaAlloc);
 
     struct StageInfo
     {
@@ -54,14 +54,14 @@ public:
 
     StageInfo* getStage(VkDeviceSize reqSize);
 
-    StageInfo* create(const VkDeviceSize size);
+    StageInfo* create(VkDeviceSize size);
 
     void garbageCollection(uint64_t currentFrame);
 
     void clear();
 
 private:
-    // keep a refernce to the memory allocator here
+    // keep a reference to the memory allocator here
     VmaAllocator& vmaAlloc_;
 
     // a list of free stages and their size
@@ -83,8 +83,9 @@ public:
 
     void destroy(VmaAllocator& vmaAlloc);
 
-    void mapToStage(void* data, size_t size, StagingPool::StageInfo* stage);
-    void mapToGpuBuffer(void* data, size_t dataSize);
+    static void mapToStage(void* data, size_t size, StagingPool::StageInfo* stage);
+
+    void mapToGpuBuffer(void* data, size_t dataSize) const;
 
     void createBuffer(VmaAllocator& vmaAlloc, VkBufferUsageFlags usage, VkDeviceSize size);
 
@@ -103,8 +104,7 @@ public:
 
     vk::Buffer get();
 
-    uint64_t getSize() const;
-    uint64_t getOffset() const;
+    [[nodiscard]] uint64_t getSize() const;
 
     friend class ResourceCache;
 
@@ -123,12 +123,7 @@ public:
     VertexBuffer() = default;
 
     void create(
-        VkDriver& driver,
-        VkContext& context,
-        VmaAllocator& vmaAlloc,
-        StagingPool& pool,
-        void* data,
-        const VkDeviceSize size);
+        VkDriver& driver, VmaAllocator& vmaAlloc, StagingPool& pool, void* data, VkDeviceSize size);
 };
 
 
@@ -138,12 +133,7 @@ public:
     IndexBuffer() = default;
 
     void create(
-        VkDriver& driver,
-        VkContext& context,
-        VmaAllocator& vmaAlloc,
-        StagingPool& pool,
-        void* data,
-        const VkDeviceSize size);
+        VkDriver& driver, VmaAllocator& vmaAlloc, StagingPool& pool, void* data, VkDeviceSize size);
 };
 
 } // namespace vkapi

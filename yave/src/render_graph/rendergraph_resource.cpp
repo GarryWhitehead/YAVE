@@ -27,9 +27,7 @@
 #include "resource_node.h"
 #include "resources.h"
 
-namespace yave
-{
-namespace rg
+namespace yave::rg
 {
 
 RenderGraphResource::RenderGraphResource(RenderGraph& rGraph, RenderPassNode* node)
@@ -61,5 +59,4 @@ RenderGraphResource::getTextureHandle(const RenderGraphHandle& handle) const noe
     return textureResource->handle();
 }
 
-} // namespace rg
-} // namespace yave
+} // namespace yave::rg

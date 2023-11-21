@@ -32,7 +32,7 @@ IIndirectLight::IIndirectLight()
     : irradianceMap_(nullptr), specularMap_(nullptr), brdfLut_(nullptr), mipLevels_(0)
 {
 }
-IIndirectLight::~IIndirectLight() {}
+IIndirectLight::~IIndirectLight() = default;
 
 void IIndirectLight::setIrradianceMapI(IMappedTexture* cubeMap)
 {

@@ -43,13 +43,14 @@ class MeshInstance;
 class SkinInstance;
 class ModelMaterial;
 struct NodeInfo;
-
-// <extension name, value (as string)>
-using ExtensionData = std::unordered_map<const char*, util::CString>;
+;
 
 class GltfExtension
 {
 public:
+    // <extension name, value (as string)>
+    using ExtensionData = std::unordered_map<const char*, util::CString>;
+
     GltfExtension();
     ~GltfExtension();
 
@@ -57,12 +58,12 @@ public:
     bool build(const cgltf_extras& extras, cgltf_data& data);
 
     /// token to string converion functions
-    static mathfu::vec3 tokenToVec3(util::CString str);
+    static mathfu::vec3 tokenToVec3(const util::CString& str);
 
-    util::CString find(util::CString ext);
+    util::CString find(const util::CString& ext);
 
 private:
-    std::unordered_map<const char*, util::CString> extensions_;
+    ExtensionData extensions_;
 };
 
 class GltfModel
@@ -90,12 +91,12 @@ public:
 
     // =========== helper functions ================
     /**
-     * @brief Find all of the node heirachies based on the specified id.
+     * @brief Find all of the node hierarchies based on the specified id.
      * @param id The id of the node to find.
      * @return If successful, returns a pointer to the node. Otherwise returns
      * nullptr.
      */
-    NodeInfo* getNode(util::CString id);
+    NodeInfo* getNode(const util::CString& id);
 
     GltfExtension& getExtensions();
 

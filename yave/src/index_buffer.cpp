@@ -27,7 +27,7 @@
 namespace yave
 {
 
-IIndexBuffer::IIndexBuffer() : bufferType_(backend::IndexBufferType::Uint32) {}
+IIndexBuffer::IIndexBuffer() : bufferType_(backend::IndexBufferType::Uint32), indicesCount_(0) {}
 IIndexBuffer::~IIndexBuffer() = default;
 
 void IIndexBuffer::shutDown(vkapi::VkDriver& driver) { driver.deleteIndexBuffer(ihandle_); }
@@ -59,8 +59,8 @@ vkapi::IndexBuffer* IIndexBuffer::getGpuBuffer(vkapi::VkDriver& driver) noexcept
 
 // ===================== clinet api =======================
 
-IndexBuffer::IndexBuffer() {}
-IndexBuffer::~IndexBuffer() {}
+IndexBuffer::IndexBuffer() = default;
+IndexBuffer::~IndexBuffer() = default;
 
 void IIndexBuffer::build(
     Engine* engine, uint32_t indicesCount, void* indicesData, backend::IndexBufferType type)

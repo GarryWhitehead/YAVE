@@ -43,9 +43,9 @@ public:
     bool operator>=(const HandleBase& rhs) const { return key_ >= rhs.key_; }
 
     HandleBase() : key_(UNINITIALISED) {}
-    HandleBase(uint32_t key) : key_(key) {}
+    explicit HandleBase(uint32_t key) : key_(key) {}
 
-    uint32_t getKey() const noexcept { return key_; }
+    [[nodiscard]] uint32_t getKey() const noexcept { return key_; }
 
 private:
     uint32_t key_;
@@ -56,7 +56,7 @@ class Handle : public HandleBase
 {
 public:
     Handle() = default;
-    Handle(const uint32_t key) : HandleBase(key) {}
+    explicit Handle(const uint32_t key) : HandleBase(key) {}
 
     // default copy constructors
     Handle(const Handle&) = default;

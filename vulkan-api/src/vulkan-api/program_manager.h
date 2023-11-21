@@ -138,12 +138,12 @@ public:
 
     struct RenderPrimitive
     {
-        uint32_t indicesCount;
-        uint32_t offset;
-        uint32_t vertexCount;
+        uint32_t indicesCount = 0;
+        uint32_t offset = 0;
+        uint32_t vertexCount = 0;
         vk::PrimitiveTopology topology = vk::PrimitiveTopology::eTriangleList;
         VkBool32 primitiveRestart = VK_FALSE;
-        vk::IndexType indexBufferType;
+        vk::IndexType indexBufferType = vk::IndexType::eUint32;
     };
 
     ShaderProgramBundle();
@@ -184,7 +184,7 @@ public:
     // Used when no index buffer is to be bound.
     void addRenderPrimitive(uint32_t count);
 
-    void buildShader(std::string filename);
+    void buildShader(const std::string& filename);
 
     void buildShaders(const std::string& filename) { buildShader(filename); }
 
@@ -200,7 +200,7 @@ public:
 
     PipelineLayout& getPipelineLayout() noexcept;
 
-    size_t getShaderId() const { return shaderId_; }
+    [[nodiscard]] size_t getShaderId() const { return shaderId_; }
 
     friend class VkDriver;
 
@@ -234,9 +234,9 @@ private:
     // use at the pipeline binding draw stage
     struct DescriptorBindInfo
     {
-        uint32_t binding;
+        uint32_t binding = 0;
         vk::Buffer buffer;
-        uint32_t size;
+        uint32_t size = 0;
         vk::DescriptorType type;
     };
     std::vector<DescriptorBindInfo> descBindInfo_;
@@ -304,7 +304,7 @@ private:
         std::unordered_map<CachedKey, std::unique_ptr<Shader>, CachedHasher, CachedEqual>;
 
 public:
-    ProgramManager(VkDriver& driver);
+    explicit ProgramManager(VkDriver& driver);
     ~ProgramManager();
 
     ShaderProgramBundle* createProgramBundle();

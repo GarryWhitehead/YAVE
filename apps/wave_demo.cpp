@@ -75,7 +75,7 @@ int main()
     skybox->setColour({0.1f, 0.2f, 0.8f, 1.0f});
     skybox->renderSun(true);
     // skybox->setTexture(ibl.getCubeMap());
-    skybox->build(app.scene_, app.getWindow()->getCamera());
+    skybox->build(app.scene_);
     app.scene_->setSkybox(skybox);
 
     // add the sun (directional light)

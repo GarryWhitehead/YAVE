@@ -27,20 +27,14 @@
 #include "rendergraph_resource.h"
 #include "resource_node.h"
 #include "utility/assertion.h"
-#include "utility/logger.h"
 #include "vulkan-api/driver.h"
 #include "vulkan-api/image.h"
 #include "vulkan-api/renderpass.h"
 
-#include <assert.h>
-#include <stdint.h>
-
 #include <algorithm>
-#include <limits>
 
-namespace yave
-{
-namespace rg
+
+namespace yave::rg
 {
 
 RenderGraph::RenderGraph(vkapi::VkDriver& driver)
@@ -48,7 +42,7 @@ RenderGraph::RenderGraph(vkapi::VkDriver& driver)
 {
 }
 
-RenderGraph::~RenderGraph() {}
+RenderGraph::~RenderGraph() = default;
 
 void RenderGraph::createPassNode(const util::CString& name, RenderGraphPassBase* rgPass)
 {
@@ -189,7 +183,7 @@ RenderGraph& RenderGraph::compile()
             return !node->isCulled();
         });
 
-    ASSERT_LOG(rPassNodes_.size() > 0);
+    ASSERT_LOG(!rPassNodes_.empty());
     size_t nodeIdx = 0;
     auto lastNode = activeNodesEnd_;
 
@@ -201,24 +195,22 @@ RenderGraph& RenderGraph::compile()
         const auto& readers = dGraph_.getReaderEdges(passNode);
         for (const auto* edge : readers)
         {
-            ResourceNode* node = static_cast<ResourceNode*>(dGraph_.getNode(edge->fromId));
+            auto* node = static_cast<ResourceNode*>(dGraph_.getNode(edge->fromId));
             passNode->addResource(node->resourceHandle());
         }
 
         const auto& writers = dGraph_.getWriterEdges(passNode);
         for (const auto* edge : writers)
         {
-            ResourceNode* node = static_cast<ResourceNode*>(dGraph_.getNode(edge->toId));
+            auto* node = static_cast<ResourceNode*>(dGraph_.getNode(edge->toId));
             passNode->addResource(node->resourceHandle());
         }
         passNode->build();
     }
 
     // bake the resources
-    for (size_t i = 0; i < resources_.size(); ++i)
+    for (auto& resource : resources_)
     {
-        ResourceBase* resource = resources_[i].get();
-
         if (resource->readCount())
         {
             PassNodeBase* firstNode = resource->getFirstPassNode();
@@ -226,8 +218,8 @@ RenderGraph& RenderGraph::compile()
 
             if (firstNode && lastNode)
             {
-                firstNode->addToBakeList(resource);
-                lastNode->addToDestroyList(resource);
+                firstNode->addToBakeList(resource.get());
+                lastNode->addToDestroyList(resource.get());
             }
         }
     }
@@ -250,7 +242,7 @@ void RenderGraph::execute()
     while (nodeIdx < rPassNodes_.size() && rPassNodes_[nodeIdx].get() != lastNode->get())
     {
         ASSERT_LOG(nodeIdx < rPassNodes_.size());
-        RenderPassNode* passNode = static_cast<RenderPassNode*>(rPassNodes_[nodeIdx++].get());
+        auto* passNode = static_cast<RenderPassNode*>(rPassNodes_[nodeIdx++].get());
 
         // create concrete vulkan resources - these are added to the
         // node during the compile call
@@ -263,9 +255,9 @@ void RenderGraph::execute()
         // collector to delay their destruction for a few frames so
         // we can be certain that the cmd buffers in flight have finished
         // with them.
-        for (const auto& passNode : rPassNodes_)
+        for (const auto& n : rPassNodes_)
         {
-            passNode->destroyResourceList(driver_);
+            n->destroyResourceList(driver_);
         }
     }
 }
@@ -282,5 +274,4 @@ ResourceBase* RenderGraph::getResource(const RenderGraphHandle& handle) const
     return resources_[slot.resourceIdx].get();
 }
 
-} // namespace rg
-} // namespace yave
+} // namespace yave::rg

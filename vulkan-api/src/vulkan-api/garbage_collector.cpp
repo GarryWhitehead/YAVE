@@ -26,11 +26,11 @@ namespace vkapi
 {
 
 GarbageCollector::GarbageCollector() { gcObjects_.reserve(50); }
-GarbageCollector::~GarbageCollector() {}
+GarbageCollector::~GarbageCollector() = default;
 
 void GarbageCollector::add(std::function<void()> destructor) noexcept
 {
-    gcObjects_.push_back({destructor, FramesUntilCollection});
+    gcObjects_.push_back({std::move(destructor), FramesUntilCollection});
 }
 
 void GarbageCollector::collectGarbage() noexcept

@@ -39,11 +39,11 @@ public:
     BitSetEnum& operator=(const BitSetEnum&) = default;
 
     /// move constructors
-    BitSetEnum(BitSetEnum&&) = default;
-    BitSetEnum& operator=(BitSetEnum&&) = default;
+    BitSetEnum(BitSetEnum&&) noexcept = default;
+    BitSetEnum& operator=(BitSetEnum&&) noexcept = default;
 
     /**
-     * @brief  Applys a logic AND to the enum bitset with the stated value
+     * @brief  Applyies a logic AND to the enum bitset with the stated value
      */
     BitSetEnum& operator&=(const T& val)
     {
@@ -54,7 +54,7 @@ public:
     }
 
     /**
-     * @brief  Applys a logic AND to the enum bitset with another BitSetEnum
+     * @brief  Applies a logic AND to the enum bitset with another BitSetEnum
      */
     BitSetEnum& operator&=(const BitSetEnum& other)
     {
@@ -63,7 +63,7 @@ public:
     }
 
     /**
-     * @brief  Applys a logic OR to the enum bitset with the stated value
+     * @brief  Applies a logic OR to the enum bitset with the stated value
      */
     BitSetEnum& operator|=(const T& val)
     {
@@ -72,7 +72,7 @@ public:
     }
 
     /**
-     * @brief  Applys a logic OR to the enum bitset with another BitSetEnum
+     * @brief  Applies a logic OR to the enum bitset with another BitSetEnum
      */
     BitSetEnum& operator|=(const BitSetEnum& other)
     {
@@ -81,7 +81,7 @@ public:
     }
 
     /**
-     * @brief Applys a logic AND to the enum bitset with the stated value and
+     * @brief Applies a logic AND to the enum bitset with the stated value and
      * returns a BitSetEnum
      */
     BitSetEnum operator&(const T& val)
@@ -92,7 +92,7 @@ public:
     }
 
     /**
-     * @brief Applys a logic AND to the enum bitset with another BitsetEnum and
+     * @brief Applies a logic AND to the enum bitset with another BitsetEnum and
      * returns the result as a BitSetEnum
      */
     BitSetEnum operator&(const BitSetEnum& other)
@@ -103,7 +103,7 @@ public:
     }
 
     /**
-     * @brief Applys a logic OR to the enum bitset with the stated value and
+     * @brief Applies a logic OR to the enum bitset with the stated value and
      * returns a BitSetEnum
      */
     BitSetEnum operator|(const T& val)
@@ -114,7 +114,7 @@ public:
     }
 
     /**
-     * @brief Applys a logic OR to the enum bitset with another BitsetEnum and
+     * @brief Applies a logic OR to the enum bitset with another BitsetEnum and
      * returns the result as a BitSetEnum
      */
     BitSetEnum operator|(const BitSetEnum& other)
@@ -148,7 +148,7 @@ public:
     /**
      * @brief Returns the bitset as a uint64_t
      */
-    uint64_t getUint64() const { return bitset.to_ullong(); }
+    [[nodiscard]] uint64_t getUint64() const { return bitset.to_ullong(); }
 
     /**
      * @brief Check whether the specified bit is set

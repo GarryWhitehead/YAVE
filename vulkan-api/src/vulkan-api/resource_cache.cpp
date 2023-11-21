@@ -27,7 +27,6 @@
 #include "driver.h"
 #include "garbage_collector.h"
 #include "image.h"
-#include "utility/assertion.h"
 
 namespace vkapi
 {
@@ -50,7 +49,7 @@ TextureHandle ResourceCache::createTexture2d(
     TextureHandle handle {tex};
     tex->createTexture2d(
         driver_, format, width, height, mipLevels, faceCount, arrayCount, usageFlags);
-    textures_.insert(std::move(tex));
+    textures_.insert(tex);
     return handle;
 }
 
@@ -60,7 +59,7 @@ TextureHandle ResourceCache::createTexture2d(
     auto tex = new Texture(context_);
     TextureHandle handle {tex};
     tex->createTexture2d(driver_, format, width, height, image);
-    textures_.insert(std::move(tex));
+    textures_.insert(tex);
     return handle;
 }
 
@@ -69,11 +68,11 @@ BufferHandle ResourceCache::createUbo(const size_t size, VkBufferUsageFlags usag
     auto buffer = new Buffer;
     BufferHandle handle {buffer};
     buffer->prepare(driver_.vmaAlloc(), static_cast<VkDeviceSize>(size), usage);
-    buffers_.insert(std::move(buffer));
+    buffers_.insert(buffer);
     return handle;
 }
 
-void ResourceCache::deleteUbo(BufferHandle& handle, GarbageCollector& gc)
+void ResourceCache::deleteUbo(BufferHandle& handle)
 {
     Buffer* buffer = handle.getResource();
     // If the handle is invalidated we assume that the resource has already been
@@ -91,7 +90,7 @@ void ResourceCache::deleteUbo(BufferHandle& handle, GarbageCollector& gc)
     }
 }
 
-void ResourceCache::deleteTexture(TextureHandle& handle, GarbageCollector& gc)
+void ResourceCache::deleteTexture(TextureHandle& handle)
 {
     Texture* tex = handle.getResource();
     // If the handle is invalidated we assume that the resource has already been
@@ -103,7 +102,7 @@ void ResourceCache::deleteTexture(TextureHandle& handle, GarbageCollector& gc)
     auto iter = textures_.find(const_cast<Texture*>(tex));
     if (iter != textures_.end())
     {
-        tex->framesUntilGc = Commands::MaxCommandBufferSize;
+        tex->framesUntilGc_ = Commands::MaxCommandBufferSize;
         textureGc_.insert(tex);
         textures_.erase(iter);
     }
@@ -114,7 +113,7 @@ void ResourceCache::garbageCollection() noexcept
     std::unordered_set<Texture*> newTextureGc;
     for (auto* tex : textureGc_)
     {
-        if (!--tex->framesUntilGc)
+        if (!--tex->framesUntilGc_)
         {
             tex->destroy();
         }

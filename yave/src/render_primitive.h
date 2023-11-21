@@ -58,7 +58,7 @@ public:
     };
 
     IRenderPrimitive();
-    ~IRenderPrimitive();
+    ~IRenderPrimitive() override;
 
     void shutDown(vkapi::VkDriver& driver) noexcept;
 
@@ -75,10 +75,10 @@ public:
 
     // =================== getters ============================
 
-    vk::PrimitiveTopology getTopology() const noexcept { return topology_; }
-    bool getPrimRestartState() const noexcept { return primitiveRestart_; }
-    const AABBox& getDimensions() const noexcept { return box_; }
-    const MeshDrawData& getDrawData() const noexcept { return drawData_; }
+    [[nodiscard]] vk::PrimitiveTopology getTopology() const noexcept { return topology_; }
+    [[nodiscard]] bool getPrimRestartState() const noexcept { return primitiveRestart_; }
+    [[nodiscard]] const AABBox& getDimensions() const noexcept { return box_; }
+    [[nodiscard]] const MeshDrawData& getDrawData() const noexcept { return drawData_; }
     util::BitSetEnum<Variants>& getVariantBits() noexcept { return variants_; }
 
     IVertexBuffer* getVertexBuffer() noexcept { return vertBuffer_; }

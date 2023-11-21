@@ -25,13 +25,11 @@
 #include "render_graph.h"
 #include "utility/assertion.h"
 
-namespace yave
-{
-namespace rg
+namespace yave::rg
 {
 
-BlackBoard::BlackBoard() {}
-BlackBoard::~BlackBoard() {}
+BlackBoard::BlackBoard() = default;
+BlackBoard::~BlackBoard() = default;
 
 void BlackBoard::add(const std::string& name, const RenderGraphHandle& handle)
 {
@@ -60,5 +58,4 @@ void BlackBoard::remove(const std::string& name)
 
 void BlackBoard::reset() noexcept { blackboard_.clear(); }
 
-} // namespace rg
-} // namespace yave
+} // namespace yave::rg

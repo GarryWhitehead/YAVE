@@ -27,7 +27,6 @@
 #include "swapchain.h"
 #include "utility.h"
 #include "utility/assertion.h"
-#include "utility/logger.h"
 
 #include <spdlog/spdlog.h>
 

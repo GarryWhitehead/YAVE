@@ -31,6 +31,10 @@
 
 namespace util
 {
+
+/**
+ A simple class that wraps a c style string to make easier to use.
+ */
 class CString
 {
 public:
@@ -49,54 +53,27 @@ public:
     ~CString();
 
     /**
-     * @brief A comapre two CStrings; a simple wrapper around the c-style
+     * @brief A compare two CStrings; a simple wrapper around the c-style
      * strncmp
      * @param str the CString to compare with
      * @return A boolean indicating whether the two CStrings are identical
      */
-    bool compare(CString str) const;
+    [[nodiscard]] bool compare(const CString& str) const;
 
-    float toFloat() const;
-    uint32_t toUInt32() const;
-    uint64_t toUInt64() const;
-    int toInt() const;
+    [[nodiscard]] bool empty() const { return !buffer; }
 
-    bool empty() const { return !buffer; }
+    [[nodiscard]] size_t size() const { return length; }
 
-    size_t size() const { return length; }
-
-    char* c_str() const { return buffer; }
+    [[nodiscard]] char* c_str() const { return buffer; }
 
     // ================== static functions ==========================
-    static std::vector<CString> split(CString str, char identifier);
+    static std::vector<CString> split(const CString& str, char identifier);
 
     /**
      * @brief Appends a CString to the end of the CString held by the 'this'
      * buffer
      */
     static util::CString append(util::CString lhs, util::CString rhs);
-
-    /**
-     * @brief Convert a numbert type to CString
-     */
-    template <typename T>
-    static CString valueToCString(T value)
-    {
-        char result[sizeof(T) + 2];
-        if constexpr (std::is_same_v<T, float>)
-        {
-            sprintf(result, "%f", value);
-        }
-        else if constexpr (std::is_same_v<T, int>)
-        {
-            sprintf(result, "%d", value);
-        }
-        else if constexpr (std::is_same_v<T, uint64_t>)
-        {
-            sprintf(result, "%lu", value);
-        }
-        return CString {result};
-    }
 
 private:
     char* buffer = nullptr;

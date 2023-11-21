@@ -26,9 +26,7 @@
 #include <exception>
 #include <string>
 
-namespace util
-{
-namespace assertion
+namespace util::assertion
 {
 
 std::string formatArgs(char const* format, va_list args)
@@ -88,5 +86,4 @@ void log(char const* function, char const* file, int line, const char* str, ...)
     fprintf(stdout, "%s", msg.c_str());
 }
 
-} // namespace assertion
-} // namespace util
+} // namespace util::assertion

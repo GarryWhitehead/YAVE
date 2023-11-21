@@ -54,11 +54,11 @@ public:
 
     void updateCameraForWindow();
 
-    const std::pair<const char**, uint32_t> getInstanceExt() const noexcept;
+    std::pair<const char**, uint32_t> getInstanceExt() const noexcept;
 
     bool createSurfaceVk(const vk::Instance& instance);
 
-    const vk::SurfaceKHR getSurface() const;
+    vk::SurfaceKHR getSurface() const;
 
     void keyResponse(GLFWwindow* window, int key, int scan_code, int action, int mode);
     void mouseButtonResponse(GLFWwindow* window, int button, int action, int mods);

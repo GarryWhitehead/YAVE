@@ -76,29 +76,29 @@ yave::Object GltfModelApp::buildModel(
         yave::ModelMaterial* material = mesh->material_.get();
 
         yave::Material* mat = materials[primIdx];
-        mat->setPipeline(mat->convertPipeline(material->pipeline));
+        mat->setPipeline(mat->convertPipeline(material->pipeline_));
 
         yave::Material::MaterialFactors factors;
-        factors.baseColourFactor = material->attributes.baseColour;
-        factors.diffuseFactor = material->attributes.diffuse;
-        factors.emissiveFactor = material->attributes.emissive;
-        factors.specularFactor = material->attributes.specular;
-        factors.metallicFactor = material->attributes.metallic;
-        factors.roughnessFactor = material->attributes.roughness;
-        factors.alphaMask = material->attributes.alphaMask;
-        factors.alphaMaskCutOff = material->attributes.alphaMaskCutOff;
+        factors.baseColourFactor = material->attributes_.baseColour;
+        factors.diffuseFactor = material->attributes_.diffuse;
+        factors.emissiveFactor = material->attributes_.emissive;
+        factors.specularFactor = material->attributes_.specular;
+        factors.metallicFactor = material->attributes_.metallic;
+        factors.roughnessFactor = material->attributes_.roughness;
+        factors.alphaMask = material->attributes_.alphaMask;
+        factors.alphaMaskCutOff = material->attributes_.alphaMaskCutOff;
         mat->setMaterialFactors(factors);
 
-        mat->setDoubleSidedState(material->doubleSided);
+        mat->setDoubleSidedState(material->doubleSided_);
 
         // we use the same sampler for all textures
         yave::TextureSampler sampler(
-            backend::samplerFilterToYave(material->sampler.magFilter),
-            backend::samplerFilterToYave(material->sampler.minFilter),
-            backend::samplerWrapModeToYave(material->sampler.addressModeU));
+            backend::samplerFilterToYave(material->sampler_.magFilter),
+            backend::samplerFilterToYave(material->sampler_.minFilter),
+            backend::samplerWrapModeToYave(material->sampler_.addressModeU));
 
         // load the textures and upload to the gpu
-        for (const auto& info : material->textures)
+        for (const auto& info : material->textures_)
         {
             yave::Texture* tex =
                 loader.loadFromFile(info.texturePath, backend::TextureFormat::RGBA8);
@@ -253,7 +253,7 @@ int main()
     // add the skybox to the scene
     yave::Skybox* skybox = app.engine_->createSkybox(app.scene_);
     skybox->setTexture(ibl.getCubeMap());
-    skybox->build(app.scene_, app.getWindow()->getCamera());
+    skybox->build(app.scene_);
     app.scene_->setSkybox(skybox);
 
     // create the renderer used to draw to the backbuffer

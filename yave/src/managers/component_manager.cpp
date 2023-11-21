@@ -26,7 +26,7 @@ namespace yave
 {
 
 ComponentManager::ComponentManager() : index_(0) {}
-ComponentManager::~ComponentManager() {}
+ComponentManager::~ComponentManager() = default;
 
 ObjectHandle ComponentManager::addObject(const Object& obj) noexcept
 {

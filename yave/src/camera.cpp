@@ -42,7 +42,7 @@ ICamera::ICamera()
 {
 }
 
-ICamera::~ICamera() {}
+ICamera::~ICamera() = default;
 
 void ICamera::shutDown(vkapi::VkDriver& driver) noexcept {}
 
@@ -63,7 +63,7 @@ void ICamera::setProjectionMatrixI(
     near_ = near;
     far_ = far;
 
-    // flip the y axis for vulkan
+    // flip the y-axis for vulkan
     projection_(1, 1) *= -1.0f;
 }
 

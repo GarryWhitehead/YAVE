@@ -26,12 +26,10 @@
 
 #include <deque>
 
-namespace yave
-{
-namespace rg
+namespace yave::rg
 {
 
-DependencyGraph::DependencyGraph() {}
+DependencyGraph::DependencyGraph() = default;
 
 void DependencyGraph::addNode(Node* node) { nodes_.emplace_back(node); }
 
@@ -176,8 +174,8 @@ void DependencyGraph::clear() noexcept
 
 // ================= node functions ===================
 
-Node::Node(const util::CString& name, DependencyGraph& graph)
-    : refCount(0), name_(name), id_(graph.createId())
+Node::Node(util::CString name, DependencyGraph& graph)
+    : refCount(0), name_(std::move(name)), id_(graph.createId())
 {
     graph.addNode(this);
 }
@@ -198,5 +196,4 @@ Edge::Edge(DependencyGraph& dGraph, Node* from, Node* to) : fromId(from->getId()
     dGraph.addEdge(this);
 }
 
-} // namespace rg
-} // namespace yave
+} // namespace yave::rg

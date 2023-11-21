@@ -25,9 +25,7 @@
 #include "render_graph.h"
 #include "render_pass_node.h"
 
-namespace yave
-{
-namespace rg
+namespace yave::rg
 {
 
 ResourceNode::ResourceNode(
@@ -102,7 +100,7 @@ bool ResourceNode::hasWriters()
 {
     const auto& writers =
         rGraph_.getDependencyGraph().getWriterEdges(reinterpret_cast<Node*>(this));
-    return writers.size() > 0;
+    return !writers.empty();
 }
 
 void ResourceNode::bakeResource(ResourceBase* resource) noexcept
@@ -154,5 +152,4 @@ void ResourceNode::setAliasResourceEdge(ResourceNode* alias) noexcept
     aliasEdge_ = std::make_unique<Edge>(rGraph_.getDependencyGraph(), this, alias);
 }
 
-} // namespace rg
-} // namespace yave
+} // namespace yave::rg

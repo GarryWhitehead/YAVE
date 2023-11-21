@@ -26,11 +26,9 @@
 #include "vulkan-api/driver.h"
 #include "vulkan-api/renderpass.h"
 
-namespace yave
+namespace yave::rg
 {
-namespace rg
-{
-// forward declerations
+// forward declarations
 class RenderGraph;
 class RenderPassNode;
 class ResourceBase;
@@ -51,7 +49,7 @@ public:
      * @param handle A resource handle
      * @return The resource declared by the handle
      */
-    ResourceBase* getResource(const RenderGraphHandle& handle) const noexcept;
+    [[nodiscard]] ResourceBase* getResource(const RenderGraphHandle& handle) const noexcept;
 
     /**
      * @brief Get details of the specified render pass
@@ -59,9 +57,10 @@ public:
      * createRenderTarget
      * @return A info object detailing the specifics of the renderpass
      */
-    Info getRenderPassInfo(const RenderGraphHandle& handle) const noexcept;
+    [[nodiscard]] Info getRenderPassInfo(const RenderGraphHandle& handle) const noexcept;
 
-    vkapi::TextureHandle getTextureHandle(const RenderGraphHandle& handle) const noexcept;
+    [[nodiscard]] vkapi::TextureHandle
+    getTextureHandle(const RenderGraphHandle& handle) const noexcept;
 
 private:
     RenderGraph& rGraph_;
@@ -69,6 +68,4 @@ private:
     RenderPassNode* rPassNode_;
 };
 
-
-} // namespace rg
-} // namespace yave
+} // namespace yave::rg

@@ -33,18 +33,16 @@
 #include <cstddef>
 #include <cstdint>
 
-// vulkan forward declerations
+// vulkan forward declarations
 namespace vkapi
 {
 class ImageView;
 } // namespace vkapi
 
-namespace yave
-{
-namespace rg
+namespace yave::rg
 {
 
-// forward declerations
+// forward declarations
 class RenderGraph;
 class DependencyGraph;
 class RenderPassNode;
@@ -58,11 +56,13 @@ class ResourceBase
 {
 public:
     virtual ~ResourceBase() = default;
-    ResourceBase(util::CString name) : name_(name), parent_(this) {}
+    explicit ResourceBase(util::CString name) : name_(std::move(name)), parent_(this) {}
     /**
      * @brief constructor for creating a sub-resource (has a parent resource)
      */
-    ResourceBase(util::CString name, ResourceBase* parent) : name_(name), parent_(parent) {}
+    ResourceBase(util::CString name, ResourceBase* parent) : name_(std::move(name)), parent_(parent)
+    {
+    }
 
     void registerPass(PassNodeBase* node);
 
@@ -89,9 +89,9 @@ public:
      * @brief Check if this resource is classed as a sub-resource
      * A sub-resource is a resource that is a child (has a parent)
      */
-    bool isSubResource() const;
+    [[nodiscard]] bool isSubResource() const;
 
-    virtual bool isImported() const = 0;
+    [[nodiscard]] virtual bool isImported() const = 0;
 
     virtual ImportedRenderTarget* asImportedRenderTarget() noexcept { return nullptr; }
 
@@ -101,7 +101,7 @@ public:
 
     // =================== getters ==========================
 
-    size_t readCount() const noexcept { return readCount_; }
+    [[nodiscard]] size_t readCount() const noexcept { return readCount_; }
     ResourceBase* getParent() noexcept { return parent_; }
     PassNodeBase* getFirstPassNode() noexcept { return firstPassNode_; }
     PassNodeBase* getLastPassNode() noexcept { return lastPassNode_; }
@@ -132,7 +132,6 @@ public:
         uint32_t height = 0;
         uint8_t depth = 1;
         uint8_t mipLevels = 1;
-        uint8_t samples = 1;
         vk::Format format = vk::Format::eUndefined;
     };
 
@@ -147,13 +146,9 @@ public:
 
     void destroy(vkapi::VkDriver& driver) override;
 
-    bool isDepthFormat();
-    bool isColourFormat();
-    bool isStencilFormat();
+    [[nodiscard]] bool isImported() const override { return false; }
 
-    bool isImported() const override { return false; }
-
-    const Descriptor& descriptor() const { return desc_; }
+    [[nodiscard]] const Descriptor& descriptor() const { return desc_; }
     vkapi::TextureHandle& handle() { return handle_; }
 
     friend struct RenderPassInfo;
@@ -181,7 +176,7 @@ public:
         vk::ImageUsageFlags imageUsage_,
         vkapi::TextureHandle handle_);
 
-    bool isImported() const override { return true; }
+    [[nodiscard]] bool isImported() const override { return true; }
 
     void bake(vkapi::VkDriver& driver) override;
 
@@ -213,7 +208,7 @@ public:
         const vkapi::RenderTargetHandle& handle,
         const TextureResource::Descriptor& resDesc,
         const Descriptor& importedDesc);
-    ~ImportedRenderTarget();
+    ~ImportedRenderTarget() override;
 
     ImportedRenderTarget* asImportedRenderTarget() noexcept override { return this; }
 
@@ -222,5 +217,4 @@ public:
     Descriptor desc;
 };
 
-} // namespace rg
-} // namespace yave
+} // namespace yave::rg

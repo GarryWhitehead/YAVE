@@ -33,7 +33,7 @@ IRenderable::IRenderable()
 {
 }
 
-IRenderable::~IRenderable() {}
+IRenderable::~IRenderable() = default;
 
 void IRenderable::shutDown(vkapi::VkDriver& driver) noexcept {}
 
@@ -74,8 +74,8 @@ std::vector<IRenderPrimitive*>& IRenderable::getAllRenderPrimitives() noexcept
 
 // ========================== client api ============================
 
-Renderable::Renderable() {}
-Renderable::~Renderable() {}
+Renderable::Renderable() = default;
+Renderable::~Renderable() = default;
 
 void IRenderable::setPrimitive(RenderPrimitive* prim, size_t idx)
 {

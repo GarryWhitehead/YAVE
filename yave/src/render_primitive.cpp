@@ -27,12 +27,9 @@
 #include "material.h"
 #include "utility/assertion.h"
 #include "vertex_buffer.h"
-#include "yave/engine.h"
 #include "yave/render_primitive.h"
 
 #include <spdlog/spdlog.h>
-
-#include <tuple>
 
 namespace yave
 {
@@ -45,9 +42,9 @@ IRenderPrimitive::IRenderPrimitive()
       material_(nullptr)
 {
 }
-IRenderPrimitive::~IRenderPrimitive() {}
+IRenderPrimitive::~IRenderPrimitive() = default;
 
-void IRenderPrimitive::shutDown(vkapi::VkDriver& driver) noexcept {}
+void IRenderPrimitive::shutDown(vkapi::VkDriver& driver) noexcept { YAVE_UNUSED(driver); }
 
 vkapi::VDefinitions IRenderPrimitive::createVertexAttributeVariants()
 {
@@ -102,8 +99,8 @@ void IRenderPrimitive::setMaterialI(IMaterial* mat) noexcept { material_ = mat; 
 
 // =============== client api virtual =======================
 
-RenderPrimitive::RenderPrimitive() {}
-RenderPrimitive::~RenderPrimitive() {}
+RenderPrimitive::RenderPrimitive() = default;
+RenderPrimitive::~RenderPrimitive() = default;
 
 void IRenderPrimitive::addMeshDrawData(size_t indexCount, size_t offset, size_t vertexCount)
 {

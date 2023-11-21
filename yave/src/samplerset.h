@@ -64,7 +64,7 @@ public:
 
     uint32_t getSamplerBinding(const std::string& name);
 
-    bool empty() const noexcept { return samplers_.empty(); }
+    [[nodiscard]] bool empty() const noexcept { return samplers_.empty(); }
 
 private:
     std::vector<SamplerInfo> samplers_;
@@ -99,7 +99,7 @@ public:
         SamplerType type;
         // whether the image is read or write
         StorageType storageType;
-        // the texture formmat i.e. rgba8
+        // the texture format i.e. rgba8
         std::string formatLayout;
     };
 
@@ -121,9 +121,9 @@ public:
 
     std::string createShaderStr() noexcept;
 
-    uint32_t getSamplerBinding(const std::string& name);
+    [[maybe_unused]] uint32_t getSamplerBinding(const std::string& name);
 
-    bool empty() const noexcept { return samplers_.empty(); }
+    [[nodiscard]] bool empty() const noexcept { return samplers_.empty(); }
 
 private:
     std::vector<SamplerInfo> samplers_;

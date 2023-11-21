@@ -33,9 +33,9 @@ namespace yave
 class IEngine;
 class ICamera;
 class IIndirectLight;
-class LightInstance;
+struct LightInstance;
 
-/* A all-in-one ne uniform buffer that holds all the dynamic information
+/* An all-in-one uniform buffer that holds all the dynamic information
  *  that is required by the scene.
  */
 class SceneUbo
@@ -43,7 +43,7 @@ class SceneUbo
 public:
     static constexpr int SceneUboBindPoint = 3;
 
-    SceneUbo(vkapi::VkDriver& driver);
+    explicit SceneUbo(vkapi::VkDriver& driver);
 
     void updateCamera(ICamera& camera);
 
@@ -57,8 +57,6 @@ public:
 
 private:
     std::unique_ptr<UniformBuffer> ubo_;
-
-    uint32_t uboSize_;
 };
 
 } // namespace yave

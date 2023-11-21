@@ -38,8 +38,8 @@ class IEngine;
 class IMappedTexture : public Texture
 {
 public:
-    IMappedTexture(IEngine& engine);
-    ~IMappedTexture();
+    explicit IMappedTexture(IEngine& engine);
+    ~IMappedTexture() override;
 
     // textures are not copyable
     IMappedTexture(const IMappedTexture& other) = delete;
@@ -78,16 +78,16 @@ public:
 
     static uint32_t getFormatByteSize(backend::TextureFormat format);
 
-    bool isCubeMap() const noexcept { return faceCount_ == 6; }
+    [[nodiscard]] bool isCubeMap() const noexcept { return faceCount_ == 6; }
 
     // ================= getters =====================
 
     void* getBuffer() { return buffer_; }
-    size_t getWidth() const noexcept { return width_; }
-    size_t getHeight() const noexcept { return height_; }
-    uint32_t getMipLevels() const noexcept { return mipLevels_; }
-    uint32_t getFaceCount() const noexcept { return faceCount_; }
-    vk::Format getFormat() const noexcept { return format_; }
+    [[nodiscard]] size_t getWidth() const noexcept { return width_; }
+    [[nodiscard]] size_t getHeight() const noexcept { return height_; }
+    [[nodiscard]] uint32_t getMipLevels() const noexcept { return mipLevels_; }
+    [[nodiscard]] uint32_t getFaceCount() const noexcept { return faceCount_; }
+    [[nodiscard]] vk::Format getFormat() const noexcept { return format_; }
 
     vkapi::TextureHandle& getBackendHandle() { return tHandle_; }
 
@@ -100,8 +100,8 @@ public:
         uint32_t height,
         TextureFormat format,
         uint32_t usageFlags,
-        uint32_t levels,
-        uint32_t faces) noexcept override;
+        uint32_t levels = 1,
+        uint32_t faces = 1) noexcept override;
 
     Params getTextureParams() noexcept override;
 

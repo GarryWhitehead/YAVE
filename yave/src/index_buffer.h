@@ -35,7 +35,7 @@ class IIndexBuffer : public IndexBuffer
 {
 public:
     IIndexBuffer();
-    ~IIndexBuffer();
+    ~IIndexBuffer() override;
 
     void shutDown(vkapi::VkDriver& driver);
 
@@ -47,7 +47,7 @@ public:
 
     vkapi::IndexBuffer* getGpuBuffer(vkapi::VkDriver& driver) noexcept;
 
-    uint64_t getIndicesSize() const noexcept { return indicesCount_; }
+    [[nodiscard]] uint64_t getIndicesSize() const noexcept { return indicesCount_; }
 
     backend::IndexBufferType getBufferType() noexcept { return bufferType_; }
 

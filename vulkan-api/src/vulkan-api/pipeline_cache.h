@@ -32,7 +32,7 @@
 
 namespace vkapi
 {
-// forward declerations
+// forward declarations
 class ShaderProgramBundle;
 class RenderPass;
 class FrameBuffer;
@@ -191,7 +191,7 @@ public:
     {
         vk::DescriptorSetLayout layout[MaxDescriptorTypeCount] = {};
         vk::DescriptorSet descrSets[MaxDescriptorTypeCount] = {};
-        uint64_t frameLastUsed;
+        uint64_t frameLastUsed = 0;
     };
 
     // =============== graphic pipelines ====================
@@ -234,8 +234,8 @@ public:
     void bindUboDynamic(uint8_t bindValue, vk::Buffer buffer, uint32_t size);
     void bindSsbo(uint8_t bindValue, vk::Buffer buffer, uint32_t size);
 
-    void bindScissor(vk::CommandBuffer cmdBuffer, const vk::Rect2D& newScissor);
-    void bindViewport(vk::CommandBuffer cmdBuffer, const vk::Viewport& newViewPort);
+    static void bindScissor(vk::CommandBuffer cmdBuffer, const vk::Rect2D& newScissor);
+    static void bindViewport(vk::CommandBuffer cmdBuffer, const vk::Viewport& newViewPort);
     void bindSampler(DescriptorImage descImages[MaxSamplerBindCount]);
     void bindStorageImage(DescriptorImage descImages[MaxStorageImageBindCount]);
 

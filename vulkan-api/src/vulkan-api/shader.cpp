@@ -36,7 +36,7 @@
 namespace vkapi
 {
 
-IncludeInterface::~IncludeInterface() {}
+IncludeInterface::~IncludeInterface() = default;
 
 shaderc_include_result* IncludeInterface::GetInclude(
     const char* requested_source,
@@ -55,7 +55,7 @@ shaderc_include_result* IncludeInterface::GetInclude(
     }
 
     // Read the file and save its full path and contents into stable addresses.
-    FileInfo* new_file_info = new FileInfo {full_path, {}};
+    auto* new_file_info = new FileInfo {full_path, {}};
     if (!shaderc_util::ReadFile(full_path, &(new_file_info->contents)))
     {
         SPDLOG_CRITICAL("Unable to read include file: {}\n", requested_source);
@@ -74,7 +74,7 @@ shaderc_include_result* IncludeInterface::GetInclude(
 
 void IncludeInterface::ReleaseInclude(shaderc_include_result* include_result)
 {
-    FileInfo* info = static_cast<FileInfo*>(include_result->user_data);
+    auto* info = static_cast<FileInfo*>(include_result->user_data);
     delete info;
     delete include_result;
 }
@@ -109,7 +109,7 @@ shaderc_shader_kind getShaderKind(const backend::ShaderStage type)
     return result;
 }
 
-void printShader(std::string code)
+void printShader(const std::string& code)
 {
     std::stringstream ss(code);
     std::string line;
@@ -122,11 +122,11 @@ void printShader(std::string code)
 }
 
 ShaderCompiler::ShaderCompiler(std::string shaderCode, const backend::ShaderStage type)
-    : kind_(getShaderKind(type)), source_(shaderCode), sourceName_(YAVE_SHADER_DIRECTORY)
+    : kind_(getShaderKind(type)), source_(std::move(shaderCode)), sourceName_(YAVE_SHADER_DIRECTORY)
 {
 }
 
-ShaderCompiler::~ShaderCompiler() {}
+ShaderCompiler::~ShaderCompiler() = default;
 
 bool ShaderCompiler::compile(bool optimise)
 {
@@ -151,10 +151,9 @@ bool ShaderCompiler::compile(bool optimise)
     options.SetSourceLanguage(shaderc_source_language_glsl);
     options.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_2);
 
-    // we need to create a new instantation of the includer interface - using
+    // we need to create a new instantiation of the includer interface - using
     // the one from shaerc - though could use our own.
     std::unique_ptr<IncludeInterface> includer(new IncludeInterface(&fileFinder_));
-    const auto& used_source_files = includer->filePathTrace();
     options.SetIncluder(std::move(includer));
 
     // shaderc requires a slash on the end of the source name string otherwise
@@ -185,7 +184,7 @@ Shader::Shader(VkContext& context, const backend::ShaderStage type) : context_(c
 {
 }
 
-Shader::~Shader() {}
+Shader::~Shader() = default;
 
 std::string Shader::shaderTypeToString(backend::ShaderStage type)
 {
@@ -242,7 +241,7 @@ vk::ShaderStageFlagBits Shader::getStageFlags(backend::ShaderStage type)
 }
 
 std::tuple<vk::Format, uint32_t>
-Shader::getVkFormatFromSize(uint32_t width, uint32_t vecSize, const spirv_cross::SPIRType type)
+Shader::getVkFormatFromSize(uint32_t width, uint32_t vecSize, const spirv_cross::SPIRType& type)
 {
     // TODO: add other base types and widths
     vk::Format format;
@@ -309,7 +308,7 @@ Shader::getVkFormatFromSize(uint32_t width, uint32_t vecSize, const spirv_cross:
     return std::make_tuple(format, size);
 }
 
-bool Shader::compile(std::string shaderCode, const VDefinitions& variants)
+bool Shader::compile(const std::string& shaderCode, const VDefinitions& variants)
 {
     if (shaderCode.empty())
     {
@@ -351,19 +350,6 @@ bool Shader::compile(std::string shaderCode, const VDefinitions& variants)
     return true;
 }
 
-bool Shader::loadAsBinary(const std::filesystem::path shaderPath, uint32_t* output)
-{
-    ASSERT_LOG(output);
-    std::ifstream file(shaderPath, std::ios::in | std::ios_base::binary);
-    if (file.is_open())
-    {
-        const size_t size = std::filesystem::file_size(shaderPath);
-        file.read(reinterpret_cast<char*>(output), size);
-        return true;
-    }
-    return false;
-}
-
 void Shader::reflect(const uint32_t* shaderCode, uint32_t size)
 {
     // perform reflection on the shader
@@ -374,7 +360,7 @@ void Shader::reflect(const uint32_t* shaderCode, uint32_t size)
     // input attributes
     for (auto& attrib : resources.stage_inputs)
     {
-        ShaderBinding::Attribute stageInput;
+        ShaderBinding::Attribute stageInput {};
         stageInput.location = glsl.get_decoration(attrib.id, spv::DecorationLocation);
 
         auto& base_type = glsl.get_type(attrib.base_type_id);
@@ -392,7 +378,7 @@ void Shader::reflect(const uint32_t* shaderCode, uint32_t size)
     // output attributes
     for (auto& attrib : resources.stage_outputs)
     {
-        ShaderBinding::Attribute stageOutput;
+        ShaderBinding::Attribute stageOutput {};
         stageOutput.location = glsl.get_decoration(attrib.id, spv::DecorationLocation);
 
         auto& base_type = glsl.get_type(attrib.base_type_id);

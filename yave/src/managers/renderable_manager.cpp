@@ -24,22 +24,12 @@
 
 #include "engine.h"
 #include "mapped_texture.h"
-#include "render_primitive.h"
 #include "renderable.h"
 #include "transform_manager.h"
 #include "utility/assertion.h"
-#include "utility/murmurhash.h"
-#include "vulkan-api/commands.h"
-#include "vulkan-api/driver.h"
-#include "vulkan-api/pipeline_cache.h"
-#include "vulkan-api/program_manager.h"
-#include "vulkan-api/texture.h"
-#include "vulkan-api/utility.h"
 #include "yave/object.h"
 #include "yave/renderable.h"
 #include "yave/renderable_manager.h"
-
-#include <spdlog/spdlog.h>
 
 namespace yave
 {
@@ -50,7 +40,7 @@ IRenderableManager::IRenderableManager(IEngine& engine) : engine_(engine)
     renderables_.reserve(MeshInitContainerSize);
 }
 
-IRenderableManager::~IRenderableManager() {}
+IRenderableManager::~IRenderableManager() = default;
 
 void IRenderableManager::buildI(
     IScene& scene,
@@ -78,13 +68,13 @@ void IRenderableManager::buildI(
     }
     else
     {
-        renderables_[objHandle.get()] = std::move(*renderable);
+        renderables_[objHandle.get()] = *renderable;
     }
 }
 
 IMaterial* IRenderableManager::createMaterialI() noexcept
 {
-    IMaterial* mat = new IMaterial(engine_);
+    auto* mat = new IMaterial(engine_);
     ASSERT_LOG(mat);
     materials_.insert(mat);
     return mat;
@@ -116,8 +106,8 @@ void IRenderableManager::destroyI(IMaterial* mat)
 
 // ==================== client api ========================
 
-RenderableManager::RenderableManager() {}
-RenderableManager::~RenderableManager() {}
+RenderableManager::RenderableManager() = default;
+RenderableManager::~RenderableManager() = default;
 
 void IRenderableManager::build(
     Scene* scene,

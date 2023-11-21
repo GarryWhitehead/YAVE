@@ -31,7 +31,6 @@
 #include "scene.h"
 #include "utility/assertion.h"
 #include "utility/bitset_enum.h"
-#include "vulkan-api/pipeline.h"
 #include "vulkan-api/pipeline_cache.h"
 #include "vulkan-api/sampler_cache.h"
 #include "vulkan-api/utility.h"
@@ -43,11 +42,11 @@ namespace yave
 {
 
 IMaterial::IMaterial(IEngine& engine)
-    : doubleSided_(false), pipelineId_(0), viewLayer_(0x2), withDynMeshTransformUbo_(true)
+    : doubleSided_(false), withDynMeshTransformUbo_(true), pipelineId_(0), viewLayer_(0x2)
 {
     for (int i = 0; i < util::ecast(backend::ShaderStage::Count); ++i)
     {
-        backend::ShaderStage stage = static_cast<backend::ShaderStage>(i);
+        auto stage = static_cast<backend::ShaderStage>(i);
         std::string shaderName = vkapi::Shader::shaderTypeToString(stage);
 
         std::string pushBlockName = shaderName + "PushBlock";
@@ -68,7 +67,7 @@ IMaterial::IMaterial(IEngine& engine)
     variantBits_.setBit(Variants::EnableGBufferPipeline);
 }
 
-IMaterial::~IMaterial() {}
+IMaterial::~IMaterial() = default;
 
 std::string imageTypeToStr(Material::ImageType type)
 {
@@ -265,7 +264,7 @@ void IMaterial::addImageTexture(
 void IMaterial::addBuffer(BufferBase* buffer, backend::ShaderStage type)
 {
     ASSERT_FATAL(buffer, "Buffer is NULL.");
-    buffers_.push_back(std::make_pair(type, buffer));
+    buffers_.emplace_back(type, buffer);
 }
 
 void IMaterial::build(
@@ -302,8 +301,8 @@ void IMaterial::build(
     programBundle_->clear();
     buffers_.clear();
 
-    // add any additional buffer elemnts, push blocks or image samplers
-    // to the appropiate shader before building
+    // add any additional buffer elements, push blocks or image samplers
+    // to the appropriate shader before building
     auto addElements =
         [this, &driver, &scene](backend::ShaderStage stage, vkapi::ShaderProgram* prog) {
             size_t idx = util::ecast(stage);
@@ -314,7 +313,7 @@ void IMaterial::build(
 
             for (const auto& [s, buffer] : buffers_)
             {
-                if (stage == s)
+                if (prog && stage == s)
                 {
                     prog->addAttributeBlock(buffer->createShaderStr());
 
@@ -336,10 +335,13 @@ void IMaterial::build(
             }
 
             // add ubo and push block strings to shader block
-            PushBlock* pushBlock = pushBlock_[idx].get();
-            prog->addAttributeBlock(pushBlock->createShaderStr());
-            prog->addAttributeBlock(ubos_[idx]->createShaderStr());
-            prog->addAttributeBlock(samplerSet_[idx].createShaderStr());
+            if (prog)
+            {
+                PushBlock* pushBlock = pushBlock_[idx].get();
+                prog->addAttributeBlock(pushBlock->createShaderStr());
+                prog->addAttributeBlock(ubos_[idx]->createShaderStr());
+                prog->addAttributeBlock(samplerSet_[idx].createShaderStr());
+            }
         };
 
     auto* vProgram = programBundle_->getProgram(backend::ShaderStage::Vertex);
@@ -378,7 +380,7 @@ void IMaterial::build(
             prim->getTopology(), drawData.vertexCount, prim->getPrimRestartState());
     }
 
-    // create the veretx shader (renderable)
+    // create the vertex shader (renderable)
     // variants for the vertex - in/out attributes - these are also
     // used on the fragment shader.
     vkapi::VDefinitions vertexVariants;
@@ -435,7 +437,7 @@ void IMaterial::update(IEngine& engine) noexcept
     // update the ubos and push blocks
     for (int i = 0; i < util::ecast(backend::ShaderStage::Count); ++i)
     {
-        backend::ShaderStage stage = static_cast<backend::ShaderStage>(i);
+        auto stage = static_cast<backend::ShaderStage>(i);
         PushBlock* pushBlock = pushBlock_[i].get();
         if (!pushBlock->empty())
         {
@@ -446,7 +448,7 @@ void IMaterial::update(IEngine& engine) noexcept
         if (!ubos_[i]->empty())
         {
             ubos_[i]->createGpuBuffer(engine.driver());
-            ubos_[i]->mapGpuBuffer(engine.driver(), ubos_[i]->getBlockData());
+            ubos_[i]->mapGpuBuffer(ubos_[i]->getBlockData());
         }
     }
 }
@@ -576,7 +578,7 @@ void IMaterial::addTexture(
 {
     ASSERT_LOG(imageBuffer);
 
-    IEngine* iengine = reinterpret_cast<IEngine*>(engine);
+    auto* iengine = reinterpret_cast<IEngine*>(engine);
     IMappedTexture* tex = iengine->createMappedTextureI();
     tex->setTextureI(imageBuffer, width, height, 1, 1, format, backend::ImageUsage::Sampled);
     addTexture(engine, tex, type, stage, sampler);
@@ -756,7 +758,7 @@ void IMaterial::setBlendFactor(const Material::BlendFactorParams& factors)
 
 void IMaterial::setBlendFactor(backend::BlendFactorPresets preset)
 {
-    Material::BlendFactorParams params;
+    Material::BlendFactorParams params {};
 
     if (preset == backend::BlendFactorPresets::Translucent)
     {
@@ -791,19 +793,14 @@ Material::ImageType IMaterial::convertImageType(ModelMaterial::TextureType type)
     {
         case ModelMaterial::TextureType::BaseColour:
             return Material::ImageType::BaseColour;
-            break;
         case ModelMaterial::TextureType::Normal:
             return Material::ImageType::Normal;
-            break;
         case ModelMaterial::TextureType::Emissive:
             return Material::ImageType::Emissive;
-            break;
         case ModelMaterial::TextureType::Occlusion:
             return Material::ImageType::Occlusion;
-            break;
         case ModelMaterial::TextureType::MetallicRoughness:
             return Material::ImageType::MetallicRoughness;
-            break;
         default:
             SPDLOG_WARN("Model texture type not supported.");
             break;
@@ -821,6 +818,8 @@ Material::Pipeline IMaterial::convertPipeline(ModelMaterial::PbrPipeline pipelin
             break;
         case ModelMaterial::PbrPipeline::SpecularGlosiness:
             output = Material::Pipeline::SpecularGlosiness;
+            break;
+        case ModelMaterial::PbrPipeline::None:
             break;
     }
     return output;

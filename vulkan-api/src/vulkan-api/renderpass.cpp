@@ -24,7 +24,6 @@
 
 #include "backend/convert_to_vk.h"
 #include "context.h"
-#include "image.h"
 #include "utility.h"
 #include "utility/assertion.h"
 
@@ -35,9 +34,12 @@ namespace vkapi
 
 // ============== framebuffer ======================
 
-FrameBuffer::FrameBuffer(VkContext& context) : context_(context) {}
+FrameBuffer::FrameBuffer(VkContext& context)
+    : lastUsedFrameStamp_(0), context_(context), width_(0), height_(0)
+{
+}
 
-FrameBuffer::~FrameBuffer() {}
+FrameBuffer::~FrameBuffer() = default;
 
 void FrameBuffer::create(
     vk::RenderPass renderpass,
@@ -68,11 +70,12 @@ uint32_t FrameBuffer::getHeight() const { return height_; }
 
 // ================== Renderpass ================================
 
-RenderPass::RenderPass(VkContext& context) : context_(context), hasDepth_(false), depthClear_(1.0f)
+RenderPass::RenderPass(VkContext& context)
+    : lastUsedFrameStamp_(0), context_(context), hasDepth_(false)
 {
 }
 
-RenderPass::~RenderPass() {}
+RenderPass::~RenderPass() = default;
 
 vk::ImageLayout RenderPass::getAttachmentLayout(vk::Format format)
 {
@@ -145,7 +148,7 @@ void RenderPass::addSubpassDependency(DependencyType dependType)
     ASSERT_LOG(dependencies_[0].srcStageMask != vk::PipelineStageFlags(0));
     ASSERT_LOG(dependencies_[0].dstStageMask != vk::PipelineStageFlags(0));
 
-    // and the next dependenciesency stage
+    // and the next dependency stage
     dependencies_[1].srcSubpass = dependencies_[0].dstSubpass;
     dependencies_[1].dstSubpass = dependencies_[0].srcSubpass;
     dependencies_[1].dependencyFlags = vk::DependencyFlagBits::eByRegion;
@@ -253,34 +256,7 @@ void RenderPass::prepare(bool multiView)
 
 const vk::RenderPass& RenderPass::get() const { return renderpass_; }
 
-void RenderPass::setDepthClear(float col) { depthClear_ = col; }
-
 std::vector<vk::AttachmentDescription>& RenderPass::getAttachments() { return attachmentDescrs_; }
-
-std::vector<vk::PipelineColorBlendAttachmentState> RenderPass::getColourAttachs()
-{
-    size_t attachCount = attachmentDescrs_.size();
-    ASSERT_LOG(attachCount > 0);
-    std::vector<vk::PipelineColorBlendAttachmentState> colAttachs;
-    colAttachs.reserve(attachCount);
-
-    // for each clear output colour attachment in the renderpass, we need a
-    // blend attachment
-    for (uint32_t i = 0; i < attachmentDescrs_.size(); ++i)
-    {
-        // only colour attachments....
-        if (isDepth(attachmentDescrs_[i].format) || isStencil(attachmentDescrs_[i].format))
-        {
-            continue;
-        }
-        vk::PipelineColorBlendAttachmentState colour;
-        colour.colorWriteMask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
-            vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
-        colour.blendEnable = VK_FALSE; //< TODO: need to add blending
-        colAttachs.emplace_back(colour);
-    }
-    return colAttachs;
-}
 
 
 } // namespace vkapi

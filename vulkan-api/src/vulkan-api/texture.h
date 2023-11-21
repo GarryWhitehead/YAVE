@@ -29,7 +29,7 @@
 
 namespace vkapi
 {
-// forward declerations
+// forward declarations
 class Image;
 class ImageView;
 class VkDriver;
@@ -54,7 +54,7 @@ class Texture
 public:
     static constexpr int MaxMipCount = 12;
 
-    Texture(VkContext& context);
+    explicit Texture(VkContext& context);
     ~Texture();
 
     Texture(const Texture&) = delete;
@@ -96,13 +96,12 @@ public:
 
     // ================= getters =======================
 
-    ImageView* getImageView(uint32_t level = 0) const;
-    Image* getImage() const;
-    const vk::ImageLayout& getImageLayout() const;
+    [[nodiscard]] ImageView* getImageView(uint32_t level = 0) const;
+    [[nodiscard]] Image* getImage() const;
+    [[nodiscard]] const vk::ImageLayout& getImageLayout() const;
 
-    const TextureContext& context() const;
-
-    bool isCubeMap() const noexcept { return texContext_.faceCount == 6; }
+    [[nodiscard]] const TextureContext& context() const;
+    [[nodiscard]] bool isCubeMap() const noexcept { return texContext_.faceCount == 6; }
 
     friend class ResourceCache;
 
@@ -116,7 +115,7 @@ private:
     std::unique_ptr<Image> image_;
     std::unique_ptr<ImageView> imageView_[MaxMipCount];
 
-    uint64_t framesUntilGc;
+    uint64_t framesUntilGc_;
 };
 
 } // namespace vkapi

@@ -46,14 +46,14 @@ PostProcess::PostProcess(IEngine& engine)
       avgCompute_(std::make_unique<Compute>(engine_))
 {
 }
-PostProcess::~PostProcess() {}
+PostProcess::~PostProcess() = default;
 
 void PostProcess::init(IScene& scene)
 {
     // at the moment if we have already initialised don't do it again -
-    // though this is dependent on the current scene so we may which to
+    // though this is dependent on the current scene, so we may which to
     // allow re-initialisation or change where materials are built
-    if (materials_.size() > 0)
+    if (!materials_.empty())
     {
         return;
     }
@@ -68,7 +68,7 @@ void PostProcess::init(IScene& scene)
 
     // pre-build all of the materials required for the post-process renderpass stage
     // TODO: at the moment the material shaders are not updated which means that changes
-    // in variants won't be acted upon (will there be many varinats for post-process though??)
+    // in variants won't be acted upon (will there be many variants for post-process though??)
     for (auto& [name, reg] : registry)
     {
         IMaterial* mat = rm->createMaterialI();
@@ -154,7 +154,7 @@ rg::RenderGraphHandle PostProcess::bloom(
             vk::PipelineStageFlagBits::eComputeShader);
 
         lumCompute_->addStorageImage(
-            driver, "ColourSampler", lightHandle, 0, ImageStorageSet::StorageType::ReadOnly);
+            "ColourSampler", lightHandle, 0, ImageStorageSet::StorageType::ReadOnly);
 
         lumCompute_->addSsbo(
             "histogram",
@@ -182,7 +182,7 @@ rg::RenderGraphHandle PostProcess::bloom(
         auto& cmds = driver.getCommands();
         auto& cmdBuffer = cmds.getCmdBuffer().cmdBuffer;
 
-        float numPixels = static_cast<float>(width * height);
+        auto numPixels = static_cast<float>(width * height);
 
         // memory barrier to ensure the last compute shader has finished writing to the image
         // before we start reading from it.
@@ -194,7 +194,6 @@ rg::RenderGraphHandle PostProcess::bloom(
             vk::PipelineStageFlagBits::eComputeShader);
 
         avgCompute_->addStorageImage(
-            driver,
             "ColourSampler",
             averageLumLut_->getBackendHandle(),
             0,
@@ -279,7 +278,7 @@ rg::RenderGraphHandle PostProcess::bloom(
 
             driver.beginRenderpass(cmdBuffer, info.data, info.handle);
             driver.draw(cmds.getCmdBuffer().cmdBuffer, *mat->getProgram());
-            driver.endRenderpass(cmdBuffer);
+            vkapi::VkDriver::endRenderpass(cmdBuffer);
         });
 
     return rg.getData().bloom;

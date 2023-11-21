@@ -39,7 +39,7 @@ public:
     vkapi::TextureHandle getSpecularMapHandle() noexcept;
     vkapi::TextureHandle getBrdfLutHandle() noexcept;
 
-    uint32_t getMipLevels() const noexcept { return mipLevels_; }
+    [[nodiscard]] uint32_t getMipLevels() const noexcept { return mipLevels_; }
 
     // ====================== client api ===============================
 

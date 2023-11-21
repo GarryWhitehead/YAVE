@@ -38,7 +38,7 @@ class Image;
 class ImageView
 {
 public:
-    ImageView(const VkContext& context);
+    explicit ImageView(const VkContext& context);
     ~ImageView();
 
     static vk::ImageAspectFlags getImageAspect(vk::Format format);
@@ -52,11 +52,10 @@ public:
         const vk::Image& image,
         vk::Format format,
         uint8_t faceCount,
-        uint8_t mipLevels,
         uint8_t arrayCount,
         uint32_t level);
 
-    const vk::ImageView& get() const { return imageView_; }
+    [[nodiscard]] const vk::ImageView& get() const { return imageView_; }
 
 private:
     vk::Device device_;
@@ -79,7 +78,7 @@ public:
 
     static vk::Filter getFilterType(const vk::Format& format);
 
-    void create(const VmaAllocator& vmaAlloc, vk::ImageUsageFlags usageFlags);
+    void create(vk::ImageUsageFlags usageFlags);
 
     static void transition(
         const Image& image,
@@ -92,9 +91,9 @@ public:
 
     static void blit(const Image& srcImage, const Image& dstImage, Commands& cmd);
 
-    const vk::Image& get() const { return image_; }
+    [[nodiscard]] const vk::Image& get() const { return image_; }
 
-    const TextureContext& context() const { return tex_; }
+    [[nodiscard]] const TextureContext& context() const { return tex_; }
 
 private:
     VkContext& context_;

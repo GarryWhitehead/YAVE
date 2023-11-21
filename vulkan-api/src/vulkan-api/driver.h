@@ -37,7 +37,7 @@
 
 namespace vkapi
 {
-// forward declerations
+// forward declarations
 class Texture;
 class Buffer;
 class PipelineCache;
@@ -62,18 +62,18 @@ public:
 
     // initialises the vulkan driver - includes creating the abstract device,
     // physical device, queues, etc.
-    bool init(const vk::SurfaceKHR surface);
+    bool init(vk::SurfaceKHR surface);
 
     /// Make sure you call this before closing down the engine!
     void shutdown();
 
-    BufferHandle addUbo(const size_t size, VkBufferUsageFlags usage);
+    BufferHandle addUbo(size_t size, VkBufferUsageFlags usage);
 
-    VertexBufferHandle addVertexBuffer(const size_t size, void* data);
+    VertexBufferHandle addVertexBuffer(size_t size, void* data);
 
     void mapVertexBuffer(const VertexBufferHandle& handle, size_t count, void* data);
 
-    IndexBufferHandle addIndexBuffer(const size_t size, void* data);
+    IndexBufferHandle addIndexBuffer(size_t size, void* data);
 
     void mapIndexBuffer(const IndexBufferHandle& handle, size_t count, void* data);
 
@@ -82,11 +82,7 @@ public:
     IndexBuffer* getIndexBuffer(const IndexBufferHandle& ibHandle) noexcept;
 
     RenderTargetHandle createRenderTarget(
-        const ::util::CString& name,
-        uint32_t width,
-        uint32_t height,
         bool multiView,
-        uint8_t samples,
         const util::Colour4& clearCol,
         const std::array<RenderTarget::AttachmentInfo, vkapi::RenderTarget::MaxColourAttachCount>&
             colours,
@@ -95,7 +91,7 @@ public:
 
     void deleteRenderTarget(const RenderTargetHandle& rtHandle);
 
-    vk::Format getSupportedDepthFormat() const;
+    [[nodiscard]] vk::Format getSupportedDepthFormat() const;
 
     // =============== delete buffer =======================================
 
@@ -112,11 +108,11 @@ public:
     void beginRenderpass(
         vk::CommandBuffer cmds, const RenderPassData& data, const RenderTargetHandle& rtHandle);
 
-    void endRenderpass(vk::CommandBuffer& cmdBuffer);
+    static void endRenderpass(vk::CommandBuffer& cmdBuffer);
 
     Commands& getCommands() noexcept;
 
-    void generateMipMaps(const TextureHandle& handle, const vk::CommandBuffer& cmdBuffer);
+    static void generateMipMaps(const TextureHandle& handle, const vk::CommandBuffer& cmdBuffer);
 
     // ============= retrieve and delete resources ============================
 
@@ -154,7 +150,7 @@ public:
         uint32_t yWorkCount,
         uint32_t zWorkCount);
 
-    uint32_t getCurrentPresentIndex() const noexcept
+    [[nodiscard]] uint32_t getCurrentPresentIndex() const noexcept
     {
         ASSERT_LOG(imageIndex_ != UINT32_MAX);
         return imageIndex_;
@@ -166,12 +162,12 @@ public:
 
     VkContext& context() { return *context_; }
     VmaAllocator& vmaAlloc() { return vmaAlloc_; }
-    const vk::Semaphore& imageSignal() const { return imageReadySignal_; }
-    const StagingPool& stagingPool() const { return *stagingPool_.get(); }
+    [[nodiscard]] const vk::Semaphore& imageSignal() const { return imageReadySignal_; }
+    [[nodiscard]] const StagingPool& stagingPool() const { return *stagingPool_; }
     ProgramManager& progManager() { return *programManager_; }
     PipelineCache& pipelineCache() { return *pipelineCache_; }
     SamplerCache& getSamplerCache() { return *samplerCache_; }
-    uint64_t getCurrentFrame() const noexcept { return currentFrame_; }
+    [[nodiscard]] uint64_t getCurrentFrame() const noexcept { return currentFrame_; }
 
     using VertexBufferMap = std::vector<VertexBuffer*>;
     using IndexBufferMap = std::vector<IndexBuffer*>;
@@ -211,7 +207,7 @@ private:
     vk::Semaphore imageReadySignal_;
 
     /// The frame number as designated by the number of times
-    /// a presentation quque flush has been carried out.
+    /// a presentation queue flush has been carried out.
     uint64_t currentFrame_;
 };
 

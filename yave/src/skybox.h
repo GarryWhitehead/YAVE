@@ -51,7 +51,7 @@ class ISkybox : public Skybox
 public:
     ISkybox(IEngine& engine, IScene& scene);
 
-    void buildI(IScene& scene, ICamera& camera);
+    void buildI(IScene& scene);
 
     void update(ICamera& cam) noexcept;
 
@@ -64,7 +64,7 @@ public:
     // =============== client api ===================
 
     void setTexture(Texture* texture) noexcept override;
-    void build(Scene* scene, Camera* camera) override;
+    void build(Scene* scene) override;
     void setColour(const util::Colour4& col) noexcept override;
     void renderSun(bool state) noexcept override;
 

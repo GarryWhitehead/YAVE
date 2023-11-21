@@ -45,11 +45,10 @@ public:
     static constexpr int SsboBindPoint = 1;
     static constexpr int MaxSsboCount = 5;
 
-    Compute(IEngine& engine);
+    explicit Compute(IEngine& engine);
     ~Compute();
 
     void addStorageImage(
-        vkapi::VkDriver& driver,
         const std::string& name,
         const vkapi::TextureHandle& handle,
         uint32_t binding,
@@ -88,7 +87,7 @@ public:
     void updateGpuPush() noexcept;
 
     // add a previously declared ssbo as a reader/writer to another compute shader - must have been
-    // declared/written to in a seperate dispatch call.
+    // declared/written to in a separate dispatch call.
     void copySsbo(
         const Compute& fromCompute,
         int fromId,
@@ -107,8 +106,6 @@ private:
 
     ImageStorageSet imageStorageSet_;
     SamplerSet samplerSet_;
-
-    StorageBuffer* extSsboRead_;
 
     // ================ vulkan backend ===============
 

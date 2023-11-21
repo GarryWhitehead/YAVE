@@ -50,7 +50,7 @@ std::string ShaderProgram::build()
     {
         output += include + "\n";
     }
-    // append any additional blocks to the shader code. This comprises of Ubos,
+    // append any additional blocks to the shader code. This consists of Ubos,
     // samplers, etc.
     for (const auto& block : attributeBlocks_)
     {
@@ -74,7 +74,7 @@ void ShaderProgram::parseMaterialShaderBlock(const std::vector<std::string>& lin
 {
     for (; index < lines.size(); ++index)
     {
-        std::string line = lines[index];
+        const std::string& line = lines[index];
         if (line.find("[[") != std::string::npos && line.find("]]") != std::string::npos)
         {
             break;
@@ -96,7 +96,7 @@ void ShaderProgram::parseShader(const std::vector<std::string>& lines)
     size_t lineCount = lines.size();
     for (; idx < lineCount; ++idx)
     {
-        std::string line = lines[idx];
+        const std::string& line = lines[idx];
         if (line.find("#include \"") != std::string::npos)
         {
             // skip adding this to the code block. Include statements will
@@ -126,7 +126,7 @@ ShaderProgramBundle::ShaderProgramBundle()
 {
 }
 
-ShaderProgramBundle::~ShaderProgramBundle() {}
+ShaderProgramBundle::~ShaderProgramBundle() = default;
 
 void ShaderProgramBundle::parseMaterialShader(const std::filesystem::path& shaderPath)
 {
@@ -176,7 +176,7 @@ void ShaderProgramBundle::parseMaterialShader(const std::filesystem::path& shade
     }
 }
 
-void ShaderProgramBundle::buildShader(std::string filename)
+void ShaderProgramBundle::buildShader(const std::string& filename)
 {
     std::filesystem::path absolutePath = YAVE_SHADER_DIRECTORY "/" + filename;
 
@@ -257,7 +257,7 @@ std::vector<vk::PipelineShaderStageCreateInfo> ShaderProgramBundle::getShaderSta
     {
         if (!programs_[i])
         {
-            output.push_back({});
+            output.emplace_back();
         }
         else
         {
@@ -408,7 +408,7 @@ void ShaderProgramBundle::clear() noexcept
 PipelineLayout& ShaderProgramBundle::getPipelineLayout() noexcept { return *pipelineLayout_; }
 
 ProgramManager::ProgramManager(VkDriver& driver) : driver_(driver) {}
-ProgramManager::~ProgramManager() {}
+ProgramManager::~ProgramManager() = default;
 
 Shader* ProgramManager::findCachedShaderVariant(const CachedKey& key)
 {
@@ -458,7 +458,7 @@ Shader* ProgramManager::findShaderVariantOrCreate(
     uint64_t variantBits)
 {
     // check whether the required variant shader is in the cache and use this if so.
-    CachedKey key;
+    CachedKey key {};
     key.shaderId = bundle->getShaderId();
     key.variantBits = variantBits;
     key.topology = (uint32_t)topo;
