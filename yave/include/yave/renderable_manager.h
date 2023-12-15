@@ -37,7 +37,6 @@ class Scene;
 class RenderableManager : public YaveApi
 {
 public:
-
     void build(
         Scene* scene,
         Renderable* renderable,
@@ -52,7 +51,6 @@ public:
     void destroy(Material* mat);
 
 protected:
-
     ~RenderableManager() = default;
     RenderableManager() = default;
 };

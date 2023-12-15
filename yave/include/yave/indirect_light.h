@@ -32,7 +32,6 @@ class Texture;
 class IndirectLight
 {
 public:
-
     void setIrrandianceMap(Texture* irradianceMap) noexcept;
 
     void setSpecularMap(Texture* specularMap, Texture* brdfLut);

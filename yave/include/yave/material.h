@@ -22,9 +22,8 @@
 
 #pragma once
 
-#include "yave_api.h"
-
 #include "backend/enums.h"
+#include "yave_api.h"
 
 #include <model_parser/gltf/model_material.h>
 #include <utility/colour.h>
@@ -162,8 +161,7 @@ public:
         addUboParam(elementName, type, sizeof(T), arrayCount, stage, (void*)value);
     }
 
-    void
-    updateUboParam(const std::string& elementName, backend::ShaderStage stage, void* value);
+    void updateUboParam(const std::string& elementName, backend::ShaderStage stage, void* value);
 
     template <typename T>
     void updateUboParam(const std::string& elementName, T* value)
@@ -205,8 +203,7 @@ public:
 
     void setBlendFactor(backend::BlendFactorPresets preset);
 
-    void
-    setScissor(uint32_t width, uint32_t height, uint32_t xOffset, uint32_t yOffset);
+    void setScissor(uint32_t width, uint32_t height, uint32_t xOffset, uint32_t yOffset);
 
     void setViewport(uint32_t width, uint32_t height, float minDepth, float maxDepth);
 
@@ -228,7 +225,6 @@ public:
         TextureSampler& sampler);
 
 protected:
-
     Material() = default;
     ~Material() = default;
 };

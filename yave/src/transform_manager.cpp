@@ -12,4 +12,4 @@ void TransformManager::addModelTransform(const ModelTransform& transform, Object
     static_cast<ITransformManager*>(this)->addTransform(local, obj);
 }
 
-}
+} // namespace yave

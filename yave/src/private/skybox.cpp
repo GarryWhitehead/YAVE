@@ -99,7 +99,8 @@ void ISkybox::build(IScene& scene)
     render->setPrimitiveCount(1);
     render->skipVisibilityChecks();
 
-    vBuffer->addAttribute(util::ecast(VertexBuffer::BindingType::Position), backend::BufferElementType::Float3);
+    vBuffer->addAttribute(
+        util::ecast(VertexBuffer::BindingType::Position), backend::BufferElementType::Float3);
     vBuffer->build(
         driver, CubeMap::Vertices.size() * sizeof(float), (void*)CubeMap::Vertices.data());
     iBuffer->build(

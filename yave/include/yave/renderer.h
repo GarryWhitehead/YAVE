@@ -88,7 +88,6 @@ private:
 class Renderer : public YaveApi
 {
 public:
-
     void beginFrame();
 
     void endFrame();
@@ -103,7 +102,6 @@ public:
     void renderSingleScene(Engine* engine, Scene* scene, RenderTarget& rTarget);
 
 protected:
-
     Renderer() = default;
     ~Renderer() = default;
 };

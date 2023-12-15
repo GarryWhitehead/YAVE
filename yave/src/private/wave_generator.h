@@ -82,8 +82,7 @@ public:
     // alternative to the above, transition from shader read to general
     void transitionImagesToCompute(rg::RenderGraph& rGraph);
 
-    [[maybe_unused]] void shutDown(vkapi::VkDriver& driver) {
-        YAVE_UNUSED(driver); }
+    [[maybe_unused]] void shutDown(vkapi::VkDriver& driver) { YAVE_UNUSED(driver); }
 
 private:
     IEngine& engine_;

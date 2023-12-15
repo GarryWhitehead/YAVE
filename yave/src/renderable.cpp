@@ -1,4 +1,5 @@
 #include "private/renderable.h"
+
 #include "private/render_primitive.h"
 
 namespace yave
@@ -14,9 +15,6 @@ void Renderable::setPrimitiveCount(size_t count) noexcept
     static_cast<IRenderable*>(this)->setPrimitiveCount(count);
 }
 
-void Renderable::skipVisibilityChecks()
-{
-    static_cast<IRenderable*>(this)->skipVisibilityChecks();
-}
+void Renderable::skipVisibilityChecks() { static_cast<IRenderable*>(this)->skipVisibilityChecks(); }
 
-}
+} // namespace yave

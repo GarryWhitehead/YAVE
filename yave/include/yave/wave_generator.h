@@ -29,9 +29,7 @@ namespace yave
 class WaveGenerator : public YaveApi
 {
 public:
-
 protected:
-
     WaveGenerator() = default;
     ~WaveGenerator() = default;
 };

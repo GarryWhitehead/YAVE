@@ -1,4 +1,5 @@
 #include "private/scene.h"
+
 #include "private/camera.h"
 #include "private/indirect_light.h"
 #include "private/wave_generator.h"
@@ -25,30 +26,15 @@ void Scene::setWaveGenerator(WaveGenerator* waterGen)
     static_cast<IScene*>(this)->setWaveGenerator(static_cast<IWaveGenerator*>(waterGen));
 }
 
-Camera* Scene::getCurrentCamera()
-{
-    return static_cast<IScene*>(this)->getCurrentCamera();
-}
+Camera* Scene::getCurrentCamera() { return static_cast<IScene*>(this)->getCurrentCamera(); }
 
-void Scene::addObject(Object obj)
-{
-    static_cast<IScene*>(this)->addObject(obj);
-}
+void Scene::addObject(Object obj) { static_cast<IScene*>(this)->addObject(obj); }
 
-void Scene::destroyObject(Object obj)
-{
-    static_cast<IScene*>(this)->destroyObject(obj);
-}
+void Scene::destroyObject(Object obj) { static_cast<IScene*>(this)->destroyObject(obj); }
 
-void Scene::usePostProcessing(bool state)
-{
-    static_cast<IScene*>(this)->usePostProcessing(state);
-}
+void Scene::usePostProcessing(bool state) { static_cast<IScene*>(this)->usePostProcessing(state); }
 
-void Scene::useGbuffer(bool state)
-{
-    static_cast<IScene*>(this)->useGbuffer(state);
-}
+void Scene::useGbuffer(bool state) { static_cast<IScene*>(this)->useGbuffer(state); }
 
 void Scene::setBloomOptions(const BloomOptions& bloom)
 {
@@ -59,14 +45,11 @@ void Scene::setGbufferOptions(const GbufferOptions& gb)
 {
     static_cast<IScene*>(this)->setGbufferOptions(gb);
 }
-BloomOptions& Scene::getBloomOptions()
-{
-    return static_cast<IScene*>(this)->getBloomOptions();
-}
+BloomOptions& Scene::getBloomOptions() { return static_cast<IScene*>(this)->getBloomOptions(); }
 
 GbufferOptions& Scene::getGbufferOptions()
 {
     return static_cast<IScene*>(this)->getGbufferOptions();
 }
 
-}
+} // namespace yave

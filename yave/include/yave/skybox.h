@@ -33,7 +33,6 @@ class Scene;
 class Skybox : public YaveApi
 {
 public:
-
     void setTexture(Texture* texture) noexcept;
 
     void build(Scene* scene);

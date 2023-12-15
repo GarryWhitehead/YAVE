@@ -21,9 +21,8 @@
  */
 #pragma once
 
-#include "yave_api.h"
-
 #include "backend/enums.h"
+#include "yave_api.h"
 
 #include <model_parser/gltf/model_mesh.h>
 
@@ -50,7 +49,6 @@ public:
     void setMaterial(Material* mat);
 
 protected:
-
     RenderPrimitive() = default;
     ~RenderPrimitive() = default;
 };

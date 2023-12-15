@@ -65,8 +65,7 @@ public:
 
     IMappedTexture* getCubeMap() noexcept { return cubeTexture_; }
 
-    [[maybe_unused]] void shutDown(vkapi::VkDriver& driver) {
-        YAVE_UNUSED(driver); }
+    [[maybe_unused]] void shutDown(vkapi::VkDriver& driver) { YAVE_UNUSED(driver); }
 
 private:
     IEngine& engine_;

@@ -30,13 +30,11 @@ class Object;
 class ObjectManager
 {
 public:
-
     Object createObject();
 
     void destroyObject(Object& obj);
 
 protected:
-
     ObjectManager() = default;
     ~ObjectManager() = default;
 };

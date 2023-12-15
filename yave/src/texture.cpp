@@ -32,7 +32,8 @@ void Texture::setEmptyTexture(
     uint32_t levels,
     uint32_t faces) noexcept
 {
-    uint32_t bufferSize = static_cast<IMappedTexture*>(this)->totalTextureSize(width, height, 1, faces, levels, format);
+    uint32_t bufferSize = static_cast<IMappedTexture*>(this)->totalTextureSize(
+        width, height, 1, faces, levels, format);
     void* buffer = (uint8_t*)new uint8_t[bufferSize];
     ASSERT_LOG(buffer);
 
@@ -44,7 +45,8 @@ void Texture::setEmptyTexture(
         usageFlags |= backend::ImageUsage::Src;
     }
 
-    static_cast<IMappedTexture*>(this)->setTexture(buffer, bufferSize, width, height, levels, faces, format, usageFlags, nullptr);
+    static_cast<IMappedTexture*>(this)->setTexture(
+        buffer, bufferSize, width, height, levels, faces, format, usageFlags, nullptr);
 }
 
 Texture::Params Texture::getTextureParams() noexcept
@@ -52,9 +54,6 @@ Texture::Params Texture::getTextureParams() noexcept
     return static_cast<IMappedTexture*>(this)->getTextureParams();
 }
 
-void Texture::generateMipMaps()
-{
-    static_cast<IMappedTexture*>(this)->generateMipMaps();
-}
+void Texture::generateMipMaps() { static_cast<IMappedTexture*>(this)->generateMipMaps(); }
 
-}
+} // namespace yave

@@ -61,7 +61,6 @@ public:
     void generateMipMaps();
 
 protected:
-
     Texture() = default;
     ~Texture() = default;
 };

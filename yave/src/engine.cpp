@@ -1,14 +1,15 @@
 
 #include "private/engine.h"
-#include "private/scene.h"
-#include "private/managers/renderable_manager.h"
-#include "private/indirect_light.h"
+
 #include "private/camera.h"
-#include "private/wave_generator.h"
-#include "private/vertex_buffer.h"
 #include "private/index_buffer.h"
+#include "private/indirect_light.h"
+#include "private/managers/renderable_manager.h"
 #include "private/render_primitive.h"
 #include "private/renderable.h"
+#include "private/scene.h"
+#include "private/vertex_buffer.h"
+#include "private/wave_generator.h"
 
 namespace yave
 {
@@ -20,7 +21,10 @@ void Engine::destroy(Engine* engine) { IEngine::destroy(static_cast<IEngine*>(en
 
 Scene* Engine::createScene() { return static_cast<IEngine*>(this)->createScene(); }
 
-vkapi::SwapchainHandle Engine::createSwapchain(Window* win) { return static_cast<IEngine*>(this)->createSwapchain(win); }
+vkapi::SwapchainHandle Engine::createSwapchain(Window* win)
+{
+    return static_cast<IEngine*>(this)->createSwapchain(win);
+}
 
 Renderer* Engine::createRenderer() { return static_cast<IEngine*>(this)->createRenderer(); }
 
@@ -39,12 +43,12 @@ RenderPrimitive* Engine::createRenderPrimitive()
     return static_cast<IEngine*>(this)->createRenderPrimitive();
 }
 
-Renderable* Engine::createRenderable()
-{
-    return static_cast<IEngine*>(this)->createRenderable();
-}
+Renderable* Engine::createRenderable() { return static_cast<IEngine*>(this)->createRenderable(); }
 
-void Engine::setCurrentSwapchain(const SwapchainHandle& handle) { static_cast<IEngine*>(this)->setCurrentSwapchain(handle); }
+void Engine::setCurrentSwapchain(const SwapchainHandle& handle)
+{
+    static_cast<IEngine*>(this)->setCurrentSwapchain(handle);
+}
 
 RenderableManager* Engine::getRenderManager()
 {
@@ -56,15 +60,9 @@ TransformManager* Engine::getTransformManager()
     return static_cast<IEngine*>(this)->getTransformManager();
 }
 
-LightManager* Engine::getLightManager()
-{
-    return static_cast<IEngine*>(this)->getLightManager();
-}
+LightManager* Engine::getLightManager() { return static_cast<IEngine*>(this)->getLightManager(); }
 
-ObjectManager* Engine::getObjectManager()
-{
-    return static_cast<IEngine*>(this)->getObjManager();
-}
+ObjectManager* Engine::getObjectManager() { return static_cast<IEngine*>(this)->getObjManager(); }
 
 Texture* Engine::createTexture() { return static_cast<IEngine*>(this)->createMappedTexture(); }
 
@@ -127,4 +125,4 @@ void Engine::deleteRenderTarget(const vkapi::RenderTargetHandle& handle)
     static_cast<IEngine*>(this)->deleteRenderTarget(handle);
 }
 
-}
+} // namespace yave

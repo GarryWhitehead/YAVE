@@ -41,8 +41,7 @@ public:
 
     [[nodiscard]] uint32_t getMipLevels() const noexcept { return mipLevels_; }
 
-    [[maybe_unused]] void shutDown(vkapi::VkDriver& driver) {
-        YAVE_UNUSED(driver); }
+    [[maybe_unused]] void shutDown(vkapi::VkDriver& driver) { YAVE_UNUSED(driver); }
 
 private:
     IMappedTexture* irradianceMap_;

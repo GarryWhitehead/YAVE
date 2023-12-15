@@ -206,25 +206,13 @@ void IEngine::flush()
     cmds.flush();
 }
 
-void IEngine::destroy(IRenderer* renderer)
-{
-    destroyResource(renderer, renderers_);
-}
+void IEngine::destroy(IRenderer* renderer) { destroyResource(renderer, renderers_); }
 
-void IEngine::destroy(IScene* scene)
-{
-    destroyResource(scene, scenes_);
-}
+void IEngine::destroy(IScene* scene) { destroyResource(scene, scenes_); }
 
-void IEngine::destroy(IVertexBuffer* vBuffer) noexcept
-{
-    destroyResource(vBuffer, vBuffers_);
-}
+void IEngine::destroy(IVertexBuffer* vBuffer) noexcept { destroyResource(vBuffer, vBuffers_); }
 
-void IEngine::destroy(IIndexBuffer* iBuffer) noexcept
-{
-    destroyResource(iBuffer, iBuffers_);
-}
+void IEngine::destroy(IIndexBuffer* iBuffer) noexcept { destroyResource(iBuffer, iBuffers_); }
 
 void IEngine::destroy(IRenderPrimitive* rPrimitive) noexcept
 {
@@ -241,25 +229,16 @@ void IEngine::destroy(IMappedTexture* texture) noexcept
     destroyResource(texture, mappedTextures_);
 }
 
-void IEngine::destroy(ISkybox* skybox) noexcept
-{
-    destroyResource(skybox, skyboxes_);
-}
+void IEngine::destroy(ISkybox* skybox) noexcept { destroyResource(skybox, skyboxes_); }
 
 void IEngine::destroy(IIndirectLight* idLight) noexcept
 {
     destroyResource(idLight, indirectLights_);
 }
 
-void IEngine::destroy(ICamera* camera) noexcept
-{
-    destroyResource(camera, cameras_);
-}
+void IEngine::destroy(ICamera* camera) noexcept { destroyResource(camera, cameras_); }
 
-void IEngine::destroy(IWaveGenerator* wGen) noexcept
-{
-    destroyResource(wGen, waterGens_);
-}
+void IEngine::destroy(IWaveGenerator* wGen) noexcept { destroyResource(wGen, waterGens_); }
 
 template <typename RESOURCE>
 void IEngine::destroyResource(RESOURCE* buffer, std::unordered_set<RESOURCE*>& container)

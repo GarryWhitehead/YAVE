@@ -34,15 +34,10 @@ class Engine;
 class IndexBuffer : public YaveApi
 {
 public:
-
-    void build(
-        Engine* engine,
-        uint32_t indicesCount,
-        void* indicesData,
-        backend::IndexBufferType type);
+    void
+    build(Engine* engine, uint32_t indicesCount, void* indicesData, backend::IndexBufferType type);
 
 protected:
-
     IndexBuffer() = default;
     ~IndexBuffer() = default;
 };

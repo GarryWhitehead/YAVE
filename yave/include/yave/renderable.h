@@ -32,7 +32,6 @@ class RenderPrimitive;
 class Renderable : public YaveApi
 {
 public:
-
     void setPrimitive(RenderPrimitive* prim, size_t idx);
 
     void setPrimitiveCount(size_t count) noexcept;
@@ -40,7 +39,6 @@ public:
     void skipVisibilityChecks();
 
 protected:
-
     Renderable() = default;
     ~Renderable() = default;
 };

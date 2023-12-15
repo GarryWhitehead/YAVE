@@ -36,7 +36,6 @@ class WaveGenerator;
 class Scene
 {
 public:
-
     void setSkybox(Skybox* skybox);
 
     void setIndirectLight(IndirectLight* il);
@@ -60,7 +59,6 @@ public:
     GbufferOptions& getGbufferOptions();
 
 protected:
-
     Scene() = default;
     ~Scene() = default;
 };

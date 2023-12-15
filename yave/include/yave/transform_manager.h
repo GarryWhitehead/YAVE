@@ -40,7 +40,6 @@ struct ModelTransform
 class TransformManager
 {
 public:
-
     void addModelTransform(const ModelTransform& transform, Object& obj);
 
 protected:

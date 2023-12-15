@@ -86,7 +86,6 @@ public:
     void setFov(float fov, Object& obj);
 
 protected:
-
     LightManager() = default;
     ~LightManager() = default;
 };

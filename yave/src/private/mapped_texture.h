@@ -93,8 +93,7 @@ public:
 
     Params getTextureParams() noexcept;
 
-    [[maybe_unused]] void shutDown(vkapi::VkDriver& driver) {
-        YAVE_UNUSED(driver); }
+    [[maybe_unused]] void shutDown(vkapi::VkDriver& driver) { YAVE_UNUSED(driver); }
 
     // ================== client api ===================
 

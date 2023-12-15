@@ -21,16 +21,15 @@
  */
 #pragma once
 
-#include <mathfu/glsl_mappings.h>
-
 #include "yave_api.h"
+
+#include <mathfu/glsl_mappings.h>
 
 namespace yave
 {
 class Camera : public YaveApi
 {
 public:
-
     enum class ProjectionType
     {
         Perspective,
@@ -49,7 +48,6 @@ public:
     void setFov(float fovy);
 
 protected:
-
     Camera() = default;
     ~Camera() = default;
 };

@@ -1,4 +1,5 @@
 #include "private/skybox.h"
+
 #include "private/mapped_texture.h"
 #include "private/scene.h"
 
@@ -20,9 +21,6 @@ void Skybox::setColour(const util::Colour4& col) noexcept
     static_cast<ISkybox*>(this)->setColour(col);
 }
 
-void Skybox::renderSun(bool state) noexcept
-{
-    static_cast<ISkybox*>(this)->renderSun(state);
-}
+void Skybox::renderSun(bool state) noexcept { static_cast<ISkybox*>(this)->renderSun(state); }
 
-}
+} // namespace yave

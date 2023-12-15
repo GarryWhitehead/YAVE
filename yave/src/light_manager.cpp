@@ -38,4 +38,4 @@ void LightManager::setFov(float fov, Object& obj)
     static_cast<ILightManager*>(this)->setFov(fov, obj);
 }
 
-}
+} // namespace yave

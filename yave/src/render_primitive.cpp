@@ -1,7 +1,8 @@
 #include "private/render_primitive.h"
-#include "private/vertex_buffer.h"
+
 #include "private/index_buffer.h"
 #include "private/material.h"
+#include "private/vertex_buffer.h"
 
 namespace yave
 {
@@ -36,4 +37,4 @@ void RenderPrimitive::setMaterial(Material* mat)
     static_cast<IRenderPrimitive*>(this)->setMaterial(static_cast<IMaterial*>(mat));
 }
 
-}
+} // namespace yave

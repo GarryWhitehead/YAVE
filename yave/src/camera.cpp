@@ -13,9 +13,6 @@ void Camera::setViewMatrix(const mathfu::mat4& lookAt)
     static_cast<ICamera*>(this)->setViewMatrix(lookAt);
 }
 
-void Camera::setFov(float fovy)
-{
-    static_cast<ICamera*>(this)->setFov(fovy);
-}
+void Camera::setFov(float fovy) { static_cast<ICamera*>(this)->setFov(fovy); }
 
-}
+} // namespace yave

@@ -52,7 +52,6 @@ class WaveGenerator;
 class Engine : public YaveApi
 {
 public:
-
     static Engine* create(Window* win);
     static void destroy(Engine* engine);
 
@@ -103,7 +102,6 @@ public:
     void deleteRenderTarget(const vkapi::RenderTargetHandle& handle);
 
 protected:
-
     ~Engine() = default;
 };
 

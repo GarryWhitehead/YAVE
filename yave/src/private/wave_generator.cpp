@@ -295,8 +295,10 @@ void IWaveGenerator::buildMaterial(IScene& scene)
     render->skipVisibilityChecks();
 
     size_t verticesCount = patchVertices.size();
-    vBuffer->addAttribute(util::ecast(VertexBuffer::BindingType::Position), backend::BufferElementType::Float3);
-    vBuffer->addAttribute(util::ecast(VertexBuffer::BindingType::Uv), backend::BufferElementType::Float2);
+    vBuffer->addAttribute(
+        util::ecast(VertexBuffer::BindingType::Position), backend::BufferElementType::Float3);
+    vBuffer->addAttribute(
+        util::ecast(VertexBuffer::BindingType::Uv), backend::BufferElementType::Float2);
     vBuffer->build(driver, verticesCount * sizeof(float), patchVertices.data());
     iBuffer->build(
         driver, patchIndices.size(), patchIndices.data(), backend::IndexBufferType::Uint32);

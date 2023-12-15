@@ -23,6 +23,7 @@
 #pragma once
 
 #include "yave_api.h"
+
 #include <backend/enums.h>
 
 #include <cstdint>
@@ -31,7 +32,7 @@ namespace yave
 {
 class Engine;
 
-class VertexBuffer :public YaveApi
+class VertexBuffer : public YaveApi
 {
 public:
     enum class BindingType
