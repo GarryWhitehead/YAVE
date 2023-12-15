@@ -65,28 +65,40 @@ class IEngine : public Engine
 {
 public:
     IEngine();
-    ~IEngine() override;
+    ~IEngine();
 
     static IEngine* create(Window* window);
     static void destroy(IEngine* engine);
 
     void shutdown();
 
-    SwapchainHandle createSwapchainI(Window* win);
-    IRenderer* createRendererI();
-    IScene* createSceneI();
+    SwapchainHandle createSwapchain(Window* win);
+    IRenderer* createRenderer();
+    IScene* createScene();
 
-    IVertexBuffer* createVertexBufferI() noexcept;
-    IIndexBuffer* createIndexBufferI() noexcept;
-    IRenderPrimitive* createRenderPrimitiveI() noexcept;
-    IRenderable* createRenderableI() noexcept;
-    IMappedTexture* createMappedTextureI() noexcept;
-    ISkybox* createSkyboxI(IScene& scene) noexcept;
-    IIndirectLight* createIndirectLightI() noexcept;
-    ICamera* createCameraI() noexcept;
-    IWaveGenerator* createWaveGeneratorI(IScene& scene) noexcept;
+    IVertexBuffer* createVertexBuffer() noexcept;
+    IIndexBuffer* createIndexBuffer() noexcept;
+    IRenderPrimitive* createRenderPrimitive() noexcept;
+    IRenderable* createRenderable() noexcept;
+    IMappedTexture* createMappedTexture() noexcept;
+    ISkybox* createSkybox(IScene& scene) noexcept;
+    IIndirectLight* createIndirectLight() noexcept;
+    ICamera* createCamera() noexcept;
+    IWaveGenerator* createWaveGenerator(IScene& scene) noexcept;
 
-    void setCurrentSwapchainI(const SwapchainHandle& handle) noexcept;
+    void destroy(IRenderer* renderer);
+    void destroy(IScene* scene);
+    void destroy(IVertexBuffer* vBuffer) noexcept;
+    void destroy(IIndexBuffer* iBuffer) noexcept;
+    void destroy(IRenderPrimitive* rPrimitive) noexcept;
+    void destroy(IRenderable* renderable) noexcept;
+    void destroy(IMappedTexture* texture) noexcept;
+    void destroy(ISkybox* skybox) noexcept;
+    void destroy(IIndirectLight* idLight) noexcept;
+    void destroy(ICamera* camera) noexcept;
+    void destroy(IWaveGenerator* wGen) noexcept;
+
+    void setCurrentSwapchain(const SwapchainHandle& handle) noexcept;
     vkapi::Swapchain* getCurrentSwapchain() noexcept;
 
     void init() noexcept;
@@ -109,17 +121,17 @@ public:
     template <typename RESOURCE>
     void destroyResource(RESOURCE* resource, std::unordered_set<RESOURCE*>& container);
 
-    void deleteRenderTargetI(const vkapi::RenderTargetHandle& handle);
+    void deleteRenderTarget(const vkapi::RenderTargetHandle& handle);
 
     // ==================== getters =======================
 
     vkapi::VkDriver& driver() noexcept { return *driver_; }
     const vkapi::VkDriver& driver() const noexcept { return *driver_; }
 
-    IRenderableManager* getRenderableManagerI() noexcept { return rendManager_.get(); }
-    ITransformManager* getTransformManagerI() noexcept { return transformManager_.get(); }
-    ILightManager* getLightManagerI() noexcept { return lightManager_.get(); }
-    IObjectManager* getObjManagerI() noexcept { return objManager_.get(); }
+    IRenderableManager* getRenderableManager() noexcept { return rendManager_.get(); }
+    ITransformManager* getTransformManager() noexcept { return transformManager_.get(); }
+    ILightManager* getLightManager() noexcept { return lightManager_.get(); }
+    IObjectManager* getObjManager() noexcept { return objManager_.get(); }
     PostProcess* getPostProcess() noexcept { return postProcess_.get(); }
 
     [[maybe_unused]] auto getQuadBuffers() noexcept
@@ -132,37 +144,6 @@ public:
     IMappedTexture* getDummyTexture() noexcept { return dummyTexture_; }
 
     Window* getCurrentWindow() noexcept { return currentWindow_; }
-
-    // ==================== client api ========================
-
-    Scene* createScene() override;
-    vkapi::SwapchainHandle createSwapchain(Window* win) override;
-    Renderer* createRenderer() override;
-    VertexBuffer* createVertexBuffer() override;
-    IndexBuffer* createIndexBuffer() override;
-    RenderPrimitive* createRenderPrimitive() override;
-    Renderable* createRenderable() override;
-    void setCurrentSwapchain(const SwapchainHandle& handle) override;
-    RenderableManager* getRenderManager() override;
-    TransformManager* getTransformManager() override;
-    LightManager* getLightManager() override;
-    ObjectManager* getObjectManager() override;
-    Texture* createTexture() override;
-    Skybox* createSkybox(Scene* scene) override;
-    IndirectLight* createIndirectLight() override;
-    Camera* createCamera() override;
-    WaveGenerator* createWaveGenerator(Scene* scene) override;
-    void flushCmds() override;
-
-    void destroy(VertexBuffer* buffer) override;
-    void destroy(IndexBuffer* buffer) override;
-    void destroy(RenderPrimitive* buffer) override;
-    void destroy(Renderable* buffer) override;
-    void destroy(Scene* buffer) override;
-    void destroy(Camera* buffer) override;
-    void destroy(Renderer* renderer) override;
-
-    void deleteRenderTarget(const vkapi::RenderTargetHandle& handle) override;
 
 private:
     Window* currentWindow_;

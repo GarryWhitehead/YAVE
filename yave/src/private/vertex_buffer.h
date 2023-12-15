@@ -39,9 +39,9 @@ public:
 
     static auto attributeToWidthFormat(backend::BufferElementType type);
 
-    void addAttributeI(backend::BufferElementType type, uint32_t binding);
+    void addAttribute(uint32_t binding, backend::BufferElementType type);
 
-    void buildI(vkapi::VkDriver& driver, uint32_t vertexCount, void* vertexData);
+    void build(vkapi::VkDriver& driver, uint32_t vertexCount, void* vertexData);
 
     vk::VertexInputAttributeDescription* getInputAttr() noexcept { return attributes_; }
 
@@ -50,12 +50,6 @@ public:
     [[nodiscard]] util::BitSetEnum<VertexBuffer::BindingType> getAtrributeBits() const noexcept;
 
     vkapi::VertexBuffer* getGpuBuffer(vkapi::VkDriver& driver) noexcept;
-
-    // =============== client api virtual =======================
-
-    void addAttribute(BindingType bindType, backend::BufferElementType attrType) override;
-
-    void build(Engine* engine, uint32_t vertexCount, void* vertexData) override;
 
 private:
     vk::VertexInputAttributeDescription attributes_[vkapi::PipelineCache::MaxVertexAttributeCount];

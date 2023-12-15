@@ -23,32 +23,35 @@
 
 #include <mathfu/glsl_mappings.h>
 
+#include "yave_api.h"
+
 namespace yave
 {
-class Camera
+class Camera : public YaveApi
 {
 public:
+
     enum class ProjectionType
     {
         Perspective,
         Ortho
     };
 
-    ~Camera();
-
-    virtual void setProjection(
+    void setProjection(
         float fovy,
         float aspect,
         float near,
         float far,
-        ProjectionType = ProjectionType::Perspective) = 0;
+        ProjectionType = ProjectionType::Perspective);
 
-    virtual void setViewMatrix(const mathfu::mat4& lookAt) = 0;
+    void setViewMatrix(const mathfu::mat4& lookAt);
 
-    virtual void setFov(float fovy) = 0;
+    void setFov(float fovy);
 
 protected:
-    Camera();
+
+    Camera() = default;
+    ~Camera() = default;
 };
 
 } // namespace yave

@@ -78,7 +78,7 @@ vkapi::VDefinitions IRenderPrimitive::createVertexAttributeVariants()
     return map;
 }
 
-void IRenderPrimitive::addMeshDrawDataI(size_t indexCount, size_t offset, size_t vertexCount)
+void IRenderPrimitive::addMeshDrawData(size_t indexCount, size_t offset, size_t vertexCount)
 {
     ASSERT_FATAL(
         (indexCount > 0 && !vertexCount) || (vertexCount > 0 && !indexCount),
@@ -86,44 +86,17 @@ void IRenderPrimitive::addMeshDrawDataI(size_t indexCount, size_t offset, size_t
     drawData_ = {indexCount, offset, vertexCount};
 }
 
-void IRenderPrimitive::setTopologyI(backend::PrimitiveTopology topo)
+void IRenderPrimitive::setTopology(backend::PrimitiveTopology topo)
 {
     topology_ = backend::primitiveTopologyToVk(topo);
 }
 
-void IRenderPrimitive::setVertexBufferI(IVertexBuffer* vBuffer) noexcept { vertBuffer_ = vBuffer; }
+void IRenderPrimitive::setVertexBuffer(IVertexBuffer* vBuffer) noexcept { vertBuffer_ = vBuffer; }
 
-void IRenderPrimitive::setIndexBufferI(IIndexBuffer* iBuffer) noexcept { indexBuffer_ = iBuffer; }
+void IRenderPrimitive::setIndexBuffer(IIndexBuffer* iBuffer) noexcept { indexBuffer_ = iBuffer; }
 
-void IRenderPrimitive::setMaterialI(IMaterial* mat) noexcept { material_ = mat; }
-
-// =============== client api virtual =======================
-
-RenderPrimitive::RenderPrimitive() = default;
-RenderPrimitive::~RenderPrimitive() = default;
-
-void IRenderPrimitive::addMeshDrawData(size_t indexCount, size_t offset, size_t vertexCount)
-{
-    addMeshDrawDataI(indexCount, offset, vertexCount);
-}
-
-void IRenderPrimitive::setTopology(Topology topo) { setTopologyI(topo); }
+void IRenderPrimitive::setMaterial(IMaterial* mat) noexcept { material_ = mat; }
 
 void IRenderPrimitive::enablePrimitiveRestart() noexcept { primitiveRestart_ = true; }
-
-void IRenderPrimitive::setVertexBuffer(VertexBuffer* vBuffer)
-{
-    setVertexBufferI(reinterpret_cast<IVertexBuffer*>(vBuffer));
-}
-
-void IRenderPrimitive::setIndexBuffer(IndexBuffer* iBuffer)
-{
-    setIndexBufferI(reinterpret_cast<IIndexBuffer*>(iBuffer));
-}
-
-void IRenderPrimitive::setMaterial(Material* mat)
-{
-    setMaterialI(reinterpret_cast<IMaterial*>(mat));
-}
 
 } // namespace yave

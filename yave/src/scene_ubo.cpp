@@ -93,7 +93,7 @@ void SceneUbo::updateIbl(IIndirectLight* il)
 
 void SceneUbo::updateDirLight(IEngine& engine, LightInstance* instance)
 {
-    auto* lm = engine.getLightManagerI();
+    auto* lm = engine.getLightManager();
 
     mathfu::vec4 sun {0.0f, 0.0f, 0.0f, 0.0f};
     mathfu::vec4 dir {mathfu::normalize(-instance->target), 1.0f};

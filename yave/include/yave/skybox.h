@@ -21,6 +21,8 @@
  */
 #pragma once
 
+#include "yave_api.h"
+
 #include <utility/colour.h>
 
 namespace yave
@@ -28,21 +30,21 @@ namespace yave
 class Texture;
 class Scene;
 
-class Skybox
+class Skybox : public YaveApi
 {
 public:
-    virtual ~Skybox();
 
-    virtual void setTexture(Texture* texture) noexcept = 0;
+    void setTexture(Texture* texture) noexcept;
 
-    virtual void build(Scene* scene) = 0;
+    void build(Scene* scene);
 
-    virtual void setColour(const util::Colour4& col) noexcept = 0;
+    void setColour(const util::Colour4& col) noexcept;
 
-    virtual void renderSun(bool state) noexcept = 0;
+    void renderSun(bool state) noexcept;
 
 protected:
-    Skybox();
+    Skybox() = default;
+    ~Skybox() = default;
 };
 
 } // namespace yave

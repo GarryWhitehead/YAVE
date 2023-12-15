@@ -66,7 +66,7 @@ public:
     };
 
     IWaveGenerator(IEngine& engine, IScene& scene);
-    ~IWaveGenerator() override;
+    ~IWaveGenerator();
 
     void generatePatch() noexcept;
 
@@ -81,6 +81,9 @@ public:
 
     // alternative to the above, transition from shader read to general
     void transitionImagesToCompute(rg::RenderGraph& rGraph);
+
+    [[maybe_unused]] void shutDown(vkapi::VkDriver& driver) {
+        YAVE_UNUSED(driver); }
 
 private:
     IEngine& engine_;

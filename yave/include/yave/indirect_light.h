@@ -21,6 +21,8 @@
  */
 #pragma once
 
+#include "yave_api.h"
+
 #include <cstdint>
 
 namespace yave
@@ -30,13 +32,13 @@ class Texture;
 class IndirectLight
 {
 public:
-    ~IndirectLight();
 
-    virtual void setIrrandianceMap(Texture* irradianceMap) noexcept = 0;
+    void setIrrandianceMap(Texture* irradianceMap) noexcept;
 
-    virtual void setSpecularMap(Texture* specularMap, Texture* brdfLut) = 0;
+    void setSpecularMap(Texture* specularMap, Texture* brdfLut);
 
 protected:
-    IndirectLight();
+    IndirectLight() = default;
+    ~IndirectLight() = default;
 };
 } // namespace yave

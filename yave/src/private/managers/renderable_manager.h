@@ -52,14 +52,14 @@ public:
     constexpr static uint32_t MeshInitContainerSize = 50;
 
     explicit IRenderableManager(IEngine& engine);
-    ~IRenderableManager() override;
+    ~IRenderableManager();
 
     /**
      * @brief Returns a instance of a mesh based on the specified Object
      */
     IRenderable* getMesh(const Object& obj);
 
-    void buildI(
+    void build(
         IScene& scene,
         IRenderable* renderable,
         Object& obj,
@@ -67,32 +67,17 @@ public:
         const std::string& matShader,
         const std::string& mainShaderPath = "material");
 
-    IMaterial* createMaterialI() noexcept;
+    IMaterial* createMaterial() noexcept;
 
-    void destroyI(const Object& obj);
+    void destroy(const Object& obj);
 
-    void destroyI(IMaterial* mat);
-
-    // ===================== client api ==================================
-
-    void build(
-        Scene* scene,
-        Renderable* renderable,
-        Object& obj,
-        const ModelTransform& transform,
-        const std::string& matShader) override;
-
-    Material* createMaterial() noexcept override;
-
-    void destroy(const Object& obj) override;
-
-    void destroy(Material* mat) override;
+    void destroy(IMaterial* mat);
 
 private:
     IEngine& engine_;
 
     // the buffers containing all the model data
-    std::vector<IRenderable> renderables_;
+    std::vector<IRenderable*> renderables_;
 
     // all the materials
     std::unordered_set<IMaterial*> materials_;

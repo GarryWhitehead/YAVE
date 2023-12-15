@@ -47,7 +47,7 @@ bool IObjectManager::isAlive(Object& obj) const noexcept
     return getGeneration(obj) == generations_[getIndex(obj)];
 }
 
-Object IObjectManager::createObjectI()
+Object IObjectManager::createObject()
 {
     uint64_t id = 0;
     if (!freeIds_.empty() && freeIds_.size() > MinimumFreeIds)
@@ -63,7 +63,7 @@ Object IObjectManager::createObjectI()
     return makeObject(generations_[id], id);
 }
 
-void IObjectManager::destroyObjectI(Object& obj)
+void IObjectManager::destroyObject(Object& obj)
 {
     uint32_t index = getIndex(obj);
     freeIds_.push_back(index);
@@ -76,14 +76,5 @@ uint8_t IObjectManager::getGeneration(const Object& obj)
 {
     return (obj.getId() >> IndexBits) & GenerationMask;
 }
-
-// ================================ client api ============================
-
-ObjectManager::ObjectManager() = default;
-ObjectManager::~ObjectManager() = default;
-
-Object IObjectManager::createObject() { return createObjectI(); }
-
-void IObjectManager::destroyObject(Object& obj) { destroyObjectI(obj); }
 
 } // namespace yave

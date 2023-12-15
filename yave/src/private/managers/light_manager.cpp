@@ -384,37 +384,37 @@ LightInstance* ILightManager::getLightInstance(Object& obj)
 
 size_t ILightManager::getLightCount() const { return lights_.size(); }
 
-void ILightManager::setIntensityI(float intensity, Object& obj)
+void ILightManager::setIntensity(float intensity, Object& obj)
 {
     LightInstance* instance = getLightInstance(obj);
     setIntensity(intensity, instance->type, *instance);
 }
 
-void ILightManager::setFalloutI(float fallout, Object& obj)
+void ILightManager::setFallout(float fallout, Object& obj)
 {
     LightInstance* instance = getLightInstance(obj);
     setRadius(fallout, *instance);
 }
 
-void ILightManager::setPositionI(const mathfu::vec3& pos, Object& obj)
+void ILightManager::setPosition(const mathfu::vec3& pos, Object& obj)
 {
     LightInstance* instance = getLightInstance(obj);
     instance->position = pos;
 }
 
-void ILightManager::setTargetI(const mathfu::vec3& target, Object& obj)
+void ILightManager::setTarget(const mathfu::vec3& target, Object& obj)
 {
     LightInstance* instance = getLightInstance(obj);
     instance->target = target;
 }
 
-void ILightManager::setColourI(const mathfu::vec3& col, Object& obj)
+void ILightManager::setColour(const mathfu::vec3& col, Object& obj)
 {
     LightInstance* instance = getLightInstance(obj);
     instance->colour = col;
 }
 
-void ILightManager::setFovI(float fov, Object& obj)
+void ILightManager::setFov(float fov, Object& obj)
 {
     LightInstance* instance = getLightInstance(obj);
     instance->fov = fov;
@@ -549,27 +549,5 @@ rg::RenderGraphHandle ILightManager::render(
 
     return rg.getData().light;
 }
-
-// ========================= client api =================================
-
-LightManager::LightManager() = default;
-LightManager::~LightManager() = default;
-
-void ILightManager::create(const CreateInfo& ci, Type type, Object& obj)
-{
-    createLight(ci, obj, type);
-}
-
-void ILightManager::setIntensity(float intensity, Object& obj) { setIntensityI(intensity, obj); }
-
-void ILightManager::setFallout(float fallout, Object& obj) { setFalloutI(fallout, obj); }
-
-void ILightManager::setPosition(const mathfu::vec3& pos, Object& obj) { setPositionI(pos, obj); }
-
-void ILightManager::setTarget(const mathfu::vec3& target, Object& obj) { setTargetI(target, obj); }
-
-void ILightManager::setColour(const mathfu::vec3& col, Object& obj) { setColourI(col, obj); }
-
-void ILightManager::setFov(float fov, Object& obj) { setFovI(fov, obj); }
 
 } // namespace yave

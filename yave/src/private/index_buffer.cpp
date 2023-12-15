@@ -32,7 +32,7 @@ IIndexBuffer::~IIndexBuffer() = default;
 
 void IIndexBuffer::shutDown(vkapi::VkDriver& driver) { driver.deleteIndexBuffer(ihandle_); }
 
-void IIndexBuffer::buildI(
+void IIndexBuffer::build(
     vkapi::VkDriver& driver,
     uint32_t indicesCount,
     void* indicesData,
@@ -55,17 +55,6 @@ void IIndexBuffer::buildI(
 vkapi::IndexBuffer* IIndexBuffer::getGpuBuffer(vkapi::VkDriver& driver) noexcept
 {
     return driver.getIndexBuffer(ihandle_);
-}
-
-// ===================== clinet api =======================
-
-IndexBuffer::IndexBuffer() = default;
-IndexBuffer::~IndexBuffer() = default;
-
-void IIndexBuffer::build(
-    Engine* engine, uint32_t indicesCount, void* indicesData, backend::IndexBufferType type)
-{
-    buildI(reinterpret_cast<IEngine*>(engine)->driver(), indicesCount, indicesData, type);
 }
 
 } // namespace yave

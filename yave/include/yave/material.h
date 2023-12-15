@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include "yave_api.h"
+
 #include "backend/enums.h"
 
 #include <model_parser/gltf/model_material.h>
@@ -35,7 +37,7 @@ class TextureSampler;
 class Texture;
 class Engine;
 
-class Material
+class Material : public YaveApi
 {
 public:
     enum class ImageType
@@ -77,14 +79,12 @@ public:
         None
     };
 
-    ~Material();
-
-    virtual void addPushConstantParam(
+    void addPushConstantParam(
         const std::string& elementName,
         backend::BufferElementType type,
         backend::ShaderStage stage,
         size_t size,
-        void* value = nullptr) = 0;
+        void* value = nullptr);
 
     template <typename T>
     void addPushConstantParam(
@@ -106,8 +106,8 @@ public:
         addPushConstantParam(elementName, type, stage, sizeof(T), (void*)&value);
     }
 
-    virtual void updatePushConstantParam(
-        const std::string& elementName, backend::ShaderStage stage, void* value) = 0;
+    void updatePushConstantParam(
+        const std::string& elementName, backend::ShaderStage stage, void* value);
 
     template <typename T>
     void
@@ -123,13 +123,13 @@ public:
         updatePushConstantParam(elementName, stage, (void*)&value);
     }
 
-    virtual void addUboParam(
+    void addUboParam(
         const std::string& elementName,
         backend::BufferElementType type,
         size_t size,
         size_t arrayCount,
         backend::ShaderStage stage,
-        void* value) = 0;
+        void* value);
 
     template <typename T>
     void addUboParam(
@@ -162,8 +162,8 @@ public:
         addUboParam(elementName, type, sizeof(T), arrayCount, stage, (void*)value);
     }
 
-    virtual void
-    updateUboParam(const std::string& elementName, backend::ShaderStage stage, void* value) = 0;
+    void
+    updateUboParam(const std::string& elementName, backend::ShaderStage stage, void* value);
 
     template <typename T>
     void updateUboParam(const std::string& elementName, T* value)
@@ -177,40 +177,40 @@ public:
         updateUboParam(elementName, (void*)&value);
     }
 
-    virtual void setColourBaseFactor(const util::Colour4& col) noexcept = 0;
-    virtual void setAlphaMask(float alphaMask) noexcept = 0;
-    virtual void setAlphaMaskCutOff(float cutOff) noexcept = 0;
-    virtual void setMetallicFactor(float metallic) noexcept = 0;
-    virtual void setRoughnessFactor(float roughness) noexcept = 0;
-    virtual void setDiffuseFactor(const util::Colour4& diffuse) noexcept = 0;
-    virtual void setSpecularFactor(const util::Colour4& spec) noexcept = 0;
-    virtual void setEmissiveFactor(const util::Colour4& emissive) noexcept = 0;
-    virtual void setMaterialFactors(const MaterialFactors& factors) = 0;
+    void setColourBaseFactor(const util::Colour4& col) noexcept;
+    void setAlphaMask(float alphaMask) noexcept;
+    void setAlphaMaskCutOff(float cutOff) noexcept;
+    void setMetallicFactor(float metallic) noexcept;
+    void setRoughnessFactor(float roughness) noexcept;
+    void setDiffuseFactor(const util::Colour4& diffuse) noexcept;
+    void setSpecularFactor(const util::Colour4& spec) noexcept;
+    void setEmissiveFactor(const util::Colour4& emissive) noexcept;
+    void setMaterialFactors(const MaterialFactors& factors);
 
-    virtual void setDepthEnable(bool writeFlag, bool testFlag) = 0;
+    void setDepthEnable(bool writeFlag, bool testFlag);
 
-    virtual void setCullMode(backend::CullMode mode) = 0;
+    void setCullMode(backend::CullMode mode);
 
-    virtual void setDoubleSidedState(bool state) noexcept = 0;
+    void setDoubleSidedState(bool state) noexcept;
 
-    virtual void setPipeline(Pipeline pipeline) = 0;
+    void setPipeline(Pipeline pipeline);
 
-    virtual void setViewLayer(uint8_t layer) = 0;
+    void setViewLayer(uint8_t layer);
 
-    virtual ImageType convertImageType(ModelMaterial::TextureType type) = 0;
+    ImageType convertImageType(ModelMaterial::TextureType type);
 
-    virtual Pipeline convertPipeline(ModelMaterial::PbrPipeline pipeline) = 0;
+    Pipeline convertPipeline(ModelMaterial::PbrPipeline pipeline);
 
-    virtual void setBlendFactor(const BlendFactorParams& factors) = 0;
+    void setBlendFactor(const BlendFactorParams& factors);
 
-    virtual void setBlendFactor(backend::BlendFactorPresets preset) = 0;
+    void setBlendFactor(backend::BlendFactorPresets preset);
 
-    virtual void
-    setScissor(uint32_t width, uint32_t height, uint32_t xOffset, uint32_t yOffset) = 0;
+    void
+    setScissor(uint32_t width, uint32_t height, uint32_t xOffset, uint32_t yOffset);
 
-    virtual void setViewport(uint32_t width, uint32_t height, float minDepth, float maxDepth) = 0;
+    void setViewport(uint32_t width, uint32_t height, float minDepth, float maxDepth);
 
-    virtual void addTexture(
+    void addTexture(
         Engine* engine,
         void* imageBuffer,
         uint32_t width,
@@ -218,17 +218,19 @@ public:
         backend::TextureFormat format,
         ImageType type,
         backend::ShaderStage stage,
-        TextureSampler& sampler) = 0;
+        TextureSampler& sampler);
 
-    virtual void addTexture(
+    void addTexture(
         Engine* engine,
         Texture* texture,
         ImageType type,
         backend::ShaderStage stage,
-        TextureSampler& sampler) = 0;
+        TextureSampler& sampler);
 
 protected:
-    Material();
+
+    Material() = default;
+    ~Material() = default;
 };
 
 } // namespace yave

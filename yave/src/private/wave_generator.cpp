@@ -84,8 +84,8 @@ IWaveGenerator::IWaveGenerator(IEngine& engine, IScene& scene)
             noiseMap_[index + 3] = d(gen);
         }
     }
-    noiseTexture_ = engine.createMappedTextureI();
-    noiseTexture_->setTextureI(
+    noiseTexture_ = engine.createMappedTexture();
+    noiseTexture_->setTexture(
         noiseMap_,
         Resolution * Resolution * 4 * sizeof(float),
         Resolution,
@@ -95,13 +95,13 @@ IWaveGenerator::IWaveGenerator(IEngine& engine, IScene& scene)
         Texture::TextureFormat::RGBA32F,
         backend::ImageUsage::Storage);
 
-    butterflyLut_ = engine.createMappedTextureI();
+    butterflyLut_ = engine.createMappedTexture();
     butterflyLut_->setEmptyTexture(
         log2N_, Resolution, Texture::TextureFormat::RGBA32F, backend::ImageUsage::Storage, 1, 1);
 
     // output textures for h0k and h0-k
-    h0kTexture_ = engine.createMappedTextureI();
-    h0minuskTexture_ = engine.createMappedTextureI();
+    h0kTexture_ = engine.createMappedTexture();
+    h0minuskTexture_ = engine.createMappedTexture();
     h0kTexture_->setEmptyTexture(
         Resolution,
         Resolution,
@@ -118,7 +118,7 @@ IWaveGenerator::IWaveGenerator(IEngine& engine, IScene& scene)
         1);
 
     // displacement
-    fftOutputImage_ = engine_.createMappedTextureI();
+    fftOutputImage_ = engine_.createMappedTexture();
     fftOutputImage_->setEmptyTexture(
         Resolution,
         Resolution,
@@ -126,7 +126,7 @@ IWaveGenerator::IWaveGenerator(IEngine& engine, IScene& scene)
         backend::ImageUsage::Storage | backend::ImageUsage::Sampled,
         1,
         1);
-    heightMap_ = engine_.createMappedTextureI();
+    heightMap_ = engine_.createMappedTexture();
     heightMap_->setEmptyTexture(
         Resolution,
         Resolution,
@@ -134,7 +134,7 @@ IWaveGenerator::IWaveGenerator(IEngine& engine, IScene& scene)
         backend::ImageUsage::Storage | backend::ImageUsage::Sampled,
         1,
         1);
-    normalMap_ = engine_.createMappedTextureI();
+    normalMap_ = engine_.createMappedTexture();
     normalMap_->setEmptyTexture(
         Resolution,
         Resolution,
@@ -144,7 +144,7 @@ IWaveGenerator::IWaveGenerator(IEngine& engine, IScene& scene)
         1);
 
     // map generation
-    displacementMap_ = engine_.createMappedTextureI();
+    displacementMap_ = engine_.createMappedTexture();
     displacementMap_->setEmptyTexture(
         Resolution,
         Resolution,
@@ -152,7 +152,7 @@ IWaveGenerator::IWaveGenerator(IEngine& engine, IScene& scene)
         backend::ImageUsage::Storage | backend::ImageUsage::Sampled,
         1,
         1);
-    gradientMap_ = engine_.createMappedTextureI();
+    gradientMap_ = engine_.createMappedTexture();
     gradientMap_->setEmptyTexture(
         Resolution,
         Resolution,
@@ -162,12 +162,12 @@ IWaveGenerator::IWaveGenerator(IEngine& engine, IScene& scene)
         1);
 
     // create the material objects
-    IRenderableManager* rm = engine_.getRenderableManagerI();
-    IObjectManager* om = engine_.getObjManagerI();
-    waterObj_ = om->createObjectI();
+    IRenderableManager* rm = engine_.getRenderableManager();
+    IObjectManager* om = engine_.getObjManager();
+    waterObj_ = om->createObject();
     scene.addObject(waterObj_);
 
-    material_ = rm->createMaterialI();
+    material_ = rm->createMaterial();
 
     // create the vertices for the tesselation patch
     // NOTE: The patch size cannot be changed during runtime at present
@@ -226,7 +226,7 @@ void IWaveGenerator::generatePatch() noexcept
 void IWaveGenerator::buildMaterial(IScene& scene)
 {
     auto& driver = engine_.driver();
-    IRenderableManager* rm = engine_.getRenderableManagerI();
+    IRenderableManager* rm = engine_.getRenderableManager();
 
     TextureSampler sampler(
         backend::SamplerFilter::Linear,
@@ -237,19 +237,19 @@ void IWaveGenerator::buildMaterial(IScene& scene)
     // tesselation evaluation shader
     mathfu::vec2 viewportDim {
         (float)engine_.getCurrentWindow()->width(), (float)engine_.getCurrentWindow()->height()};
-    material_->addUboParamI(
+    material_->addUboParam(
         "tessEdgeSize",
         backend::BufferElementType::Float,
         1,
         backend::ShaderStage::TesselationCon,
         &options.tessEdgeSize);
-    material_->addUboParamI(
+    material_->addUboParam(
         "tessFactor",
         backend::BufferElementType::Float,
         1,
         backend::ShaderStage::TesselationCon,
         &options.tessFactor);
-    material_->addUboParamI(
+    material_->addUboParam(
         "screenSize",
         backend::BufferElementType::Float2,
         1,
@@ -264,7 +264,7 @@ void IWaveGenerator::buildMaterial(IScene& scene)
         backend::ShaderStage::TesselationEval,
         sampler.get(),
         0);
-    material_->addUboParamI(
+    material_->addUboParam(
         "dispFactor",
         backend::BufferElementType::Float,
         1,
@@ -287,32 +287,32 @@ void IWaveGenerator::buildMaterial(IScene& scene)
         sampler.get(),
         1);
 
-    IRenderable* render = engine_.createRenderableI();
-    IVertexBuffer* vBuffer = engine_.createVertexBufferI();
-    IIndexBuffer* iBuffer = engine_.createIndexBufferI();
-    IRenderPrimitive* prim = engine_.createRenderPrimitiveI();
+    IRenderable* render = engine_.createRenderable();
+    IVertexBuffer* vBuffer = engine_.createVertexBuffer();
+    IIndexBuffer* iBuffer = engine_.createIndexBuffer();
+    IRenderPrimitive* prim = engine_.createRenderPrimitive();
     render->setPrimitiveCount(1);
     render->skipVisibilityChecks();
 
     size_t verticesCount = patchVertices.size();
-    vBuffer->addAttribute(VertexBuffer::BindingType::Position, backend::BufferElementType::Float3);
-    vBuffer->addAttribute(VertexBuffer::BindingType::Uv, backend::BufferElementType::Float2);
-    vBuffer->buildI(driver, verticesCount * sizeof(float), patchVertices.data());
-    iBuffer->buildI(
+    vBuffer->addAttribute(util::ecast(VertexBuffer::BindingType::Position), backend::BufferElementType::Float3);
+    vBuffer->addAttribute(util::ecast(VertexBuffer::BindingType::Uv), backend::BufferElementType::Float2);
+    vBuffer->build(driver, verticesCount * sizeof(float), patchVertices.data());
+    iBuffer->build(
         driver, patchIndices.size(), patchIndices.data(), backend::IndexBufferType::Uint32);
-    prim->addMeshDrawDataI(patchIndices.size(), 0, 0);
+    prim->addMeshDrawData(patchIndices.size(), 0, 0);
 
     prim->setVertexBuffer(vBuffer);
     prim->setIndexBuffer(iBuffer);
-    prim->setTopologyI(backend::PrimitiveTopology::PatchList);
+    prim->setTopology(backend::PrimitiveTopology::PatchList);
     render->setPrimitive(prim, 0);
     render->setTesselationVertCount(4);
 
-    material_->setCullMode(backend::CullMode::Back);
+    material_->setCullMode(backend::cullModeToVk(backend::CullMode::Back));
     material_->setViewLayer(0x3);
-    prim->setMaterialI(material_);
+    prim->setMaterial(material_);
 
-    rm->buildI(scene, render, waterObj_, {}, "water.glsl");
+    rm->build(scene, render, waterObj_, {}, "water.glsl");
 }
 
 void IWaveGenerator::updateCompute(
@@ -700,10 +700,5 @@ void IWaveGenerator::transitionImagesToCompute(rg::RenderGraph& rGraph)
             vk::PipelineStageFlagBits::eComputeShader);
     });
 }
-
-// ============================ client api =================================
-
-WaveGenerator::WaveGenerator() = default;
-WaveGenerator::~WaveGenerator() = default;
 
 } // namespace yave

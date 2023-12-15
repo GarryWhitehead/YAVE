@@ -46,7 +46,7 @@ ICamera::~ICamera() = default;
 
 void ICamera::shutDown(vkapi::VkDriver& driver) noexcept {}
 
-void ICamera::setProjectionMatrixI(
+void ICamera::setProjectionMatrix(
     float fovy, float aspect, float near, float far, ProjectionType type)
 {
     if (type == ProjectionType::Perspective)
@@ -69,27 +69,13 @@ void ICamera::setProjectionMatrixI(
 
 mathfu::mat4& ICamera::viewMatrix() { return view_; }
 
-void ICamera::setViewMatrixI(const mathfu::mat4& view) { view_ = view; }
+void ICamera::setViewMatrix(const mathfu::mat4& view) { view_ = view; }
 
-void ICamera::setFovI(float fovy) noexcept
+void ICamera::setFov(float fovy) noexcept
 {
-    setProjectionMatrixI(fovy, aspect_, near_, far_, ProjectionType::Perspective);
+    setProjectionMatrix(fovy, aspect_, near_, far_, ProjectionType::Perspective);
 }
 
 mathfu::vec3 ICamera::position() { return -view_.TranslationVector3D(); }
-
-// ========================== client api =========================
-
-Camera::Camera() = default;
-Camera::~Camera() = default;
-
-void ICamera::setProjection(float fovy, float aspect, float near, float far, ProjectionType type)
-{
-    setProjectionMatrixI(fovy, aspect, near, far, type);
-}
-
-void ICamera::setViewMatrix(const mathfu::mat4& lookAt) { setViewMatrixI(lookAt); }
-
-void ICamera::setFov(float fovy) { setFovI(fovy); }
 
 } // namespace yave

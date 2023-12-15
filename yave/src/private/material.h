@@ -85,12 +85,6 @@ public:
     explicit IMaterial(IEngine& engine);
     virtual ~IMaterial();
 
-    // no copy allowed
-    IMaterial(const IMaterial&) = delete;
-    IMaterial& operator=(const IMaterial&) = delete;
-    IMaterial(IMaterial&&) = default;
-    IMaterial& operator=(IMaterial&&) = default;
-
     static vkapi::VDefinitions createVariants(util::BitSetEnum<IMaterial::Variants>& bits);
 
     void addVariant(Material::ImageType type);
@@ -136,21 +130,21 @@ public:
 
     void update(IEngine& engine) noexcept;
 
-    void updateUboParamI(const std::string& name, backend::ShaderStage stage, void* value);
+    void updateUboParam(const std::string& name, backend::ShaderStage stage, void* value);
 
-    void addUboParamI(
+    void addUboParam(
         const std::string& elementName,
         backend::BufferElementType type,
         size_t arrayCount,
         backend::ShaderStage stage,
         void* value);
 
-    void updatePushConstantParamI(const std::string& name, backend::ShaderStage stage, void* value)
+    void updatePushConstantParam(const std::string& name, backend::ShaderStage stage, void* value)
     {
         pushBlock_[util::ecast(stage)]->updateElement(name, value);
     }
 
-    void addPushConstantParamI(
+    void addPushConstantParam(
         const std::string& elementName,
         backend::BufferElementType type,
         backend::ShaderStage stage,
@@ -159,7 +153,7 @@ public:
         pushBlock_[util::ecast(stage)]->addElement(elementName, type, (void*)value);
     }
 
-    void setSamplerParamI(
+    void setSamplerParam(
         const std::string& name,
         uint8_t binding,
         backend::ShaderStage stage,
@@ -172,29 +166,29 @@ public:
 
     // ====== material state setters ========
 
-    void setDoubleSidedStateI(bool state);
-    void setTestEnableI(bool state);
-    void setWriteEnableI(bool state);
-    void setDepthCompareOpI(vk::CompareOp op);
-    void setPolygonModeI(vk::PolygonMode mode);
-    void setFrontFaceI(vk::FrontFace face);
-    void setCullModeI(vk::CullModeFlagBits mode);
-    void setPipelineI(Material::Pipeline pipeline) noexcept;
+    void setDoubleSidedState(bool state);
+    void setTestEnable(bool state);
+    void setWriteEnable(bool state);
+    void setDepthCompareOp(vk::CompareOp op);
+    void setPolygonMode(vk::PolygonMode mode);
+    void setFrontFace(vk::FrontFace face);
+    void setCullMode(vk::CullModeFlagBits mode);
+    void setPipeline(Material::Pipeline pipeline) noexcept;
 
     // blend factor states
-    void setBlendFactorStateI(VkBool32 state);
-    void setSrcColorBlendFactorI(vk::BlendFactor factor);
-    void setDstColorBlendFactorI(vk::BlendFactor factor);
-    void setColourBlendOpI(vk::BlendOp op);
-    void setSrcAlphaBlendFactorI(vk::BlendFactor factor);
-    void setDstAlphaBlendFactorI(vk::BlendFactor factor);
-    void setAlphaBlendOpI(vk::BlendOp op);
+    void setBlendFactorState(VkBool32 state);
+    void setSrcColorBlendFactor(vk::BlendFactor factor);
+    void setDstColorBlendFactor(vk::BlendFactor factor);
+    void setColourBlendOp(vk::BlendOp op);
+    void setSrcAlphaBlendFactor(vk::BlendFactor factor);
+    void setDstAlphaBlendFactor(vk::BlendFactor factor);
+    void setAlphaBlendOp(vk::BlendOp op);
 
-    void setScissorI(uint32_t width, uint32_t height, uint32_t xOffset, uint32_t yOffset);
-    void setViewportI(uint32_t width, uint32_t height, float minDepth, float maxDepth);
+    void setScissor(uint32_t width, uint32_t height, uint32_t xOffset, uint32_t yOffset);
+    void setViewport(uint32_t width, uint32_t height, float minDepth, float maxDepth);
 
     // defines the draw ordering of the material
-    void setViewLayerI(uint8_t layer);
+    void setViewLayer(uint8_t layer);
 
     void withDynamicMeshTransformUbo(bool state) noexcept { withDynMeshTransformUbo_ = state; }
 
@@ -206,69 +200,6 @@ public:
 
     [[nodiscard]] uint8_t getViewLayer() const noexcept { return viewLayer_; }
     [[nodiscard]] uint32_t getPipelineId() const noexcept { return pipelineId_; }
-
-    // ================= client api =========================
-
-    void setColourBaseFactor(const util::Colour4& col) noexcept override;
-    void setAlphaMask(float alphaMask) noexcept override;
-    void setAlphaMaskCutOff(float cutOff) noexcept override;
-    void setMetallicFactor(float metallic) noexcept override;
-    void setRoughnessFactor(float roughness) noexcept override;
-    void setDiffuseFactor(const util::Colour4& diffuse) noexcept override;
-    void setSpecularFactor(const util::Colour4& spec) noexcept override;
-    void setEmissiveFactor(const util::Colour4& emissive) noexcept override;
-    void setMaterialFactors(const MaterialFactors& factors) override;
-    void setDepthEnable(bool writeFlag, bool testFlag) override;
-    void setCullMode(backend::CullMode mode) override;
-    void setBlendFactor(const BlendFactorParams& factors) override;
-    void setBlendFactor(backend::BlendFactorPresets preset) override;
-    void setDoubleSidedState(bool state) noexcept override;
-    void setPipeline(Material::Pipeline pipeline) noexcept override;
-    void setViewLayer(uint8_t layer) override;
-    ImageType convertImageType(ModelMaterial::TextureType type) override;
-    Pipeline convertPipeline(ModelMaterial::PbrPipeline pipeline) override;
-
-    void setScissor(uint32_t width, uint32_t height, uint32_t xOffset, uint32_t yOffset) override;
-
-    void setViewport(uint32_t width, uint32_t height, float minDepth, float maxDepth) override;
-
-    void addPushConstantParam(
-        const std::string& elementName,
-        backend::BufferElementType type,
-        backend::ShaderStage stage,
-        size_t size,
-        void* value) override;
-
-    void addUboParam(
-        const std::string& elementName,
-        backend::BufferElementType type,
-        size_t size,
-        size_t arrayCount,
-        backend::ShaderStage stage,
-        void* value) override;
-
-    void updatePushConstantParam(
-        const std::string& elementName, backend::ShaderStage stage, void* value) override;
-
-    void updateUboParam(
-        const std::string& elementName, backend::ShaderStage stage, void* value) override;
-
-    void addTexture(
-        Engine* engine,
-        void* imageBuffer,
-        uint32_t width,
-        uint32_t height,
-        backend::TextureFormat format,
-        ImageType type,
-        backend::ShaderStage stage,
-        TextureSampler& sampler) override;
-
-    void addTexture(
-        Engine* engine,
-        Texture* texture,
-        ImageType type,
-        backend::ShaderStage stage,
-        TextureSampler& sampler) override;
 
 private:
     // handle to ourself

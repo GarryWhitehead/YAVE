@@ -67,7 +67,7 @@ public:
     };
 
     explicit IScene(IEngine& engine);
-    ~IScene() override;
+    ~IScene();
 
     bool update();
 
@@ -85,19 +85,25 @@ public:
         size_t staticModelCount,
         size_t skinnedModelCount);
 
-    void setSkyboxI(ISkybox* skybox) noexcept;
+    void setSkybox(ISkybox* skybox) noexcept;
+    void setIndirectLight(IIndirectLight* il);
+    void setBloomOptions(const BloomOptions& bloom);
+    void setGbufferOptions(const GbufferOptions& gb);
+    void setCamera(ICamera* cam) noexcept;
+    void setWaveGenerator(IWaveGenerator* waterGen) noexcept;
 
-    void setIndirectLightI(IIndirectLight* il);
+    void addObject(Object obj);
 
-    void setCameraI(ICamera* cam) noexcept;
+    void destroyObject(Object obj);
 
-    void setWaveGeneratorI(IWaveGenerator* waterGen) noexcept;
+    void usePostProcessing(bool state);
+    void useGbuffer(bool state);
 
     // ============== getters ============================
 
     [[maybe_unused]] ISkybox* getSkybox() noexcept { return skybox_; }
     IIndirectLight* getIndirectLight() noexcept { return indirectLight_; }
-    ICamera* getCurrentCameraI() noexcept { return camera_; }
+    ICamera* getCurrentCamera() noexcept { return camera_; }
     RenderQueue& getRenderQueue() noexcept { return renderQueue_; }
     UniformBuffer& getTransUbo() noexcept { return *transUbo_; }
     [[maybe_unused]] UniformBuffer& getSkinUbo() noexcept { return *skinUbo_; }
@@ -105,23 +111,8 @@ public:
     IWaveGenerator* getWaveGenerator() noexcept { return waveGen_; }
     [[nodiscard]] bool withPostProcessing() const noexcept { return usePostProcessing_; }
     [[nodiscard]] bool withGbuffer() const noexcept { return useGbuffer_; }
-
-    // ================== client api =======================
-
-    void setSkybox(Skybox* skybox) override;
-    void setIndirectLight(IndirectLight* il) override;
-    void setCamera(Camera* cam) override;
-    void setWaveGenerator(WaveGenerator* waterGen) override;
-    Camera* getCurrentCamera() override;
-    void addObject(Object obj) override;
-    void destroyObject(Object obj) override;
-    void usePostProcessing(bool state) override;
-    void useGbuffer(bool state) override;
-
-    void setBloomOptions(const BloomOptions& bloom) override;
-    void setGbufferOptions(const GbufferOptions& gb) override;
-    BloomOptions& getBloomOptions() override;
-    GbufferOptions& getGbufferOptions() override;
+    BloomOptions& getBloomOptions();
+    GbufferOptions& getGbufferOptions();
 
 private:
     IEngine& engine_;

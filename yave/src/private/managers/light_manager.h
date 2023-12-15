@@ -74,7 +74,7 @@ struct LightInstance
     } spotLightInfo;
 };
 
-class ILightManager : public ComponentManager, LightManager
+class ILightManager : public ComponentManager, public LightManager
 {
 public:
     static constexpr int MaxLightCount = 50;
@@ -109,7 +109,7 @@ public:
     };
 
     explicit ILightManager(IEngine& engine);
-    ~ILightManager() override;
+    ~ILightManager();
 
     void update(const ICamera& camera);
 
@@ -125,13 +125,13 @@ public:
     static void calculateSpotCone(float outerCone, float innerCone, LightInstance& spotLight);
     static void setRadius(float fallout, LightInstance& light);
 
-    void setIntensityI(float intensity, Object& obj);
+    void setIntensity(float intensity, Object& obj);
 
-    void setFalloutI(float fallout, Object& obj);
-    void setPositionI(const mathfu::vec3& pos, Object& obj);
-    void setTargetI(const mathfu::vec3& target, Object& obj);
-    void setColourI(const mathfu::vec3& col, Object& obj);
-    void setFovI(float fov, Object& obj);
+    void setFallout(float fallout, Object& obj);
+    void setPosition(const mathfu::vec3& pos, Object& obj);
+    void setTarget(const mathfu::vec3& target, Object& obj);
+    void setColour(const mathfu::vec3& col, Object& obj);
+    void setFov(float fov, Object& obj);
 
     void setSunAngularRadius(float radius, LightInstance& light);
     void setSunHaloSize(float size, LightInstance& light);
@@ -159,17 +159,6 @@ public:
     float getSunAngularRadius() const noexcept { return sunAngularRadius_; }
     float getSunHaloSize() const noexcept { return sunHaloSize_; }
     float getSunHaloFalloff() const noexcept { return sunHaloFalloff_; }
-
-    // =================== client api ========================
-
-    void create(const CreateInfo& ci, Type type, Object& obj) override;
-
-    void setIntensity(float intensity, Object& obj) override;
-    void setFallout(float fallout, Object& obj) override;
-    void setPosition(const mathfu::vec3& pos, Object& obj) override;
-    void setTarget(const mathfu::vec3& target, Object& obj) override;
-    void setColour(const mathfu::vec3& col, Object& obj) override;
-    void setFov(float fov, Object& obj) override;
 
 private:
     IEngine& engine_;

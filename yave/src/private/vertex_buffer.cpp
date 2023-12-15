@@ -96,7 +96,7 @@ auto IVertexBuffer::attributeToWidthFormat(backend::BufferElementType attr)
 
 void IVertexBuffer::shutDown(vkapi::VkDriver& driver) { driver.deleteVertexBuffer(vHandle_); }
 
-void IVertexBuffer::addAttributeI(backend::BufferElementType type, uint32_t binding)
+void IVertexBuffer::addAttribute(uint32_t binding, backend::BufferElementType type)
 {
     ASSERT_FATAL(
         binding < vkapi::PipelineCache::MaxVertexAttributeCount,
@@ -120,7 +120,7 @@ util::BitSetEnum<VertexBuffer::BindingType> IVertexBuffer::getAtrributeBits() co
     return attrBits;
 }
 
-void IVertexBuffer::buildI(vkapi::VkDriver& driver, uint32_t vertexCount, void* vertexData)
+void IVertexBuffer::build(vkapi::VkDriver& driver, uint32_t vertexCount, void* vertexData)
 {
     ASSERT_LOG(vertexData);
 
@@ -163,21 +163,6 @@ void IVertexBuffer::buildI(vkapi::VkDriver& driver, uint32_t vertexCount, void* 
 vkapi::VertexBuffer* IVertexBuffer::getGpuBuffer(vkapi::VkDriver& driver) noexcept
 {
     return driver.getVertexBuffer(vHandle_);
-}
-
-// ====================== client api ========================
-
-VertexBuffer::VertexBuffer() = default;
-VertexBuffer::~VertexBuffer() = default;
-
-void IVertexBuffer::build(Engine* engine, uint32_t vertexCount, void* vertexData)
-{
-    buildI(reinterpret_cast<IEngine*>(engine)->driver(), vertexCount, vertexData);
-}
-
-void IVertexBuffer::addAttribute(BindingType bindType, backend::BufferElementType attrType)
-{
-    addAttributeI(attrType, static_cast<uint32_t>(bindType));
 }
 
 } // namespace yave

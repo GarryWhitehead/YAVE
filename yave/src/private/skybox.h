@@ -51,22 +51,22 @@ class ISkybox : public Skybox
 public:
     ISkybox(IEngine& engine, IScene& scene);
 
-    void buildI(IScene& scene);
+    void build(IScene& scene);
 
     void update(ICamera& cam) noexcept;
 
     ISkybox& setCubeMap(IMappedTexture* cubeMap);
 
+    void setColour(const util::Colour4& col) noexcept { skyboxCol_ = col; }
+
+    void renderSun(bool state) noexcept { showSun_ = state; }
+
     // ============= getters =====================
 
     IMappedTexture* getCubeMap() noexcept { return cubeTexture_; }
 
-    // =============== client api ===================
-
-    void setTexture(Texture* texture) noexcept override;
-    void build(Scene* scene) override;
-    void setColour(const util::Colour4& col) noexcept override;
-    void renderSun(bool state) noexcept override;
+    [[maybe_unused]] void shutDown(vkapi::VkDriver& driver) {
+        YAVE_UNUSED(driver); }
 
 private:
     IEngine& engine_;

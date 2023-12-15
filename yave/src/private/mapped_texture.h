@@ -39,13 +39,13 @@ class IMappedTexture : public Texture
 {
 public:
     explicit IMappedTexture(IEngine& engine);
-    ~IMappedTexture() override;
+    ~IMappedTexture();
 
     // textures are not copyable
     IMappedTexture(const IMappedTexture& other) = delete;
     IMappedTexture& operator=(const IMappedTexture& other) = delete;
 
-    void setTextureI(
+    void setTexture(
         void* buffer,
         uint32_t bufferSize,
         uint32_t width,
@@ -56,7 +56,7 @@ public:
         uint32_t usageFlags,
         size_t* offsets = nullptr);
 
-    void setTextureI(
+    void setTexture(
         void* buffer,
         uint32_t width,
         uint32_t height,
@@ -74,7 +74,7 @@ public:
         uint32_t mipLevels,
         backend::TextureFormat format) noexcept;
 
-    void generateMipMapsI();
+    void generateMipMaps();
 
     static uint32_t getFormatByteSize(backend::TextureFormat format);
 
@@ -91,21 +91,12 @@ public:
 
     vkapi::TextureHandle& getBackendHandle() { return tHandle_; }
 
+    Params getTextureParams() noexcept;
+
+    [[maybe_unused]] void shutDown(vkapi::VkDriver& driver) {
+        YAVE_UNUSED(driver); }
+
     // ================== client api ===================
-
-    void setTexture(const Params& params, size_t* offsets) noexcept override;
-
-    void setEmptyTexture(
-        uint32_t width,
-        uint32_t height,
-        TextureFormat format,
-        uint32_t usageFlags,
-        uint32_t levels = 1,
-        uint32_t faces = 1) noexcept override;
-
-    Params getTextureParams() noexcept override;
-
-    void generateMipMaps() override;
 
 private:
     IEngine& engine_;

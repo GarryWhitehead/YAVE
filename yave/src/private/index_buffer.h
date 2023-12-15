@@ -35,11 +35,11 @@ class IIndexBuffer : public IndexBuffer
 {
 public:
     IIndexBuffer();
-    ~IIndexBuffer() override;
+    ~IIndexBuffer();
 
     void shutDown(vkapi::VkDriver& driver);
 
-    void buildI(
+    void build(
         vkapi::VkDriver& driver,
         uint32_t indicesCount,
         void* indicesData,
@@ -50,12 +50,6 @@ public:
     [[nodiscard]] uint64_t getIndicesSize() const noexcept { return indicesCount_; }
 
     backend::IndexBufferType getBufferType() noexcept { return bufferType_; }
-
-    // =============== client api virtual =======================
-
-    void
-    build(Engine* engine, uint32_t indicesCount, void* indicesData, backend::IndexBufferType type)
-        override;
 
 private:
     vkapi::IndexBufferHandle ihandle_;

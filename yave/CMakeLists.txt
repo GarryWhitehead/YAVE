@@ -8,9 +8,8 @@ target_include_directories(
     YAVE 
     PUBLIC 
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
-    "${YAVE_ROOT_DIRECTORY}/YaveVulkanApi/src"
-    "${YAVE_ROOT_DIRECTORY}/libs"
     "${CMAKE_CURRENT_SOURCE_DIR}/src"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/private"
     
     PRIVATE
     ${glfw3_INCLUDE_DIRS}
@@ -38,6 +37,7 @@ set (public_headers
     include/yave/indirect_light.h
     include/yave/options.h
     include/yave/wave_generator.h
+    include/yave/yave_api.h
 )
 
 set (src_files
@@ -45,27 +45,40 @@ set (src_files
     src/engine.cpp
     src/index_buffer.cpp
     src/indirect_light.cpp
+    src/light_manager.cpp
+    src/renderable.cpp
+    src/material.cpp
+    src/object_manager.cpp
+    src/render_primitive.cpp
+    src/renderable_manager.cpp
+    src/scene.cpp
+    src/renderer.cpp
+    src/skybox.cpp
+    src/texture.cpp
+    src/compute.cpp
+    src/scene_ubo.cpp
+    src/uniform_buffer.cpp
+    src/transform_manager.cpp
+    src/vertex_buffer.cpp
+    src/samplerset.cpp
+    src/colour_pass.cpp
+    src/render_queue.cpp
+    src/frustum.cpp
+
     src/private/engine.cpp
     src/private/camera.cpp
     src/private/scene.cpp
     src/private/renderer.cpp
-    src/private/frustum.cpp
     src/private/skybox.cpp
     src/private/material.cpp
     src/private/render_primitive.cpp
-    src/private/uniform_buffer.cpp
-    src/private/samplerset.cpp
     src/private/mapped_texture.cpp
     src/private/renderable.cpp
-    src/private/colour_pass.cpp
-    src/private/render_queue.cpp
     src/private/vertex_buffer.cpp
     src/private/index_buffer.cpp
     src/private/object_manager.cpp
     src/private/indirect_light.cpp
-    src/private/scene_ubo.cpp
     src/private/post_process.cpp
-    src/private/compute.cpp
     src/private/wave_generator.cpp
     src/private/managers/renderable_manager.cpp
     src/private/managers/component_manager.cpp
@@ -83,14 +96,19 @@ set (src_files
 )
 
 set (hdr_files
+    src/compute.h
+    src/frustum.h
+    src/aabox.h
+    src/uniform_buffer.h
+    src/colour_pass.h
+    src/render_queue.h
+    src/scene_ubo.h
+    src/samplerset.h
+    src/object_instance.h
+
     src/private/camera.h
-    src/private/frustum.h
-    src/private/aabox.h
     src/private/skybox.h
     src/private/material.h
-    src/private/object_instance.h
-    src/private/uniform_buffer.h
-    src/private/samplerset.h
     src/private/mapped_texture.h
     src/private/engine.h
     src/private/renderable.h
@@ -98,15 +116,11 @@ set (hdr_files
     src/private/renderable.h
     src/private/renderer.h
     src/private/render_primitive.h
-    src/private/colour_pass.h
-    src/private/render_queue.h
     src/private/index_buffer.h
     src/private/vertex_buffer.h
     src/private/object_manager.h
     src/private/indirect_light.h
-    src/private/scene_ubo.h
     src/private/post_process.h
-    src/private/compute.h
     src/private/wave_generator.h
     src/private/managers/component_manager.h
     src/private/managers/renderable_manager.h

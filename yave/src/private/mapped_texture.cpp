@@ -92,7 +92,7 @@ uint32_t IMappedTexture::totalTextureSize(
     return totalSize;
 }
 
-void IMappedTexture::setTextureI(
+void IMappedTexture::setTexture(
     void* buffer,
     uint32_t bufferSize,
     uint32_t width,
@@ -117,7 +117,7 @@ void IMappedTexture::setTextureI(
     driver.mapTexture(tHandle_, buffer, bufferSize, offsets);
 }
 
-void IMappedTexture::setTextureI(
+void IMappedTexture::setTexture(
     void* buffer,
     uint32_t width,
     uint32_t height,
@@ -128,10 +128,10 @@ void IMappedTexture::setTextureI(
     size_t* offsets)
 {
     uint32_t bufferSize = totalTextureSize(width, height, 1, faces, levels, format);
-    setTextureI(buffer, bufferSize, width, height, levels, faces, format, usageFlags, offsets);
+    setTexture(buffer, bufferSize, width, height, levels, faces, format, usageFlags, offsets);
 }
 
-void IMappedTexture::generateMipMapsI()
+void IMappedTexture::generateMipMaps()
 {
     ASSERT_FATAL(tHandle_, "Texture must have been set before generating lod.");
 
@@ -140,60 +140,9 @@ void IMappedTexture::generateMipMapsI()
     vkapi::VkDriver::generateMipMaps(tHandle_, cmds.getCmdBuffer().cmdBuffer);
 }
 
-// ================================== client api ===========================
-
-Texture::Texture() = default;
-Texture::~Texture() = default;
-
-void IMappedTexture::setTexture(const Params& params, size_t* offsets) noexcept
-{
-    size_t bufferSize = params.bufferSize;
-    if (!bufferSize)
-    {
-        bufferSize = totalTextureSize(
-            params.width, params.height, 1, params.faces, params.levels, params.format);
-    }
-
-    setTextureI(
-        params.buffer,
-        bufferSize,
-        params.width,
-        params.height,
-        params.levels,
-        params.faces,
-        params.format,
-        params.usageFlags,
-        offsets);
-}
-
-void IMappedTexture::setEmptyTexture(
-    uint32_t width,
-    uint32_t height,
-    backend::TextureFormat format,
-    uint32_t usageFlags,
-    uint32_t levels,
-    uint32_t faces) noexcept
-{
-    uint32_t bufferSize = totalTextureSize(width, height, 1, faces, levels, format);
-    void* buffer = (uint8_t*)new uint8_t[bufferSize];
-    ASSERT_LOG(buffer);
-
-    // if there are more than one mip level, then assume that a call
-    // to generateMipMaps will happen which requires the image to be
-    // give a src usage
-    if (levels > 1)
-    {
-        usageFlags |= backend::ImageUsage::Src;
-    }
-
-    setTextureI(buffer, bufferSize, width, height, levels, faces, format, usageFlags, nullptr);
-}
-
 Texture::Params IMappedTexture::getTextureParams() noexcept
 {
     return {buffer_, 0, width_, height_, {}, {}, mipLevels_, faceCount_};
 }
-
-void IMappedTexture::generateMipMaps() { generateMipMapsI(); }
 
 } // namespace yave

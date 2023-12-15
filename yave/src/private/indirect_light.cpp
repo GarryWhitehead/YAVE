@@ -34,14 +34,14 @@ IIndirectLight::IIndirectLight()
 }
 IIndirectLight::~IIndirectLight() = default;
 
-void IIndirectLight::setIrradianceMapI(IMappedTexture* cubeMap)
+void IIndirectLight::setIrradianceMap(IMappedTexture* cubeMap)
 {
     ASSERT_FATAL(cubeMap, "Irradiance cube map is nullptr");
     ASSERT_FATAL(cubeMap->isCubeMap(), "The irradiance env map must be a cubemap");
     irradianceMap_ = cubeMap;
 }
 
-void IIndirectLight::setSpecularMapI(IMappedTexture* specCubeMap, IMappedTexture* brdfLut)
+void IIndirectLight::setSpecularMap(IMappedTexture* specCubeMap, IMappedTexture* brdfLut)
 {
     ASSERT_FATAL(specCubeMap, "Specular cube map is nullptr");
     ASSERT_FATAL(brdfLut, "A valid pointer to a brdf LUT texture is required.");
@@ -68,22 +68,6 @@ vkapi::TextureHandle IIndirectLight::getBrdfLutHandle() noexcept
 {
     ASSERT_LOG(brdfLut_);
     return brdfLut_->getBackendHandle();
-}
-
-// ======================== client api ============================
-
-IndirectLight::IndirectLight() = default;
-IndirectLight::~IndirectLight() = default;
-
-void IIndirectLight::setIrrandianceMap(Texture* irradianceMap) noexcept
-{
-    setIrradianceMapI(reinterpret_cast<IMappedTexture*>(irradianceMap));
-}
-
-void IIndirectLight::setSpecularMap(Texture* specularMap, Texture* brdfLut)
-{
-    setSpecularMapI(
-        reinterpret_cast<IMappedTexture*>(specularMap), reinterpret_cast<IMappedTexture*>(brdfLut));
 }
 
 } // namespace yave

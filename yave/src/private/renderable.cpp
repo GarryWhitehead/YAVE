@@ -72,18 +72,4 @@ std::vector<IRenderPrimitive*>& IRenderable::getAllRenderPrimitives() noexcept
     return primitives_;
 }
 
-// ========================== client api ============================
-
-Renderable::Renderable() = default;
-Renderable::~Renderable() = default;
-
-void IRenderable::setPrimitive(RenderPrimitive* prim, size_t idx)
-{
-    setPrimitiveI(reinterpret_cast<IRenderPrimitive*>(prim), idx);
-}
-
-void IRenderable::setPrimitiveCount(size_t count) noexcept { setPrimitiveCountI(count); }
-
-void IRenderable::skipVisibilityChecks() { skipVisibilityChecksI(); }
-
 } // namespace yave

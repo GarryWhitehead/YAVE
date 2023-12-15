@@ -21,6 +21,8 @@
  */
 #pragma once
 
+#include "yave_api.h"
+
 #include <mathfu/glsl_mappings.h>
 
 namespace yave
@@ -38,12 +40,12 @@ struct ModelTransform
 class TransformManager
 {
 public:
-    ~TransformManager();
 
-    virtual void addModelTransform(const ModelTransform& transform, Object& obj) = 0;
+    void addModelTransform(const ModelTransform& transform, Object& obj);
 
 protected:
-    TransformManager();
+    TransformManager() = default;
+    ~TransformManager() = default;
 };
 
 } // namespace yave

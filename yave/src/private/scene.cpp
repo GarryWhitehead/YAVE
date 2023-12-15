@@ -77,28 +77,28 @@ IScene::~IScene() = default;
 
 void IScene::shutDown(vkapi::VkDriver& driver) noexcept { YAVE_UNUSED(driver); }
 
-void IScene::setSkyboxI(ISkybox* skybox) noexcept
+void IScene::setSkybox(ISkybox* skybox) noexcept
 {
     ASSERT_FATAL(camera_, "The camera must be set before declaring the skybox.");
     skybox_ = skybox;
 }
 
-void IScene::setIndirectLightI(IIndirectLight* il)
+void IScene::setIndirectLight(IIndirectLight* il)
 {
     indirectLight_ = il;
 
-    ILightManager* lm = engine_.getLightManagerI();
+    ILightManager* lm = engine_.getLightManager();
     lm->enableAmbientLight();
     // TODO: also deal with the indirect light being removed (set to null)
 }
 
-void IScene::setCameraI(ICamera* cam) noexcept
+void IScene::setCamera(ICamera* cam) noexcept
 {
     ASSERT_FATAL(cam, "The camera is nullptr.");
     camera_ = cam;
 }
 
-void IScene::setWaveGeneratorI(IWaveGenerator* waterGen) noexcept
+void IScene::setWaveGenerator(IWaveGenerator* waterGen) noexcept
 {
     ASSERT_FATAL(waterGen, "Water generator is nullptr");
     waveGen_ = waterGen;
@@ -108,9 +108,9 @@ bool IScene::update()
 {
     ASSERT_FATAL(camera_, "No camera has been set.");
 
-    ILightManager* lm = engine_.getLightManagerI();
-    IRenderableManager* rm = engine_.getRenderableManagerI();
-    IObjectManager* om = engine_.getObjManagerI();
+    ILightManager* lm = engine_.getLightManager();
+    IRenderableManager* rm = engine_.getRenderableManager();
+    IObjectManager* om = engine_.getObjManager();
 
     if (skybox_)
     {
@@ -231,8 +231,8 @@ bool IScene::update()
 
 IScene::VisibleCandidate IScene::buildRendCandidate(Object& obj, const mathfu::mat4& worldMatrix)
 {
-    auto* transManager = engine_.getTransformManagerI();
-    auto* rendManager = engine_.getRenderableManagerI();
+    auto* transManager = engine_.getTransformManager();
+    auto* rendManager = engine_.getRenderableManager();
 
     VisibleCandidate candidate;
     candidate.renderable = rendManager->getMesh(obj);
@@ -378,29 +378,6 @@ void IScene::updateTransformBuffer(
     }
 }
 
-// ======================== client api =======================
-
-Scene::Scene() = default;
-Scene::~Scene() = default;
-
-void IScene::setSkybox(Skybox* skybox) { setSkyboxI(reinterpret_cast<ISkybox*>(skybox)); }
-
-void IScene::setWaveGenerator(WaveGenerator* waterGen)
-{
-    setWaveGeneratorI(reinterpret_cast<IWaveGenerator*>(waterGen));
-}
-
-void IScene::setIndirectLight(IndirectLight* il)
-{
-    setIndirectLightI(reinterpret_cast<IIndirectLight*>(il));
-}
-
-void IScene::setCamera(Camera* cam) { setCameraI(reinterpret_cast<ICamera*>(cam)); }
-
-Camera* IScene::getCurrentCamera() { return reinterpret_cast<Camera*>(getCurrentCameraI()); }
-
-void IScene::addObject(Object obj) { objects_.emplace_back(obj); }
-
 void IScene::destroyObject(Object obj)
 {
     auto iter = std::find_if(objects_.begin(), objects_.end(), [&obj](const Object& rhs) {
@@ -413,6 +390,8 @@ void IScene::destroyObject(Object obj)
     objects_.erase(iter);
 }
 
+void IScene::addObject(Object obj) { objects_.emplace_back(obj); }
+
 void IScene::usePostProcessing(bool state) { usePostProcessing_ = state; }
 
 void IScene::useGbuffer(bool state) { useGbuffer_ = state; }
@@ -424,5 +403,6 @@ BloomOptions& IScene::getBloomOptions() { return bloomOptions_; }
 void IScene::setGbufferOptions(const GbufferOptions& gb) { gbufferOptions_ = gb; }
 
 GbufferOptions& IScene::getGbufferOptions() { return gbufferOptions_; }
+
 
 } // namespace yave

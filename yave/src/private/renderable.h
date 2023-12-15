@@ -42,7 +42,7 @@ public:
     constexpr static uint32_t UNINITIALISED = std::numeric_limits<uint32_t>::max();
 
     IRenderable();
-    ~IRenderable() override;
+    ~IRenderable();
 
     /**
      * Bit flags for specifying the visibility of renderables
@@ -82,12 +82,6 @@ public:
     [[nodiscard]] uint32_t getSkinDynamicOffset() const noexcept;
 
     [[nodiscard]] size_t getTesselationVertCount() const noexcept { return tesselationVertCount_; }
-
-    // ================ client api ==========================
-
-    void setPrimitiveCount(size_t count) noexcept override;
-    void setPrimitive(RenderPrimitive* prim, size_t idx) override;
-    void skipVisibilityChecks() override;
 
     friend class IRenderableManager;
 

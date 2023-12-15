@@ -32,8 +32,8 @@ public:
     IIndirectLight();
     ~IIndirectLight();
 
-    void setIrradianceMapI(IMappedTexture* cubeMap);
-    void setSpecularMapI(IMappedTexture* specCubeMap, IMappedTexture* brdfLut);
+    void setIrradianceMap(IMappedTexture* cubeMap);
+    void setSpecularMap(IMappedTexture* specCubeMap, IMappedTexture* brdfLut);
 
     vkapi::TextureHandle getIrradianceMapHandle() noexcept;
     vkapi::TextureHandle getSpecularMapHandle() noexcept;
@@ -41,11 +41,8 @@ public:
 
     [[nodiscard]] uint32_t getMipLevels() const noexcept { return mipLevels_; }
 
-    // ====================== client api ===============================
-
-    void setIrrandianceMap(Texture* irradianceMap) noexcept override;
-
-    void setSpecularMap(Texture* specularMap, Texture* brdfLut) override;
+    [[maybe_unused]] void shutDown(vkapi::VkDriver& driver) {
+        YAVE_UNUSED(driver); }
 
 private:
     IMappedTexture* irradianceMap_;

@@ -79,7 +79,7 @@ void IRenderer::createBackbufferRT() noexcept
     }
 }
 
-void IRenderer::beginFrameI() noexcept
+void IRenderer::beginFrame() noexcept
 {
     ASSERT_LOG(engine_);
 
@@ -89,14 +89,14 @@ void IRenderer::beginFrameI() noexcept
     ASSERT_LOG(success);
 }
 
-void IRenderer::endFrameI() noexcept
+void IRenderer::endFrame() noexcept
 {
     ASSERT_LOG(engine_);
     auto swapchain = engine_->getCurrentSwapchain();
     engine_->driver().endFrame(*swapchain);
 }
 
-void IRenderer::renderSingleSceneI(vkapi::VkDriver& driver, IScene* scene, RenderTarget& rTarget)
+void IRenderer::renderSingleScene(vkapi::VkDriver& driver, IScene* scene, RenderTarget& rTarget)
 {
     auto& cmds = driver.getCommands();
     auto& cmdBuffer = cmds.getCmdBuffer().cmdBuffer;
@@ -122,7 +122,7 @@ void IRenderer::renderSingleSceneI(vkapi::VkDriver& driver, IScene* scene, Rende
     vkapi::VkDriver::endRenderpass(cmdBuffer);
 }
 
-void IRenderer::renderI(
+void IRenderer::render(
     vkapi::VkDriver& driver,
     IScene* scene,
     float dt,
@@ -186,7 +186,7 @@ void IRenderer::renderI(
     input = ColourPass::render(
         *engine_, *scene, rGraph_, gbufferOptions.width, gbufferOptions.height, depthFormat);
 
-    ILightManager* lightManager = engine_->getLightManagerI();
+    ILightManager* lightManager = engine_->getLightManager();
     PostProcess* pp = engine_->getPostProcess();
 
     if (scene->withGbuffer())
@@ -223,32 +223,6 @@ void IRenderer::renderI(
 }
 
 void IRenderer::shutDown(vkapi::VkDriver& driver) noexcept {}
-
-// ================== client api =====================
-
-Renderer::Renderer() = default;
-Renderer::~Renderer() = default;
-
-void IRenderer::beginFrame() { beginFrameI(); }
-
-void IRenderer::endFrame() { endFrameI(); }
-
-void IRenderer::render(
-    Engine* engine, Scene* scene, float dt, util::Timer<NanoSeconds>& timer, bool clearSwap)
-{
-    renderI(
-        reinterpret_cast<IEngine*>(engine)->driver(),
-        reinterpret_cast<IScene*>(scene),
-        dt,
-        timer,
-        clearSwap);
-};
-
-void IRenderer::renderSingleScene(Engine* engine, Scene* scene, RenderTarget& rTarget)
-{
-    renderSingleSceneI(
-        reinterpret_cast<IEngine*>(engine)->driver(), reinterpret_cast<IScene*>(scene), rTarget);
-}
 
 void RenderTarget::setColourTexture(Texture* tex, uint8_t attachIdx)
 {

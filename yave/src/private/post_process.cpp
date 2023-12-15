@@ -58,8 +58,8 @@ void PostProcess::init(IScene& scene)
         return;
     }
 
-    IRenderableManager* rm = engine_.getRenderableManagerI();
-    IObjectManager* om = engine_.getObjManagerI();
+    IRenderableManager* rm = engine_.getRenderableManager();
+    IObjectManager* om = engine_.getObjManager();
 
     // all of the post process components to register
     std::unordered_map<std::string, PpRegister> registry {
@@ -71,41 +71,41 @@ void PostProcess::init(IScene& scene)
     // in variants won't be acted upon (will there be many variants for post-process though??)
     for (auto& [name, reg] : registry)
     {
-        IMaterial* mat = rm->createMaterialI();
+        IMaterial* mat = rm->createMaterial();
         mat->withDynamicMeshTransformUbo(false);
 
-        IRenderable* render = engine_.createRenderableI();
-        IRenderPrimitive* prim = engine_.createRenderPrimitiveI();
-        Object obj = om->createObjectI();
+        IRenderable* render = engine_.createRenderable();
+        IRenderPrimitive* prim = engine_.createRenderPrimitive();
+        Object obj = om->createObject();
 
         // add any ubos in the registry (only fragment shader)
         for (const auto& ubo : reg.uboElements)
         {
-            mat->addUboParamI(
+            mat->addUboParam(
                 ubo.name, ubo.type, ubo.arrayCount, backend::ShaderStage::Fragment, nullptr);
         }
         // add any samplers in the registry
         size_t binding = 0;
         for (const auto& element : reg.samplers)
         {
-            mat->setSamplerParamI(
+            mat->setSamplerParam(
                 element, binding++, backend::ShaderStage::Fragment, SamplerSet::SamplerType::e2d);
         }
 
         render->setPrimitiveCount(1);
         render->skipVisibilityChecks();
-        prim->addMeshDrawDataI(0, 0, 3);
+        prim->addMeshDrawData(0, 0, 3);
         render->setPrimitive(prim, 0);
-        prim->setMaterialI(mat);
+        prim->setMaterial(mat);
 
-        rm->buildI(scene, render, obj, {}, reg.shader, "post_process");
+        rm->build(scene, render, obj, {}, reg.shader, "post_process");
         materials_[name] = {mat, obj};
     }
 
     // texture for adaptive exposure
-    averageLumLut_ = engine_.createMappedTextureI();
+    averageLumLut_ = engine_.createMappedTexture();
     uint32_t zero = 0;
-    averageLumLut_->setTextureI(
+    averageLumLut_->setTexture(
         &zero,
         1,
         1,

@@ -35,13 +35,13 @@ class ICamera : public Camera
 {
 public:
     ICamera();
-    virtual ~ICamera();
+    ~ICamera();
 
     void shutDown(vkapi::VkDriver& driver) noexcept;
 
-    void setProjectionMatrixI(float fovy, float aspect, float near, float far, ProjectionType type);
+    void setProjectionMatrix(float fovy, float aspect, float near, float far, ProjectionType type);
 
-    void setFovI(float fovy) noexcept;
+    void setFov(float fovy) noexcept;
 
 
     // ============== getters ==========================
@@ -56,19 +56,7 @@ public:
 
     // =============== setters =========================
 
-    void setViewMatrixI(const mathfu::mat4& view);
-
-    // =============== client api =======================
-
-    void setProjection(
-        float fovy,
-        float aspect,
-        float near,
-        float far,
-        ProjectionType type = ProjectionType::Perspective) override;
-
-    void setViewMatrix(const mathfu::mat4& lookAt) override;
-    void setFov(float fovy) override;
+    void setViewMatrix(const mathfu::mat4& view);
 
 private:
     // current matrices

@@ -49,21 +49,15 @@ public:
     IObjectManager();
     virtual ~IObjectManager();
 
-    Object createObjectI();
+    Object createObject();
 
-    void destroyObjectI(Object& obj);
+    void destroyObject(Object& obj);
 
     [[nodiscard]] static uint32_t getIndex(const Object& obj);
 
     [[nodiscard]] static uint8_t getGeneration(const Object& obj);
 
     bool isAlive(Object& obj) const noexcept;
-
-    // ================= client api =============================
-
-    Object createObject() override;
-
-    void destroyObject(Object& obj) override;
 
 private:
     static Object makeObject(uint8_t generation, uint32_t index);

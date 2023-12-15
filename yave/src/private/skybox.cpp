@@ -38,6 +38,7 @@
 #include "yave/texture_sampler.h"
 
 #include <image_utils/cubemap.h>
+#include <utility/enum_cast.h>
 
 namespace yave
 {
@@ -45,18 +46,18 @@ namespace yave
 ISkybox::ISkybox(IEngine& engine, IScene& scene)
     : engine_(engine), cubeTexture_(nullptr), skyboxCol_ {0.0f}, showSun_(false)
 {
-    IRenderableManager* rm = engine_.getRenderableManagerI();
-    IObjectManager* om = engine_.getObjManagerI();
-    skyboxObj_ = om->createObjectI();
+    IRenderableManager* rm = engine_.getRenderableManager();
+    IObjectManager* om = engine_.getObjManager();
+    skyboxObj_ = om->createObject();
     scene.addObject(skyboxObj_);
 
-    material_ = rm->createMaterialI();
+    material_ = rm->createMaterial();
 }
 
-void ISkybox::buildI(IScene& scene)
+void ISkybox::build(IScene& scene)
 {
     auto& driver = engine_.driver();
-    IRenderableManager* rm = engine_.getRenderableManagerI();
+    IRenderableManager* rm = engine_.getRenderableManager();
 
     TextureSampler sampler(
         backend::SamplerFilter::Linear,
@@ -76,47 +77,47 @@ void ISkybox::buildI(IScene& scene)
         sampler.get(),
         0);
 
-    material_->addUboParamI(
+    material_->addUboParam(
         "colour",
         backend::BufferElementType::Float4,
         1,
         backend::ShaderStage::Fragment,
         (void*)&skyboxCol_);
-    material_->addUboParamI(
+    material_->addUboParam(
         "useColour",
         backend::BufferElementType::Int,
         1,
         backend::ShaderStage::Fragment,
         &useColour);
-    material_->addUboParamI(
+    material_->addUboParam(
         "renderSun", backend::BufferElementType::Int, 1, backend::ShaderStage::Fragment, &showSun);
 
-    IRenderable* render = engine_.createRenderableI();
-    IVertexBuffer* vBuffer = engine_.createVertexBufferI();
-    IIndexBuffer* iBuffer = engine_.createIndexBufferI();
-    IRenderPrimitive* prim = engine_.createRenderPrimitiveI();
+    IRenderable* render = engine_.createRenderable();
+    IVertexBuffer* vBuffer = engine_.createVertexBuffer();
+    IIndexBuffer* iBuffer = engine_.createIndexBuffer();
+    IRenderPrimitive* prim = engine_.createRenderPrimitive();
     render->setPrimitiveCount(1);
     render->skipVisibilityChecks();
 
-    vBuffer->addAttribute(VertexBuffer::BindingType::Position, backend::BufferElementType::Float3);
-    vBuffer->buildI(
+    vBuffer->addAttribute(util::ecast(VertexBuffer::BindingType::Position), backend::BufferElementType::Float3);
+    vBuffer->build(
         driver, CubeMap::Vertices.size() * sizeof(float), (void*)CubeMap::Vertices.data());
-    iBuffer->buildI(
+    iBuffer->build(
         driver,
         CubeMap::Indices.size(),
         (void*)CubeMap::Indices.data(),
         backend::IndexBufferType::Uint32);
-    prim->addMeshDrawDataI(CubeMap::Indices.size(), 0, 0);
+    prim->addMeshDrawData(CubeMap::Indices.size(), 0, 0);
 
     prim->setVertexBuffer(vBuffer);
     prim->setIndexBuffer(iBuffer);
     render->setPrimitive(prim, 0);
 
-    material_->setCullMode(backend::CullMode::Front);
+    material_->setCullMode(backend::cullModeToVk(backend::CullMode::Front));
     material_->setViewLayer(0x4);
-    prim->setMaterialI(material_);
+    prim->setMaterial(material_);
 
-    rm->buildI(scene, render, skyboxObj_, {}, "skybox.glsl");
+    rm->build(scene, render, skyboxObj_, {}, "skybox.glsl");
 }
 
 ISkybox& ISkybox::setCubeMap(IMappedTexture* cubeTexture)
@@ -128,21 +129,5 @@ ISkybox& ISkybox::setCubeMap(IMappedTexture* cubeTexture)
 }
 
 void ISkybox::update(ICamera& camera) noexcept {}
-
-// ======================== client api =======================
-
-Skybox::Skybox() = default;
-Skybox::~Skybox() = default;
-
-void ISkybox::setTexture(Texture* texture) noexcept
-{
-    setCubeMap(reinterpret_cast<IMappedTexture*>(texture));
-}
-
-void ISkybox::build(Scene* scene) { buildI(*(reinterpret_cast<IScene*>(scene))); }
-
-void ISkybox::setColour(const util::Colour4& col) noexcept { skyboxCol_ = col; }
-
-void ISkybox::renderSun(bool state) noexcept { showSun_ = state; }
 
 } // namespace yave

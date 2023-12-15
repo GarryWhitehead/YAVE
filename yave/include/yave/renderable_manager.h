@@ -21,6 +21,8 @@
  */
 #pragma once
 
+#include "yave_api.h"
+
 #include <string>
 
 namespace yave
@@ -32,26 +34,27 @@ class RenderPrimitive;
 struct ModelTransform;
 class Scene;
 
-class RenderableManager
+class RenderableManager : public YaveApi
 {
 public:
-    virtual ~RenderableManager();
 
-    virtual void build(
+    void build(
         Scene* scene,
         Renderable* renderable,
         Object& obj,
         const ModelTransform& transform,
-        const std::string& matShader = "default.glsl") = 0;
+        const std::string& matShader = "default.glsl");
 
-    virtual Material* createMaterial() noexcept = 0;
+    Material* createMaterial() noexcept;
 
-    virtual void destroy(const Object& obj) = 0;
+    void destroy(const Object& obj);
 
-    virtual void destroy(Material* mat) = 0;
+    void destroy(Material* mat);
 
 protected:
-    RenderableManager();
+
+    ~RenderableManager() = default;
+    RenderableManager() = default;
 };
 
 } // namespace yave

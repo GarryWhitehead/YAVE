@@ -71,7 +71,7 @@ public:
 
     [[maybe_unused]] bool addNodeHierachy(NodeInstance& node, Object& obj, SkinInstance* skin);
 
-    void addTransformI(const mathfu::mat4& local, Object& obj);
+    void addTransform(const mathfu::mat4& local, Object& obj);
 
     static mathfu::mat4 updateMatrix(NodeInfo* node);
 
@@ -82,10 +82,6 @@ public:
     // =================== getters ==========================
 
     TransformInfo* getTransform(const Object& obj);
-
-    // ======================== client API ===========================
-
-    void addModelTransform(const ModelTransform& transform, Object& obj) override;
 
 private:
     // transform data preserved in the node hierarchical format

@@ -1,4 +1,4 @@
-/* Copyright (c) 2018-2020 Garry Whitehead
+/* Copyright (c) 2022 Garry Whitehead
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -19,37 +19,58 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+
 #pragma once
 
-#include <mathfu/glsl_mappings.h>
+#include "render_graph/render_graph.h"
+#include "vulkan-api/driver.h"
+#include "vulkan-api/program_manager.h"
+#include "vulkan-api/swapchain.h"
+#include "yave/renderer.h"
+#include "yave/scene.h"
 
 #include <array>
 
 namespace yave
 {
-
 // forward declarations
-struct AABBox;
+class IScene;
+class IEngine;
 
-class Frustum
+class IRenderer : public Renderer
 {
 public:
-    Frustum() = default;
+    explicit IRenderer(IEngine* engine);
+    ~IRenderer();
 
-    void projection(const mathfu::mat4& viewProj);
+    void shutDown(vkapi::VkDriver& driver) noexcept;
 
-    bool checkSphereIntersect(const mathfu::vec3& pos, float radius);
+    void createBackbufferRT() noexcept;
 
-    void checkIntersection(
-        const mathfu::vec3* __restrict centers,
-        const mathfu::vec3* __restrict extents,
-        size_t count,
-        uint8_t* __restrict results) noexcept;
+    void beginFrame() noexcept;
 
-    bool checkIntersection(const AABBox& box);
+    void endFrame() noexcept;
+
+    void render(
+        vkapi::VkDriver& driver,
+        IScene* scene,
+        float dt,
+        util::Timer<NanoSeconds>& timer,
+        bool clearSwap = true);
+
+    // draws into a single render target
+    void renderSingleScene(vkapi::VkDriver& driver, IScene* scene, RenderTarget& rTarget);
 
 private:
-    std::array<mathfu::vec4, 6> planes_;
+    IEngine* engine_;
+
+    rg::RenderGraph rGraph_;
+
+    // render targets for the backbuffer
+    std::array<vkapi::RenderTargetHandle, 3> rtHandles_;
+
+    // keep track of the depth texture - set by createBackBufferRT
+    vkapi::TextureHandle depthHandle_;
 };
 
 } // namespace yave

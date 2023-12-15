@@ -58,20 +58,22 @@ public:
     };
 
     IRenderPrimitive();
-    ~IRenderPrimitive() override;
+    ~IRenderPrimitive();
 
     void shutDown(vkapi::VkDriver& driver) noexcept;
 
-    void addMeshDrawDataI(size_t indexCount, size_t offset, size_t vertexCount);
+    void addMeshDrawData(size_t indexCount, size_t offset, size_t vertexCount);
 
     vkapi::VDefinitions createVertexAttributeVariants();
 
+    void enablePrimitiveRestart() noexcept;
+
     // =================== setters ============================
 
-    void setTopologyI(backend::PrimitiveTopology topo);
-    void setVertexBufferI(IVertexBuffer* vBuffer) noexcept;
-    void setIndexBufferI(IIndexBuffer* iBuffer) noexcept;
-    void setMaterialI(IMaterial* mat) noexcept;
+    void setTopology(backend::PrimitiveTopology topo);
+    void setVertexBuffer(IVertexBuffer* vBuffer) noexcept;
+    void setIndexBuffer(IIndexBuffer* iBuffer) noexcept;
+    void setMaterial(IMaterial* mat) noexcept;
 
     // =================== getters ============================
 
@@ -84,15 +86,6 @@ public:
     IVertexBuffer* getVertexBuffer() noexcept { return vertBuffer_; }
     IIndexBuffer* getIndexBuffer() noexcept { return indexBuffer_; }
     IMaterial* getMaterial() noexcept { return material_; }
-
-    // =================== client api =======================
-
-    void addMeshDrawData(size_t indexCount, size_t offset, size_t vertexCount) override;
-    void setTopology(Topology topo) override;
-    void enablePrimitiveRestart() noexcept override;
-    void setVertexBuffer(VertexBuffer* vBuffer) override;
-    void setIndexBuffer(IndexBuffer* iBuffer) override;
-    void setMaterial(Material* mat) override;
 
 private:
     vk::PrimitiveTopology topology_;

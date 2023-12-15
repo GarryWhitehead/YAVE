@@ -42,7 +42,7 @@ IRenderableManager::IRenderableManager(IEngine& engine) : engine_(engine)
 
 IRenderableManager::~IRenderableManager() = default;
 
-void IRenderableManager::buildI(
+void IRenderableManager::build(
     IScene& scene,
     IRenderable* renderable,
     Object& obj,
@@ -64,15 +64,15 @@ void IRenderableManager::buildI(
     // check whether we just add to the back or use a freed slot
     if (objHandle.get() >= renderables_.size())
     {
-        renderables_.emplace_back(*renderable);
+        renderables_.emplace_back(renderable);
     }
     else
     {
-        renderables_[objHandle.get()] = *renderable;
+        renderables_[objHandle.get()] = renderable;
     }
 }
 
-IMaterial* IRenderableManager::createMaterialI() noexcept
+IMaterial* IRenderableManager::createMaterial() noexcept
 {
     auto* mat = new IMaterial(engine_);
     ASSERT_LOG(mat);
@@ -87,50 +87,21 @@ IRenderable* IRenderableManager::getMesh(const Object& obj)
         handle.get() <= renderables_.size(),
         "Handle index out of range for renderable mesh (idx=%i)",
         handle.get());
-    return &renderables_[handle.get()];
+    return renderables_[handle.get()];
 }
 
-void IRenderableManager::destroyI(const Object& obj)
+void IRenderableManager::destroy(const Object& obj)
 {
-    engine_.getTransformManagerI()->removeObject(obj);
+    engine_.getTransformManager()->removeObject(obj);
     removeObject(obj);
 }
 
-void IRenderableManager::destroyI(IMaterial* mat)
+void IRenderableManager::destroy(IMaterial* mat)
 {
     auto iter = materials_.find(mat);
     ASSERT_FATAL(iter != materials_.end(), "Material not found in set.");
     delete mat;
     materials_.erase(iter);
 }
-
-// ==================== client api ========================
-
-RenderableManager::RenderableManager() = default;
-RenderableManager::~RenderableManager() = default;
-
-void IRenderableManager::build(
-    Scene* scene,
-    Renderable* renderable,
-    Object& obj,
-    const ModelTransform& transform,
-    const std::string& matShader)
-{
-    buildI(
-        *(reinterpret_cast<IScene*>(scene)),
-        reinterpret_cast<IRenderable*>(renderable),
-        obj,
-        transform,
-        matShader);
-}
-
-Material* IRenderableManager::createMaterial() noexcept
-{
-    return reinterpret_cast<Material*>(createMaterialI());
-}
-
-void IRenderableManager::destroy(const Object& obj) { destroyI(obj); }
-
-void IRenderableManager::destroy(Material* mat) { destroyI(reinterpret_cast<IMaterial*>(mat)); }
 
 } // namespace yave
