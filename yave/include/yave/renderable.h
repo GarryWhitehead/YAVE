@@ -21,25 +21,26 @@
  */
 #pragma once
 
+#include "yave_api.h"
+
 #include <memory>
 
 namespace yave
 {
 class RenderPrimitive;
 
-class Renderable
+class Renderable : public YaveApi
 {
 public:
-    virtual ~Renderable();
+    void setPrimitive(RenderPrimitive* prim, size_t idx);
 
-    virtual void setPrimitive(RenderPrimitive* prim, size_t idx) = 0;
+    void setPrimitiveCount(size_t count) noexcept;
 
-    virtual void setPrimitiveCount(size_t count) noexcept = 0;
-
-    virtual void skipVisibilityChecks() = 0;
+    void skipVisibilityChecks();
 
 protected:
-    Renderable();
+    Renderable() = default;
+    ~Renderable() = default;
 };
 
 } // namespace yave

@@ -21,6 +21,8 @@
  */
 #pragma once
 
+#include "yave_api.h"
+
 #include <mathfu/glsl_mappings.h>
 
 #include <cstdint>
@@ -29,7 +31,7 @@ namespace yave
 {
 class Object;
 
-class LightManager
+class LightManager : public YaveApi
 {
 public:
     enum class Type
@@ -69,24 +71,23 @@ public:
         float sunHaloFalloff = 80.0f;
     };
 
-    virtual ~LightManager();
+    void create(const CreateInfo& ci, Type type, Object& obj);
 
-    virtual void create(const CreateInfo& ci, Type type, Object& obj) = 0;
+    void setIntensity(float intensity, Object& obj);
 
-    virtual void setIntensity(float intensity, Object& obj) = 0;
+    void setFallout(float fallout, Object& obj);
 
-    virtual void setFallout(float fallout, Object& obj) = 0;
+    void setPosition(const mathfu::vec3& pos, Object& obj);
 
-    virtual void setPosition(const mathfu::vec3& pos, Object& obj) = 0;
+    void setTarget(const mathfu::vec3& target, Object& obj);
 
-    virtual void setTarget(const mathfu::vec3& target, Object& obj) = 0;
+    void setColour(const mathfu::vec3& col, Object& obj);
 
-    virtual void setColour(const mathfu::vec3& col, Object& obj) = 0;
-
-    virtual void setFov(float fov, Object& obj) = 0;
+    void setFov(float fov, Object& obj);
 
 protected:
-    LightManager();
+    LightManager() = default;
+    ~LightManager() = default;
 };
 
 } // namespace yave

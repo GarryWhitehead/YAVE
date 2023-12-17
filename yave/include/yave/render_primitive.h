@@ -22,6 +22,7 @@
 #pragma once
 
 #include "backend/enums.h"
+#include "yave_api.h"
 
 #include <model_parser/gltf/model_mesh.h>
 
@@ -30,27 +31,26 @@ namespace yave
 class Engine;
 class Material;
 
-class RenderPrimitive
+class RenderPrimitive : public YaveApi
 {
 public:
     using Topology = backend::PrimitiveTopology;
 
-    virtual ~RenderPrimitive();
+    void addMeshDrawData(size_t indexCount, size_t offset, size_t vertexCount);
 
-    virtual void addMeshDrawData(size_t indexCount, size_t offset, size_t vertexCount) = 0;
+    void setTopology(Topology topo);
 
-    virtual void setTopology(Topology topo) = 0;
+    void enablePrimitiveRestart() noexcept;
 
-    virtual void enablePrimitiveRestart() noexcept = 0;
+    void setVertexBuffer(VertexBuffer* vBuffer);
 
-    virtual void setVertexBuffer(VertexBuffer* vBuffer) = 0;
+    void setIndexBuffer(IndexBuffer* iBuffer);
 
-    virtual void setIndexBuffer(IndexBuffer* iBuffer) = 0;
-
-    virtual void setMaterial(Material* mat) = 0;
+    void setMaterial(Material* mat);
 
 protected:
-    RenderPrimitive();
+    RenderPrimitive() = default;
+    ~RenderPrimitive() = default;
 };
 
 } // namespace yave

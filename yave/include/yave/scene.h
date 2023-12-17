@@ -36,32 +36,31 @@ class WaveGenerator;
 class Scene
 {
 public:
-    virtual ~Scene();
+    void setSkybox(Skybox* skybox);
 
-    virtual void setSkybox(Skybox* skybox) = 0;
+    void setIndirectLight(IndirectLight* il);
 
-    virtual void setIndirectLight(IndirectLight* il) = 0;
+    void setCamera(Camera* camera);
 
-    virtual void setCamera(Camera* camera) = 0;
+    void setWaveGenerator(WaveGenerator* waterGen);
 
-    virtual void setWaveGenerator(WaveGenerator* waterGen) = 0;
+    Camera* getCurrentCamera();
 
-    virtual Camera* getCurrentCamera() = 0;
+    void addObject(Object obj);
+    void destroyObject(Object obj);
 
-    virtual void addObject(Object obj) = 0;
-    virtual void destroyObject(Object obj) = 0;
+    void usePostProcessing(bool state);
 
-    virtual void usePostProcessing(bool state) = 0;
+    void useGbuffer(bool state);
 
-    virtual void useGbuffer(bool state) = 0;
-
-    virtual void setBloomOptions(const BloomOptions& bloom) = 0;
-    virtual void setGbufferOptions(const GbufferOptions& gb) = 0;
-    virtual BloomOptions& getBloomOptions() = 0;
-    virtual GbufferOptions& getGbufferOptions() = 0;
+    void setBloomOptions(const BloomOptions& bloom);
+    void setGbufferOptions(const GbufferOptions& gb);
+    BloomOptions& getBloomOptions();
+    GbufferOptions& getGbufferOptions();
 
 protected:
-    Scene();
+    Scene() = default;
+    ~Scene() = default;
 };
 
 } // namespace yave

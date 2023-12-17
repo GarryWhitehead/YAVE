@@ -21,6 +21,8 @@
  */
 #pragma once
 
+#include "yave_api.h"
+
 #include <backend/enums.h>
 #include <utility/colour.h>
 #include <utility/cstring.h>
@@ -83,26 +85,25 @@ private:
     uint32_t height_;
 };
 
-class Renderer
+class Renderer : public YaveApi
 {
 public:
-    virtual ~Renderer();
+    void beginFrame();
 
-    virtual void beginFrame() = 0;
+    void endFrame();
 
-    virtual void endFrame() = 0;
-
-    virtual void render(
+    void render(
         Engine* engine,
         Scene* scene,
         float dt,
         util::Timer<NanoSeconds>& timer,
-        bool clearSwap = true) = 0;
+        bool clearSwap = true);
 
-    virtual void renderSingleScene(Engine* engine, Scene* scene, RenderTarget& rTarget) = 0;
+    void renderSingleScene(Engine* engine, Scene* scene, RenderTarget& rTarget);
 
 protected:
-    Renderer();
+    Renderer() = default;
+    ~Renderer() = default;
 };
 
 } // namespace yave

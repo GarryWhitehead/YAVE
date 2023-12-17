@@ -21,6 +21,8 @@
  */
 #pragma once
 
+#include "yave_api.h"
+
 namespace yave
 {
 class Object;
@@ -28,14 +30,13 @@ class Object;
 class ObjectManager
 {
 public:
-    ~ObjectManager();
+    Object createObject();
 
-    virtual Object createObject() = 0;
-
-    virtual void destroyObject(Object& obj) = 0;
+    void destroyObject(Object& obj);
 
 protected:
-    ObjectManager();
+    ObjectManager() = default;
+    ~ObjectManager() = default;
 };
 
 } // namespace yave

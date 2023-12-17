@@ -23,6 +23,7 @@
 
 #include "vulkan-api/driver.h"
 #include "vulkan-api/swapchain.h"
+#include "yave_api.h"
 
 #include <filesystem>
 #include <memory>
@@ -48,62 +49,60 @@ class Camera;
 class Window;
 class WaveGenerator;
 
-class Engine
+class Engine : public YaveApi
 {
 public:
-    virtual ~Engine();
-
     static Engine* create(Window* win);
     static void destroy(Engine* engine);
 
-    virtual Scene* createScene() = 0;
+    Scene* createScene();
 
-    virtual vkapi::SwapchainHandle createSwapchain(Window* win) = 0;
+    vkapi::SwapchainHandle createSwapchain(Window* win);
 
-    virtual Renderer* createRenderer() = 0;
+    Renderer* createRenderer();
 
-    virtual VertexBuffer* createVertexBuffer() = 0;
+    VertexBuffer* createVertexBuffer();
 
-    virtual IndexBuffer* createIndexBuffer() = 0;
+    IndexBuffer* createIndexBuffer();
 
-    virtual RenderPrimitive* createRenderPrimitive() = 0;
+    RenderPrimitive* createRenderPrimitive();
 
-    virtual Renderable* createRenderable() = 0;
+    Renderable* createRenderable();
 
-    virtual void setCurrentSwapchain(const vkapi::SwapchainHandle& handle) = 0;
+    void setCurrentSwapchain(const vkapi::SwapchainHandle& handle);
 
-    virtual RenderableManager* getRenderManager() = 0;
+    RenderableManager* getRenderManager();
 
-    virtual TransformManager* getTransformManager() = 0;
+    TransformManager* getTransformManager();
 
-    virtual LightManager* getLightManager() = 0;
+    LightManager* getLightManager();
 
-    virtual ObjectManager* getObjectManager() = 0;
+    ObjectManager* getObjectManager();
 
-    virtual Texture* createTexture() = 0;
+    Texture* createTexture();
 
-    virtual Skybox* createSkybox(Scene* scene) = 0;
+    Skybox* createSkybox(Scene* scene);
 
-    virtual IndirectLight* createIndirectLight() = 0;
+    IndirectLight* createIndirectLight();
 
-    virtual Camera* createCamera() = 0;
+    Camera* createCamera();
 
-    virtual WaveGenerator* createWaveGenerator(Scene* scene) = 0;
+    WaveGenerator* createWaveGenerator(Scene* scene);
 
-    virtual void flushCmds() = 0;
+    void flushCmds();
 
-    virtual void destroy(IndexBuffer* buffer) = 0;
-    virtual void destroy(VertexBuffer* buffer) = 0;
-    virtual void destroy(RenderPrimitive* buffer) = 0;
-    virtual void destroy(Renderable* buffer) = 0;
-    virtual void destroy(Scene* buffer) = 0;
-    virtual void destroy(Camera* buffer) = 0;
-    virtual void destroy(Renderer* renderer) = 0;
+    void destroy(IndexBuffer* buffer);
+    void destroy(VertexBuffer* buffer);
+    void destroy(RenderPrimitive* buffer);
+    void destroy(Renderable* buffer);
+    void destroy(Scene* buffer);
+    void destroy(Camera* buffer);
+    void destroy(Renderer* renderer);
 
-    virtual void deleteRenderTarget(const vkapi::RenderTargetHandle& handle) = 0;
+    void deleteRenderTarget(const vkapi::RenderTargetHandle& handle);
 
 protected:
-    Engine();
+    ~Engine() = default;
 };
 
 } // namespace yave

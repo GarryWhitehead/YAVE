@@ -21,6 +21,8 @@
  */
 #pragma once
 
+#include "yave_api.h"
+
 #include <backend/enums.h>
 
 #include <cstdint>
@@ -29,19 +31,15 @@ namespace yave
 {
 class Engine;
 
-class IndexBuffer
+class IndexBuffer : public YaveApi
 {
 public:
-    virtual ~IndexBuffer();
-
-    virtual void build(
-        Engine* engine,
-        uint32_t indicesCount,
-        void* indicesData,
-        backend::IndexBufferType type) = 0;
+    void
+    build(Engine* engine, uint32_t indicesCount, void* indicesData, backend::IndexBufferType type);
 
 protected:
-    IndexBuffer();
+    IndexBuffer() = default;
+    ~IndexBuffer() = default;
 };
 
 } // namespace yave

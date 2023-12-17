@@ -21,16 +21,17 @@
  */
 #pragma once
 
+#include "yave_api.h"
+
 namespace yave
 {
 
-class WaveGenerator
+class WaveGenerator : public YaveApi
 {
 public:
-    virtual ~WaveGenerator();
-
 protected:
-    WaveGenerator();
+    WaveGenerator() = default;
+    ~WaveGenerator() = default;
 };
 
 } // namespace yave

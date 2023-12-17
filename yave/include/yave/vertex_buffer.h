@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include "yave_api.h"
+
 #include <backend/enums.h>
 
 #include <cstdint>
@@ -30,7 +32,7 @@ namespace yave
 {
 class Engine;
 
-class VertexBuffer
+class VertexBuffer : public YaveApi
 {
 public:
     enum class BindingType
@@ -48,14 +50,13 @@ public:
         __SENTINEL__
     };
 
-    virtual ~VertexBuffer();
+    void addAttribute(BindingType bindType, backend::BufferElementType attrType);
 
-    virtual void addAttribute(BindingType bindType, backend::BufferElementType attrType) = 0;
-
-    virtual void build(Engine* engine, uint32_t vertexCount, void* vertexData) = 0;
+    void build(Engine* engine, uint32_t vertexCount, void* vertexData);
 
 protected:
-    VertexBuffer();
+    VertexBuffer() = default;
+    ~VertexBuffer() = default;
 };
 
 } // namespace yave

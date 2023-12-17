@@ -33,7 +33,7 @@ jobs:
     - name: Conan install dependencies
       working-directory: ${{github.workspace}}
       run:  |
-            pip install conan==1.58.0
+            pip install conan==1.60.0
 
             conan profile new default --detect
             if [ "$RUNNER_OS" == "Linux" ]; then

@@ -21,12 +21,14 @@
  */
 #pragma once
 
+#include "yave_api.h"
+
 #include <backend/enums.h>
 
 namespace yave
 {
 
-class Texture
+class Texture : public YaveApi
 {
 public:
     using TextureFormat = backend::TextureFormat;
@@ -44,24 +46,23 @@ public:
         uint32_t faces = 1;
     };
 
-    virtual ~Texture();
+    void setTexture(const Params& params, size_t* offsets = nullptr) noexcept;
 
-    virtual void setTexture(const Params& params, size_t* offsets = nullptr) noexcept = 0;
-
-    virtual void setEmptyTexture(
+    void setEmptyTexture(
         uint32_t width,
         uint32_t height,
         TextureFormat format,
         uint32_t usageFlags,
         uint32_t levels = 1,
-        uint32_t faces = 1) noexcept = 0;
+        uint32_t faces = 1) noexcept;
 
-    virtual Params getTextureParams() noexcept = 0;
+    Params getTextureParams() noexcept;
 
-    virtual void generateMipMaps() = 0;
+    void generateMipMaps();
 
 protected:
-    Texture();
+    Texture() = default;
+    ~Texture() = default;
 };
 
 } // namespace yave
