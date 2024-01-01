@@ -13,12 +13,10 @@ target_include_directories(
 target_sources(
     YaveUtility
     PRIVATE
-    cstring.cpp
     assertion.cpp
 
     bitset_enum.h
     compiler.h
-    cstring.h
     logger.h
     colour.h
     murmurhash.h

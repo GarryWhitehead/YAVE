@@ -24,7 +24,6 @@
 
 #include <cgltf.h>
 #include <mathfu/glsl_mappings.h>
-#include <utility/cstring.h>
 
 #include <unordered_map>
 #include <vector>
@@ -53,7 +52,7 @@ public:
     // =========================== skinning data (public)
     // =============================================
 
-    util::CString name;
+    const char* name;
 
     // links the bone node name with the inverse transform
     std::vector<mathfu::mat4> invBindMatrices;

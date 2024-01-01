@@ -25,10 +25,10 @@
 #include <cgltf.h>
 #include <mathfu/glsl_mappings.h>
 #include <utility/colour.h>
-#include <utility/cstring.h>
 
 #include <cstdint>
 #include <filesystem>
+#include <vector>
 
 namespace yave
 {
@@ -116,7 +116,7 @@ public:
     // ==== material data (public) ========
 
     /// used to identify this material.
-    util::CString name_;
+    const char* name_;
 
     Attributes attributes_;
     Sampler sampler_;

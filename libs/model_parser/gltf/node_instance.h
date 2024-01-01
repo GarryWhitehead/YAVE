@@ -24,10 +24,11 @@
 
 #include <cgltf.h>
 #include <mathfu/glsl_mappings.h>
-#include <utility/cstring.h>
 
 #include <memory>
 #include <unordered_map>
+#include <string_view>
+#include <vector>
 
 namespace yave
 {
@@ -57,7 +58,7 @@ struct NodeInfo
 
     /// The id of the node is derived from the index - and is used to locate
     /// this node if it's a joint or animation target
-    util::CString id;
+    const char* id;
 
     /// the index of the skin associated with this node
     size_t skinIndex = -1;
@@ -92,7 +93,7 @@ public:
 
     bool prepare(cgltf_node* node, GltfModel& model);
 
-    NodeInfo* getNode(util::CString id);
+    NodeInfo* getNode(std::string_view id);
 
     ModelMesh* getMesh();
     SkinInstance* getSkin();
@@ -107,7 +108,7 @@ private:
         GltfModel& model,
         size_t& nodeIdx);
 
-    NodeInfo* findNode(util::CString id, NodeInfo* node);
+    NodeInfo* findNode(std::string_view id, NodeInfo* node);
 
 private:
     // we expect one mesh per node hierachy.

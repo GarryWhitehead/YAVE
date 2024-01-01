@@ -92,10 +92,10 @@ NodeInstance::NodeInstance() {}
 
 NodeInstance::~NodeInstance() {}
 
-NodeInfo* NodeInstance::findNode(util::CString id, NodeInfo* node)
+NodeInfo* NodeInstance::findNode(std::string_view id, NodeInfo* node)
 {
     NodeInfo* result = nullptr;
-    if (node->id.compare(id))
+    if (node->id == id)
     {
         return node;
     }
@@ -110,7 +110,7 @@ NodeInfo* NodeInstance::findNode(util::CString id, NodeInfo* node)
     return result;
 }
 
-NodeInfo* NodeInstance::getNode(util::CString id) { return findNode(id, rootNode_.get()); }
+NodeInfo* NodeInstance::getNode(std::string_view id) { return findNode(id, rootNode_.get()); }
 
 bool NodeInstance::prepareNodeHierachy(
     cgltf_node* node,

@@ -24,7 +24,6 @@
 
 #include "model_material.h"
 #include "utility/assertion.h"
-#include "utility/cstring.h"
 #include "utility/logger.h"
 
 #define CGLTF_IMPLEMENTATION
@@ -40,21 +39,27 @@ namespace yave
 GltfExtension::GltfExtension() {}
 GltfExtension::~GltfExtension() {}
 
-mathfu::vec3 GltfExtension::tokenToVec3(const util::CString& str)
+mathfu::vec3 GltfExtension::tokenToVec3(const char* str)
 {
-    mathfu::vec3 output;
-    auto split = util::CString::split(str, ' ');
+    std::string vecStr {str};
+    std::vector<const char*> splitStrs;
+    size_t pos = 0;
+    while ((pos = vecStr.find(" ")) != std::string::npos) {
+        std::string token = vecStr.substr(0, pos);
+        splitStrs.emplace_back(token.c_str());
+        vecStr.erase(0, pos + 1);
+    }
     ASSERT_FATAL(
-        split.size() == 3, "String must be of vec3 type - %i elements found.", split.size());
+        splitStrs.size() == 3, "String must be of vec3 type - %i elements found.", splitStrs.size());
     return {
-        std::strtof(split[0].c_str(), nullptr),
-        std::strtof(split[1].c_str(), nullptr),
-        std::strtof(split[2].c_str(), nullptr)};
+        std::strtof(splitStrs[0], nullptr),
+        std::strtof(splitStrs[1], nullptr),
+        std::strtof(splitStrs[2], nullptr)};
 }
 
-util::CString GltfExtension::find(const util::CString& ext)
+std::string_view GltfExtension::find(std::string_view ext)
 {
-    auto iter = extensions_.find(ext.c_str());
+    auto iter = extensions_.find(ext.data());
     if (iter == extensions_.end())
     {
         return "";
@@ -99,11 +104,11 @@ bool GltfExtension::build(const cgltf_extras& extras, cgltf_data& data)
     jsmn_parse(&jsonParser, jsonData, extSize, tokenData.data(), tokenCount);
 
     // now convert everything to a string for easier storage
-    std::vector<util::CString> temp;
+    std::vector<std::string_view> temp;
     for (const jsmntok_t& token : tokenData)
     {
-        util::CString startStr {std::to_string(jsonData[token.start]).c_str()};
-        util::CString endStr {std::to_string(token.end - token.start).c_str()};
+        std::string_view startStr {reinterpret_cast<const char*>(jsonData[token.start])};
+        std::string_view endStr {std::to_string(token.end - token.start).c_str()};
         temp.emplace_back(startStr);
         temp.emplace_back(endStr);
     }
@@ -119,7 +124,7 @@ bool GltfExtension::build(const cgltf_extras& extras, cgltf_data& data)
     // create the output - <extension name, value>
     for (size_t i = 0; i < temp.size(); i += 2)
     {
-        extensions_.emplace(temp[i].c_str(), temp[i + 1]);
+        extensions_.emplace(temp[i], temp[i + 1]);
     }
 
     return true;
@@ -130,7 +135,7 @@ bool GltfExtension::build(const cgltf_extras& extras, cgltf_data& data)
 GltfModel::GltfModel() : extensions_(std::make_unique<GltfExtension>()) {}
 GltfModel::~GltfModel() {}
 
-NodeInfo* GltfModel::getNode(const util::CString& id)
+NodeInfo* GltfModel::getNode(std::string_view id)
 {
     NodeInfo* foundNode = nullptr;
     for (auto& node : nodes)
@@ -161,8 +166,7 @@ void GltfModel::lineariseRecursive(cgltf_node& node, size_t index)
 {
     // nodes a lot of the time don't possess a name, so we can't rely on this
     // for identifying nodes. So. we will use a stringifyed id instead
-    util::CString indexStr(std::to_string(index).c_str());
-    node.name = indexStr.c_str();
+    node.name = const_cast<char*>(std::to_string(index).c_str());
 
     linearisedNodes_.emplace_back(&node);
 
@@ -282,6 +286,6 @@ GltfModel& GltfModel::setWorldRotation(const mathfu::quat& rot)
     return *this;
 }
 
-void GltfModel::setDirectory(util::CString dirPath) { modelDir_ = dirPath; }
+void GltfModel::setDirectory(const std::filesystem::path& dirPath) { modelDir_ = dirPath; }
 
 } // namespace yave

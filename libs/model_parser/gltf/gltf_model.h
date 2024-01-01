@@ -26,7 +26,6 @@
 #include "model_mesh.h"
 #include "node_instance.h"
 #include "skin_instance.h"
-#include "utility/cstring.h"
 
 #include <cgltf.h>
 #include <mathfu/glsl_mappings.h>
@@ -34,6 +33,8 @@
 #include <memory>
 #include <unordered_map>
 #include <vector>
+#include <string_view>
+#include <filesystem>
 
 namespace yave
 {
@@ -49,7 +50,7 @@ class GltfExtension
 {
 public:
     // <extension name, value (as string)>
-    using ExtensionData = std::unordered_map<const char*, util::CString>;
+    using ExtensionData = std::unordered_map<const char*, const char*>;
 
     GltfExtension();
     ~GltfExtension();
@@ -58,9 +59,9 @@ public:
     bool build(const cgltf_extras& extras, cgltf_data& data);
 
     /// token to string converion functions
-    static mathfu::vec3 tokenToVec3(const util::CString& str);
+    static mathfu::vec3 tokenToVec3(const char* str);
 
-    util::CString find(const util::CString& ext);
+    std::string_view find(std::string_view ext);
 
 private:
     ExtensionData extensions_;
@@ -96,7 +97,7 @@ public:
      * @return If successful, returns a pointer to the node. Otherwise returns
      * nullptr.
      */
-    NodeInfo* getNode(const util::CString& id);
+    NodeInfo* getNode(std::string_view id);
 
     GltfExtension& getExtensions();
 
@@ -117,7 +118,7 @@ public:
      */
     GltfModel& setWorldRotation(const mathfu::quat& rot);
 
-    void setDirectory(util::CString dir);
+    void setDirectory(const std::filesystem::path&  dir);
 
 private:
     void lineariseRecursive(cgltf_node& node, size_t index);
@@ -151,7 +152,7 @@ private:
     mathfu::quat wRotation_;
 
     // user defined path to the model directory
-    util::CString modelDir_;
+    std::filesystem::path modelDir_;
 };
 
 } // namespace yave

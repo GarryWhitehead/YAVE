@@ -27,6 +27,7 @@
 #include "utility/logger.h"
 
 #include <cstring>
+#include <string_view>
 
 namespace yave
 {
@@ -61,7 +62,7 @@ bool SkinInstance::prepare(cgltf_skin& skin, NodeInstance& node)
         cgltf_node* boneNode = skin.joints[i];
 
         // find the node in the list
-        NodeInfo* foundNode = node.getNode(util::CString(boneNode->name));
+        NodeInfo* foundNode = node.getNode(boneNode->name);
         if (!foundNode)
         {
             LOGGER_ERROR("Unable to find bone in list of nodes\n");
@@ -73,7 +74,7 @@ bool SkinInstance::prepare(cgltf_skin& skin, NodeInstance& node)
     // by the spec.
     if (skin.skeleton)
     {
-        skeletonRoot = node.getNode(util::CString(skin.skeleton->name));
+        skeletonRoot = node.getNode(skin.skeleton->name);
     }
 
     return true;

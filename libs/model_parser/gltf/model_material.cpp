@@ -143,7 +143,7 @@ std::filesystem::path ModelMaterial::getTextureUri(cgltf_texture_view& view)
 
 bool ModelMaterial::create(cgltf_material& mat, GltfExtension& extensions)
 {
-    name_ = util::CString {mat.name};
+    memcpy((void*)name_, mat.name, sizeof(*mat.name));
 
     // two pipelines, either specular glossiness or metallic roughness,
     // according to the spec, metallic roughness should be preferred
@@ -232,10 +232,10 @@ bool ModelMaterial::create(cgltf_material& mat, GltfExtension& extensions)
     attributes_.emissive = {ef[0], ef[1], ef[2], 1.0f};
 
     // specular - extension
-    util::CString data = extensions.find("specular");
+    std::string_view data = extensions.find("specular");
     if (!data.empty())
     {
-        mathfu::vec3 vec = GltfExtension::tokenToVec3(data);
+        mathfu::vec3 vec = GltfExtension::tokenToVec3(data.data());
         attributes_.specular = {vec.x, vec.y, vec.z, 1.0f};
     }
 
