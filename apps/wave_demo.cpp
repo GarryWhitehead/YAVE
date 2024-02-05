@@ -98,7 +98,8 @@ int main()
     app.scene_->setWaveGenerator(waveGen);
 
     // create the renderer used to draw to the backbuffer
-    auto handle = app.engine_->createSwapchain(app.getWindow());
+    auto* win = app.getWindow();
+    auto handle = app.engine_->createSwapchain(win->getSurface(), win->width(), win->height());
     app.engine_->setCurrentSwapchain(handle);
     auto renderer = app.engine_->createRenderer();
 

@@ -64,6 +64,18 @@ bool CString::operator==(const CString& rhs) const noexcept { return rhs.compare
 
 bool CString::operator!=(const CString& rhs) const noexcept { return !rhs.compare(*this); }
 
+char& CString::operator[](const size_t idx) noexcept
+{
+    assert(idx < length);
+    return buffer[idx];
+}
+
+char& CString::operator[](const size_t idx) const noexcept
+{
+    assert(idx < length);
+    return buffer[idx];
+}
+
 CString::CString(CString&& rhs) noexcept
     : buffer(std::exchange(rhs.buffer, nullptr)), length(std::exchange(rhs.length, 0))
 {

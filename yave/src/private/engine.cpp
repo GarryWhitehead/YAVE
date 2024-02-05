@@ -36,8 +36,6 @@
 #include "wave_generator.h"
 #include "yave/renderable.h"
 
-#include <yave_app/window.h>
-
 #include <thread>
 
 using namespace std::literals::chrono_literals;
@@ -46,8 +44,7 @@ namespace yave
 {
 
 IEngine::IEngine()
-    : currentWindow_(nullptr),
-      rendManager_(std::make_unique<IRenderableManager>(*this)),
+    : rendManager_(std::make_unique<IRenderableManager>(*this)),
       transformManager_(std::make_unique<ITransformManager>(*this)),
       objManager_(std::make_unique<IObjectManager>()),
       currentSwapchain_(nullptr),
@@ -59,22 +56,10 @@ IEngine::IEngine()
 
 IEngine::~IEngine() = default;
 
-IEngine* IEngine::create(Window* win)
+IEngine* IEngine::create(vkapi::VkDriver* driver)
 {
     // Create and initialise the vulkan backend
-    auto* driver = new vkapi::VkDriver;
-    ASSERT_LOG(win);
-    const auto& [ext, count] = win->getInstanceExt();
-    driver->createInstance(ext, count);
-
-    // Create the window surface
-    win->createSurfaceVk(driver->context().instance());
-
-    // Create the abstract physical device object
-    driver->init(win->getSurface());
-
     auto* engine = new IEngine();
-    engine->currentWindow_ = win;
     engine->driver_ = std::unique_ptr<vkapi::VkDriver>(driver);
 
     // it's safe to initialise the lighting manager and post process now
@@ -158,12 +143,12 @@ void IEngine::setCurrentSwapchain(const SwapchainHandle& handle) noexcept
 
 vkapi::Swapchain* IEngine::getCurrentSwapchain() noexcept { return currentSwapchain_; }
 
-SwapchainHandle IEngine::createSwapchain(Window* win)
+SwapchainHandle IEngine::createSwapchain(const vk::SurfaceKHR& surface, uint32_t width, uint32_t height)
 {
-    // create a swapchain for surface rendering based on the platform specific
+    // create a swapchain for surface rendering based on the platform-specific
     // window surface
     auto sc = new vkapi::Swapchain();
-    sc->create(driver(), win->getSurface(), win->width(), win->height());
+    sc->create(driver(), surface, width, height);
     SwapchainHandle handle {static_cast<uint32_t>(swapchains_.size())};
     swapchains_.emplace_back(sc);
     return handle;

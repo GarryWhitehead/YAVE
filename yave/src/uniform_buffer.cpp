@@ -21,6 +21,7 @@
  */
 
 #include "uniform_buffer.h"
+#include "engine.h"
 
 #include "utility/assertion.h"
 
@@ -323,15 +324,24 @@ void UniformBuffer::createGpuBuffer(vkapi::VkDriver& driver) noexcept
     createGpuBuffer(driver, accumSize_);
 }
 
-void UniformBuffer::mapGpuBuffer(void* data, size_t size) noexcept
+void UniformBuffer::mapGpuBuffer(vkapi::VkDriver& driver, void* data, size_t size) noexcept
 {
+    YAVE_UNUSED(driver);
     vkapi::Buffer* buffer = vkHandle_.getResource();
     ASSERT_FATAL(
         buffer, "Buffer is nullptr - have you created the buffer before trying to map data?");
     buffer->mapToGpuBuffer(data, size);
 }
 
-void UniformBuffer::mapGpuBuffer(void* data) noexcept { mapGpuBuffer(data, accumSize_); }
+void UniformBuffer::mapGpuBuffer(vkapi::VkDriver& driver, void* data) noexcept { mapGpuBuffer(driver, data, accumSize_); }
+
+void UniformBuffer::downloadToHost(IEngine& engine, void* hostBuffer, size_t dataSize)
+{
+    ASSERT_FATAL(currentGpuBufferSize_ > 0, "Buffer size is zero. Has this buffer been mapped?");
+    auto* res = vkHandle_.getResource();
+    ASSERT_FATAL(res, "Resource handle is NULL");
+    res->downloadToHost(engine.driver(), hostBuffer, dataSize);
+}
 
 UniformBuffer::BackendBufferParams UniformBuffer::getBufferParams(vkapi::VkDriver& driver) noexcept
 {
@@ -392,7 +402,7 @@ std::string StorageBuffer::createShaderStr() noexcept
     return output;
 }
 
-void StorageBuffer::createGpuBuffer(vkapi::VkDriver& driver, uint32_t size) noexcept
+void StorageBuffer::createGpuBuffer(vkapi::VkDriver& driver, size_t size) noexcept
 {
     ASSERT_FATAL(!elements_.empty(), "This storage buffer has no elements added.");
     ASSERT_LOG(size > 0);
@@ -409,14 +419,19 @@ void StorageBuffer::createGpuBuffer(vkapi::VkDriver& driver) noexcept
     createGpuBuffer(driver, accumSize_);
 }
 
-void StorageBuffer::copyFrom(const StorageBuffer& other) noexcept
+void StorageBuffer::mapGpuBuffer(vkapi::VkDriver& driver, void* data, size_t size) noexcept
 {
-    elements_ = other.elements_;
-    bufferData_ = other.bufferData_;
-    currentBufferSize_ = other.currentBufferSize_;
-    accumSize_ = other.accumSize_;
-    currentGpuBufferSize_ = other.currentGpuBufferSize_;
-    vkHandle_ = other.vkHandle_;
+    vkapi::Buffer* buffer = vkHandle_.getResource();
+    ASSERT_FATAL(
+        buffer, "Buffer is nullptr - have you created the buffer before trying to map data?");
+    //buffer->mapAndCopyToGpu(driver, size, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, data);
+    buffer->mapToGpuBuffer(data, size);
+}
+
+void StorageBuffer::mapGpuBuffer(vkapi::VkDriver& driver, void* data) noexcept
+{
+    ASSERT_FATAL(data, "data pointer is NULL");
+    mapGpuBuffer(driver, data, accumSize_);
 }
 
 BufferBase::BackendBufferParams StorageBuffer::getBufferParams(vkapi::VkDriver& driver) noexcept

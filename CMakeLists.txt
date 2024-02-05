@@ -39,6 +39,7 @@ endif()
 set(YAVE_ROOT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 set(YAVE_SHADER_DIRECTORY "${YAVE_ROOT_DIRECTORY}/shaders")
 set(YAVE_CMAKE_INCLUDE_DIRECTORY "${YAVE_ROOT_DIRECTORY}/cmake")
+set(YAVE_TEST_DIRECTORY "${CMAKE_BINARY_DIR}/Tests")
 
 # find vulkan (hopefully!)
 find_package(Vulkan REQUIRED)
@@ -61,6 +62,11 @@ find_package(Ktx REQUIRED)
 
 if (APPLE)
     find_package(moltenvk REQUIRED)
+endif()
+
+if (BUILD_TESTS)
+    find_package(GTest REQUIRED)
+    enable_testing()
 endif()
 
 # add libraries: 

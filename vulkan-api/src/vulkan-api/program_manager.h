@@ -54,15 +54,13 @@ public:
     void addAttributeBlock(const std::string& block);
 
     std::string build();
-
-    // void addStageBlock(const std::string& block) { stageBlock_ = block; }
-
+    
     void addShader(Shader* shader) noexcept { shader_ = shader; }
     Shader* getShader() noexcept { return shader_; }
 
     void parseMaterialShaderBlock(const std::vector<std::string>& lines, size_t& index);
 
-    void parseShader(const std::vector<std::string>& lines);
+    void parseShader(const util::CString& shaderCode);
 
     // doesn't clear the main shader code block
     void clearAttributes() noexcept;
@@ -70,7 +68,7 @@ public:
     friend class VkDriver;
 
 private:
-    // Used for creating the glsl string representation used for compilation.
+    // used for creating the glsl string representation used for compilation.
     // the main() code section
     std::string mainStageBlock_;
     // the attribute descriptors for the main code block
@@ -84,7 +82,7 @@ private:
     std::vector<std::string> includes_;
 
     // Shaders used by this program. Note: these are not owned by the program
-    // but by the cached conatiner in the program manager.
+    // but by the cached container in the program manager.
     Shader* shader_;
 };
 
@@ -114,13 +112,13 @@ public:
             VkBool32 frontEqualBack = VK_TRUE;
         };
 
-        /// depth state
+        // depth state
         VkBool32 testEnable = VK_TRUE;
         VkBool32 writeEnable = VK_TRUE;
         VkBool32 stencilTestEnable = VK_FALSE;
         vk::CompareOp compareOp = vk::CompareOp::eLessOrEqual;
 
-        /// only processed if the above is true
+        // only processed if the above is true
         StencilState frontStencil;
         StencilState backStencil;
     };
@@ -181,15 +179,17 @@ public:
     // used when no indices are to be used for the draw
     void addRenderPrimitive(vk::PrimitiveTopology topo, uint32_t vertexCount, VkBool32 primRestart);
 
-    // Used when no index buffer is to be bound.
+    // used when no index buffer is to be bound.
     void addRenderPrimitive(uint32_t count);
 
-    void buildShader(const std::string& filename);
+    static util::CString loadShader(const util::CString& filename);
 
-    void buildShaders(const std::string& filename) { buildShader(filename); }
+    void buildShader(const util::CString& shaderCode, backend::ShaderStage shaderType);
+
+    void buildShaders(const util::CString& shaderCode, backend::ShaderStage shaderType) { buildShader(shaderCode, shaderType); }
 
     template <typename... ShaderArgs>
-    void buildShaders(const std::string& filename, const ShaderArgs&... shaderArgs);
+    void buildShaders(const util::CString& shaderCode, backend::ShaderStage shaderType, const ShaderArgs&... shaderArgs);
 
     void clear() noexcept;
 
@@ -260,9 +260,9 @@ public:
 };
 
 template <typename... ShaderArgs>
-void ShaderProgramBundle::buildShaders(const std::string& filename, const ShaderArgs&... shaderArgs)
+void ShaderProgramBundle::buildShaders(const util::CString& shaderCode, backend::ShaderStage shaderType, const ShaderArgs&... shaderArgs)
 {
-    buildShader(filename);
+    buildShader(shaderCode, shaderType);
     buildShaders(shaderArgs...);
 }
 
@@ -327,11 +327,11 @@ public:
 private:
     VkDriver& driver_;
 
-    /// fully compiled, complete shader programs
+    // fully compiled, complete shader programs
     std::vector<std::unique_ptr<ShaderProgramBundle>> programBundles_;
 
-    /// this is where individual shaders are cached until required to assemble
-    /// into a shader program
+    // this is where individual shaders are cached until required to assemble
+    // into a shader program
     ShaderCacheMap shaderCache_;
 };
 

@@ -52,12 +52,12 @@ class WaveGenerator;
 class Engine : public YaveApi
 {
 public:
-    static Engine* create(Window* win);
+    static Engine* create(vkapi::VkDriver* driver);
     static void destroy(Engine* engine);
 
     Scene* createScene();
 
-    vkapi::SwapchainHandle createSwapchain(Window* win);
+    vkapi::SwapchainHandle createSwapchain(const vk::SurfaceKHR& surface, uint32_t width, uint32_t height);
 
     Renderer* createRenderer();
 

@@ -14,11 +14,11 @@ target_link_libraries(
     YaveApp
     PUBLIC
     YAVE
+    YaveUtility
     mathfu::mathfu
     imgui::imgui
     stb::stb
     KTX::ktx
-    YaveUtility
 )
 
 target_compile_definitions(

@@ -33,8 +33,6 @@
 #include "vertex_buffer.h"
 #include "yave/texture_sampler.h"
 
-#include <yave_app/window.h>
-
 #include <random>
 
 namespace yave
@@ -42,17 +40,31 @@ namespace yave
 
 IWaveGenerator::IWaveGenerator(IEngine& engine, IScene& scene)
     : engine_(engine),
-      initialSpecCompute_(std::make_unique<Compute>(engine)),
-      specCompute_(std::make_unique<Compute>(engine)),
-      butterflyCompute_(std::make_unique<Compute>(engine)),
-      fftHorizCompute_(std::make_unique<Compute>(engine)),
-      fftVertCompute_(std::make_unique<Compute>(engine)),
-      displaceCompute_(std::make_unique<Compute>(engine)),
-      genMapCompute_(std::make_unique<Compute>(engine)),
       log2N_(std::log(Resolution) / log(2)),
       pingpong_(0),
       updateSpectrum_(true)
 {
+    auto initSpecShaderCode = vkapi::ShaderProgramBundle::loadShader("initial_spectrum.comp");
+    initialSpecCompute_ = std::make_unique<Compute>(engine, initSpecShaderCode);
+
+    auto specShaderCode = vkapi::ShaderProgramBundle::loadShader("fft_spectrum.comp");
+    specCompute_ = std::make_unique<Compute>(engine, specShaderCode);
+
+    auto butterflyShaderCode = vkapi::ShaderProgramBundle::loadShader("fft_butterfly.comp");
+    butterflyCompute_ = std::make_unique<Compute>(engine, butterflyShaderCode);
+
+    auto fftHorizShaderCode = vkapi::ShaderProgramBundle::loadShader("fft_horiz.comp");
+    fftHorizCompute_ = std::make_unique<Compute>(engine, fftHorizShaderCode);
+
+    auto fftVertShaderCode = vkapi::ShaderProgramBundle::loadShader("fft_vert.comp");
+    fftVertCompute_ = std::make_unique<Compute>(engine, fftVertShaderCode);
+
+    auto displaceShaderCode = vkapi::ShaderProgramBundle::loadShader("fft_displacement.comp");
+    displaceCompute_ = std::make_unique<Compute>(engine, displaceShaderCode);
+
+    auto genmapShaderCode = vkapi::ShaderProgramBundle::loadShader("generate_maps.comp");
+    genMapCompute_ = std::make_unique<Compute>(engine, genmapShaderCode);
+
     auto reverse = [this](int idx) -> uint32_t {
         uint32_t res = 0;
         for (size_t i = 0; i < log2N_; ++i)
@@ -236,7 +248,8 @@ void IWaveGenerator::buildMaterial(IScene& scene)
 
     // tesselation evaluation shader
     mathfu::vec2 viewportDim {
-        (float)engine_.getCurrentWindow()->width(), (float)engine_.getCurrentWindow()->height()};
+        (float)engine_.getCurrentSwapchain()->extentsWidth(),
+        (float)engine_.getCurrentSwapchain()->extentsHeight()};
     material_->addUboParam(
         "tessEdgeSize",
         backend::BufferElementType::Float,
@@ -359,7 +372,7 @@ void IWaveGenerator::updateCompute(
             initialSpecCompute_->addUboParam(
                 "A", backend::BufferElementType::Float, (void*)&options.A);
 
-            auto* bundle = initialSpecCompute_->build(engine_, "initial_spectrum.comp");
+            auto* bundle = initialSpecCompute_->build(engine_);
             driver.dispatchCompute(
                 cmds.getCmdBuffer().cmdBuffer, bundle, Resolution / 16, Resolution / 16, 1);
         });
@@ -388,7 +401,7 @@ void IWaveGenerator::updateCompute(
             butterflyCompute_->addUboParam(
                 "log2N", backend::BufferElementType::Float, (void*)&log2N);
 
-            auto* bundle = butterflyCompute_->build(engine_, "fft_butterfly.comp");
+            auto* bundle = butterflyCompute_->build(engine_);
             driver.dispatchCompute(
                 cmds.getCmdBuffer().cmdBuffer, bundle, log2N_, Resolution / 16, 1);
         });
@@ -428,7 +441,7 @@ void IWaveGenerator::updateCompute(
         specCompute_->addUboParam("offset_dy", backend::BufferElementType::Int, (void*)&dyOffset);
         specCompute_->addUboParam("offset_dz", backend::BufferElementType::Int, (void*)&dzOffset);
 
-        auto* bundle = specCompute_->build(engine_, "fft_spectrum.comp");
+        auto* bundle = specCompute_->build(engine_);
 
         vkapi::VkContext::writeReadComputeBarrier(cmdBuffer);
         driver.dispatchCompute(
@@ -463,7 +476,7 @@ void IWaveGenerator::updateCompute(
         fftHorizCompute_->addPushConstantParam("pingpong", backend::BufferElementType::Int);
         fftHorizCompute_->addPushConstantParam("offset", backend::BufferElementType::Uint);
 
-        auto* horizBundle = fftHorizCompute_->build(engine_, "fft_horiz.comp");
+        auto* horizBundle = fftHorizCompute_->build(engine_);
 
         // setup vertical fft
         fftVertCompute_->addStorageImage(
@@ -483,7 +496,7 @@ void IWaveGenerator::updateCompute(
         fftVertCompute_->addPushConstantParam("pingpong", backend::BufferElementType::Int);
         fftVertCompute_->addPushConstantParam("offset", backend::BufferElementType::Uint);
 
-        auto* vertBundle = fftVertCompute_->build(engine_, "fft_vert.comp");
+        auto* vertBundle = fftVertCompute_->build(engine_);
         vkapi::VkContext::writeReadComputeBarrier(cmdBuffer);
 
         // dispatch horizontal fft
@@ -596,7 +609,7 @@ void IWaveGenerator::updateCompute(
         displaceCompute_->addUboParam(
             "offset_dz", backend::BufferElementType::Int, (void*)&dzOffset);
 
-        auto* bundle = displaceCompute_->build(engine_, "fft_displacement.comp");
+        auto* bundle = displaceCompute_->build(engine_);
 
         vkapi::VkContext::writeReadComputeBarrier(cmdBuffer);
         driver.dispatchCompute(
@@ -639,7 +652,7 @@ void IWaveGenerator::updateCompute(
         genMapCompute_->addUboParam(
             "gridLength", backend::BufferElementType::Float, (void*)&options.gridLength);
 
-        auto* bundle = genMapCompute_->build(engine_, "generate_maps.comp");
+        auto* bundle = genMapCompute_->build(engine_);
 
         vkapi::VkContext::writeReadComputeBarrier(cmdBuffer);
         driver.dispatchCompute(

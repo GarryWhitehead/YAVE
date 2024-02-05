@@ -88,15 +88,33 @@ void ShaderProgram::parseMaterialShaderBlock(const std::vector<std::string>& lin
     }
 }
 
-void ShaderProgram::parseShader(const std::vector<std::string>& lines)
+void ShaderProgram::parseShader(const util::CString& shaderCode)
 {
     // Its safe to assume that any descriptors will be before the
     // main code block.
+    auto readLine = [&shaderCode](size_t& idx, const size_t charCount) -> std::string {
+        std::string line;
+        while(idx < charCount)
+        {
+            if (shaderCode[idx] == '\n')
+            {
+                ++idx;
+                break;
+            }
+            line += shaderCode[idx++];
+        }
+        return line;
+    };
+
     size_t idx = 0;
-    size_t lineCount = lines.size();
-    for (; idx < lineCount; ++idx)
+    size_t charCount = shaderCode.size();
+    ASSERT_FATAL(charCount > 0, "Shader input code block has no code!");
+
+    while(idx < charCount)
     {
-        const std::string& line = lines[idx];
+        // Get the next line from the shader code block (gather all characters until the newline)
+        std::string line = readLine(idx, charCount);
+
         if (line.find("#include \"") != std::string::npos)
         {
             // skip adding this to the code block. Include statements will
@@ -106,16 +124,17 @@ void ShaderProgram::parseShader(const std::vector<std::string>& lines)
         }
         if (line.find("void main()") != std::string::npos)
         {
+            mainStageBlock_ += "\n" + line;
             break;
         }
-        attributeDescriptorBlock_ += lines[idx] + "\n";
+        attributeDescriptorBlock_ += line;
     }
 
-    ASSERT_FATAL(idx < lines.size(), "Shader code block contains no main() source.");
+    ASSERT_FATAL(idx != charCount, "Shader code block contains no main() source.");
 
-    for (; idx < lineCount; ++idx)
+    while(idx < charCount)
     {
-        mainStageBlock_ += lines[idx] + "\n";
+        mainStageBlock_ += readLine(idx, charCount);
     }
 }
 
@@ -176,62 +195,44 @@ void ShaderProgramBundle::parseMaterialShader(const std::filesystem::path& shade
     }
 }
 
-void ShaderProgramBundle::buildShader(const std::string& filename)
+util::CString ShaderProgramBundle::loadShader(const util::CString& filename)
 {
-    std::filesystem::path absolutePath = YAVE_SHADER_DIRECTORY "/" + filename;
+    std::filesystem::path absolutePath = YAVE_SHADER_DIRECTORY "/" + std::string(filename.c_str());
 
     std::fstream file(absolutePath, std::ios::in);
     if (!file.is_open())
     {
-        throw std::runtime_error("Error whilst loading shader: " + filename);
+        SPDLOG_ERROR("Error whilst loading shader: {}", filename.c_str());
+        return {};
     }
 
-    backend::ShaderStage shaderType;
     std::string shaderExt = absolutePath.extension().string();
-
-    // prefer the material shader filename as the hash key. If this isn't set,
-    // use the main shader filename.
-    shaderId_ = !shaderId_
-        ? util::murmurHash3((const uint32_t*)absolutePath.filename().c_str(), filename.size(), 0)
-        : shaderId_;
-
-    // determine the shader stage from the filename extension - need to
-    // add support for compute and tesselation shaders
-    if (shaderExt == ".frag")
+    if (shaderExt != ".frag" && shaderExt != ".vert" && shaderExt != ".comp" && shaderExt != ".tesse" && shaderExt != ".tessc")
     {
-        shaderType = backend::ShaderStage::Fragment;
-    }
-    else if (shaderExt == ".vert")
-    {
-        shaderType = backend::ShaderStage::Vertex;
-    }
-    else if (shaderExt == ".comp")
-    {
-        shaderType = backend::ShaderStage::Compute;
-    }
-    else if (shaderExt == ".tesse")
-    {
-        shaderType = backend::ShaderStage::TesselationEval;
-    }
-    else if (shaderExt == ".tessc")
-    {
-        shaderType = backend::ShaderStage::TesselationCon;
-    }
-    else
-    {
-        throw std::runtime_error("Shader extension " + shaderExt + "is not supported.");
+        SPDLOG_ERROR("Unsupported shader extension type: {} for file path: {}", shaderExt, absolutePath.c_str());
+        return {};
     }
 
     std::string line;
-    std::vector<std::string> shaderLines;
-    shaderLines.reserve(200);
+    std::string finalCode;
     while (std::getline(file, line))
     {
-        shaderLines.push_back(line);
+        finalCode += line + "\n";
     }
 
+    return finalCode.c_str();
+}
+
+void ShaderProgramBundle::buildShader(const util::CString& shaderCode, backend::ShaderStage shaderType)
+{
+    // prefer the material shader filename as the hash key. If this isn't set,
+    // use the main shader filename.
+    shaderId_ = !shaderId_
+        ? util::murmurHash3((const uint32_t*)shaderCode.c_str(), shaderCode.size(), 0)
+        : shaderId_;
+
     ShaderProgram* prog = createProgram(shaderType);
-    prog->parseShader(shaderLines);
+    prog->parseShader(shaderCode);
 }
 
 ShaderProgram* ShaderProgramBundle::createProgram(const backend::ShaderStage& type)
@@ -243,9 +244,8 @@ ShaderProgram* ShaderProgramBundle::createProgram(const backend::ShaderStage& ty
     }
 
     auto program = std::make_unique<ShaderProgram>();
-    ShaderProgram* output = program.get();
     programs_[idx] = std::move(program);
-    return output;
+    return programs_.back().get();
 }
 
 std::vector<vk::PipelineShaderStageCreateInfo> ShaderProgramBundle::getShaderStagesCreateInfo()
@@ -444,10 +444,9 @@ Shader* ProgramManager::compileShader(
 ShaderProgramBundle* ProgramManager::createProgramBundle()
 {
     auto bundle = std::make_unique<ShaderProgramBundle>();
-    ShaderProgramBundle* output = bundle.get();
-    ASSERT_LOG(output);
+    ASSERT_LOG(bundle);
     programBundles_.emplace_back(std::move(bundle));
-    return output;
+    return programBundles_.back().get();
 }
 
 Shader* ProgramManager::findShaderVariantOrCreate(

@@ -41,16 +41,21 @@ namespace yave
 
 PostProcess::PostProcess(IEngine& engine)
     : engine_(engine),
-      averageLumLut_(nullptr),
-      lumCompute_(std::make_unique<Compute>(engine_)),
-      avgCompute_(std::make_unique<Compute>(engine_))
+      averageLumLut_(nullptr)
 {
+    auto lumShaderCode = vkapi::ShaderProgramBundle::loadShader("luminance.comp");
+    ASSERT_FATAL(!lumShaderCode.empty(), "Error loading luminance compute shader.");
+    lumCompute_ = std::make_unique<Compute>(engine_, lumShaderCode);
+
+    auto avgLumShaderCode = vkapi::ShaderProgramBundle::loadShader("average_lum.comp");
+    ASSERT_FATAL(!avgLumShaderCode.empty(), "Error loading average luminance compute shader.");
+    avgCompute_ = std::make_unique<Compute>(engine_, avgLumShaderCode);
 }
 PostProcess::~PostProcess() = default;
 
 void PostProcess::init(IScene& scene)
 {
-    // at the moment if we have already initialised don't do it again -
+    // at the moment, if we have already initialised don't do it again -
     // though this is dependent on the current scene, so we may which to
     // allow re-initialisation or change where materials are built
     if (!materials_.empty())
@@ -172,7 +177,7 @@ rg::RenderGraphHandle PostProcess::bloom(
             backend::BufferElementType::Float,
             (void*)&options.invLuminanceRange);
 
-        auto* bundle = lumCompute_->build(engine_, "luminance.comp");
+        auto* bundle = lumCompute_->build(engine_);
         driver.dispatchCompute(cmds.getCmdBuffer().cmdBuffer, bundle, totalWorkCount / 256, 1, 1);
 
         cmds.flush();
@@ -211,7 +216,7 @@ rg::RenderGraphHandle PostProcess::bloom(
         avgCompute_->addUboParam("numPixels", backend::BufferElementType::Float, (void*)&numPixels);
         avgCompute_->addUboParam("timeDelta", backend::BufferElementType::Float, (void*)&dt);
 
-        auto* bundle = avgCompute_->build(engine_, "average_lum.comp");
+        auto* bundle = avgCompute_->build(engine_);
         driver.dispatchCompute(
             cmds.getCmdBuffer().cmdBuffer, bundle, static_cast<int>(numPixels) / 256, 1, 1);
 

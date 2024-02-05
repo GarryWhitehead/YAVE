@@ -33,6 +33,7 @@
 
 namespace yave
 {
+class IEngine;
 
 class BufferBase
 {
@@ -89,6 +90,14 @@ public:
 
     virtual BackendBufferParams getBufferParams(vkapi::VkDriver& driver) noexcept { return {}; }
 
+    virtual void createGpuBuffer(vkapi::VkDriver& driver, size_t size) {};
+
+    virtual void createGpuBuffer(vkapi::VkDriver& driver) {};
+
+    virtual void mapGpuBuffer(vkapi::VkDriver& driver, void* data, size_t size) noexcept {}
+
+    virtual void mapGpuBuffer(vkapi::VkDriver& driver, void* data) noexcept {}
+
 protected:
     std::vector<Info> elements_;
 
@@ -105,13 +114,15 @@ public:
 
     std::string createShaderStr() noexcept override;
 
-    void createGpuBuffer(vkapi::VkDriver& driver, size_t size) noexcept;
+    void createGpuBuffer(vkapi::VkDriver& driver, size_t size) noexcept override;
 
-    void createGpuBuffer(vkapi::VkDriver& driver) noexcept;
+    void createGpuBuffer(vkapi::VkDriver& driver) noexcept override;
 
-    void mapGpuBuffer(void* data) noexcept;
+    void mapGpuBuffer(vkapi::VkDriver& driver, void* data) noexcept override;
 
-    void mapGpuBuffer(void* data, size_t size) noexcept;
+    void mapGpuBuffer(vkapi::VkDriver& driver, void* data, size_t size) noexcept override;
+
+    void downloadToHost(IEngine& engine, void* hostBuffer, size_t dataSize);
 
     BackendBufferParams getBufferParams(vkapi::VkDriver& driver) noexcept override;
 
@@ -147,11 +158,13 @@ public:
 
     std::string createShaderStr() noexcept override;
 
-    void createGpuBuffer(vkapi::VkDriver& driver, uint32_t size) noexcept;
+    void createGpuBuffer(vkapi::VkDriver& driver, size_t size) noexcept override;
 
-    void createGpuBuffer(vkapi::VkDriver& driver) noexcept;
+    void createGpuBuffer(vkapi::VkDriver& driver) noexcept override;
 
-    void copyFrom(const StorageBuffer& other) noexcept;
+    void mapGpuBuffer(vkapi::VkDriver& driver, void* data, size_t size) noexcept override;
+
+    void mapGpuBuffer(vkapi::VkDriver& driver, void* data) noexcept override;
 
     BackendBufferParams getBufferParams(vkapi::VkDriver& driver) noexcept override;
 

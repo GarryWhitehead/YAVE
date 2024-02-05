@@ -15,15 +15,15 @@ namespace yave
 {
 // ==================== client api ========================
 
-Engine* Engine::create(Window* win) { return IEngine::create(win); }
+Engine* Engine::create(vkapi::VkDriver* driver) { return IEngine::create(driver); }
 
 void Engine::destroy(Engine* engine) { IEngine::destroy(static_cast<IEngine*>(engine)); }
 
 Scene* Engine::createScene() { return static_cast<IEngine*>(this)->createScene(); }
 
-vkapi::SwapchainHandle Engine::createSwapchain(Window* win)
+vkapi::SwapchainHandle Engine::createSwapchain(const vk::SurfaceKHR& surface, uint32_t width, uint32_t height)
 {
-    return static_cast<IEngine*>(this)->createSwapchain(win);
+    return static_cast<IEngine*>(this)->createSwapchain(surface, width, height);
 }
 
 Renderer* Engine::createRenderer() { return static_cast<IEngine*>(this)->createRenderer(); }

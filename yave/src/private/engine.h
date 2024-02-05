@@ -48,7 +48,6 @@ namespace yave
 {
 class Object;
 class IScene;
-class Window;
 class IRenderable;
 class IRenderableManager;
 class PostProcess;
@@ -67,12 +66,13 @@ public:
     IEngine();
     ~IEngine();
 
-    static IEngine* create(Window* window);
+    // Note: the engine takes ownership of the Vulkan driver
+    static IEngine* create(vkapi::VkDriver* driver);
     static void destroy(IEngine* engine);
 
     void shutdown();
 
-    SwapchainHandle createSwapchain(Window* win);
+    SwapchainHandle createSwapchain(const vk::SurfaceKHR& surface, uint32_t width, uint32_t height);
     IRenderer* createRenderer();
     IScene* createScene();
 
@@ -143,10 +143,7 @@ public:
     IMappedTexture* getDummyCubeMap() noexcept { return dummyCubeMap_; }
     IMappedTexture* getDummyTexture() noexcept { return dummyTexture_; }
 
-    Window* getCurrentWindow() noexcept { return currentWindow_; }
-
 private:
-    Window* currentWindow_;
 
     std::unique_ptr<IRenderableManager> rendManager_;
     std::unique_ptr<ITransformManager> transformManager_;
