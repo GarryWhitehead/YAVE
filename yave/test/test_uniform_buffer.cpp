@@ -1,5 +1,4 @@
 #include <gtest/gtest.h>
-
 #include <uniform_buffer.h>
 
 TEST(GpuBufferTests, UniformBuffer)
@@ -28,7 +27,7 @@ TEST(GpuBufferTests, UniformBuffer)
 
     std::string shaderStr = ubo.createShaderStr();
 
-    std::string expected { "layout (set = 0, binding = 0) uniform TestUbo\n"
+    std::string expected {"layout (set = 0, binding = 0) uniform TestUbo\n"
                           "{\n"
                           "\tfloat param1;\n"
                           "\tint param2;\n"
@@ -43,7 +42,8 @@ TEST(GpuBufferTests, StorageBuffer)
     const uint32_t bind = 0;
     const std::string name = "TestSSbo";
     const std::string aliasName = "test_ssbo";
-    yave::StorageBuffer ssbo {yave::StorageBuffer::AccessType::ReadOnly, set, bind, name, aliasName};
+    yave::StorageBuffer ssbo {
+        yave::StorageBuffer::AccessType::ReadOnly, set, bind, name, aliasName};
 
     ASSERT_TRUE(ssbo.empty());
 

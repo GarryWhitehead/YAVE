@@ -39,10 +39,7 @@ namespace yave
 {
 
 IWaveGenerator::IWaveGenerator(IEngine& engine, IScene& scene)
-    : engine_(engine),
-      log2N_(std::log(Resolution) / log(2)),
-      pingpong_(0),
-      updateSpectrum_(true)
+    : engine_(engine), log2N_(std::log(Resolution) / log(2)), pingpong_(0), updateSpectrum_(true)
 {
     auto initSpecShaderCode = vkapi::ShaderProgramBundle::loadShader("initial_spectrum.comp");
     initialSpecCompute_ = std::make_unique<Compute>(engine, initSpecShaderCode);

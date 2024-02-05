@@ -94,7 +94,7 @@ void ShaderProgram::parseShader(const util::CString& shaderCode)
     // main code block.
     auto readLine = [&shaderCode](size_t& idx, const size_t charCount) -> std::string {
         std::string line;
-        while(idx < charCount)
+        while (idx < charCount)
         {
             if (shaderCode[idx] == '\n')
             {
@@ -110,7 +110,7 @@ void ShaderProgram::parseShader(const util::CString& shaderCode)
     size_t charCount = shaderCode.size();
     ASSERT_FATAL(charCount > 0, "Shader input code block has no code!");
 
-    while(idx < charCount)
+    while (idx < charCount)
     {
         // Get the next line from the shader code block (gather all characters until the newline)
         std::string line = readLine(idx, charCount);
@@ -132,7 +132,7 @@ void ShaderProgram::parseShader(const util::CString& shaderCode)
 
     ASSERT_FATAL(idx != charCount, "Shader code block contains no main() source.");
 
-    while(idx < charCount)
+    while (idx < charCount)
     {
         mainStageBlock_ += readLine(idx, charCount);
     }
@@ -207,9 +207,13 @@ util::CString ShaderProgramBundle::loadShader(const util::CString& filename)
     }
 
     std::string shaderExt = absolutePath.extension().string();
-    if (shaderExt != ".frag" && shaderExt != ".vert" && shaderExt != ".comp" && shaderExt != ".tesse" && shaderExt != ".tessc")
+    if (shaderExt != ".frag" && shaderExt != ".vert" && shaderExt != ".comp" &&
+        shaderExt != ".tesse" && shaderExt != ".tessc")
     {
-        SPDLOG_ERROR("Unsupported shader extension type: {} for file path: {}", shaderExt, absolutePath.c_str());
+        SPDLOG_ERROR(
+            "Unsupported shader extension type: {} for file path: {}",
+            shaderExt,
+            absolutePath.c_str());
         return {};
     }
 
@@ -223,7 +227,8 @@ util::CString ShaderProgramBundle::loadShader(const util::CString& filename)
     return finalCode.c_str();
 }
 
-void ShaderProgramBundle::buildShader(const util::CString& shaderCode, backend::ShaderStage shaderType)
+void ShaderProgramBundle::buildShader(
+    const util::CString& shaderCode, backend::ShaderStage shaderType)
 {
     // prefer the material shader filename as the hash key. If this isn't set,
     // use the main shader filename.

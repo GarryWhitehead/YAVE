@@ -123,8 +123,13 @@ void ILightManager::prepare(IScene* scene)
         programBundle_ = manager.createProgramBundle();
         auto vertShaderCode = vkapi::ShaderProgramBundle::loadShader("lighting.vert");
         auto fragShaderCode = vkapi::ShaderProgramBundle::loadShader("lighting.frag");
-        ASSERT_FATAL(!vertShaderCode.empty() && !fragShaderCode.empty(), "Error loading lighting shaders.");
-        programBundle_->buildShaders(vertShaderCode, backend::ShaderStage::Vertex, fragShaderCode, backend::ShaderStage::Fragment);
+        ASSERT_FATAL(
+            !vertShaderCode.empty() && !fragShaderCode.empty(), "Error loading lighting shaders.");
+        programBundle_->buildShaders(
+            vertShaderCode,
+            backend::ShaderStage::Vertex,
+            fragShaderCode,
+            backend::ShaderStage::Fragment);
 
         // The render primitive - simple version which only states the vertex
         // count for the full-screen quad. The vertex count is three as we

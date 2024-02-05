@@ -57,7 +57,8 @@ public:
 
     Scene* createScene();
 
-    vkapi::SwapchainHandle createSwapchain(const vk::SurfaceKHR& surface, uint32_t width, uint32_t height);
+    vkapi::SwapchainHandle
+    createSwapchain(const vk::SurfaceKHR& surface, uint32_t width, uint32_t height);
 
     Renderer* createRenderer();
 

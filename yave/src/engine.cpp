@@ -21,7 +21,8 @@ void Engine::destroy(Engine* engine) { IEngine::destroy(static_cast<IEngine*>(en
 
 Scene* Engine::createScene() { return static_cast<IEngine*>(this)->createScene(); }
 
-vkapi::SwapchainHandle Engine::createSwapchain(const vk::SurfaceKHR& surface, uint32_t width, uint32_t height)
+vkapi::SwapchainHandle
+Engine::createSwapchain(const vk::SurfaceKHR& surface, uint32_t width, uint32_t height)
 {
     return static_cast<IEngine*>(this)->createSwapchain(surface, width, height);
 }

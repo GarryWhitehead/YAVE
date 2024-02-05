@@ -54,7 +54,7 @@ public:
     void addAttributeBlock(const std::string& block);
 
     std::string build();
-    
+
     void addShader(Shader* shader) noexcept { shader_ = shader; }
     Shader* getShader() noexcept { return shader_; }
 
@@ -186,10 +186,16 @@ public:
 
     void buildShader(const util::CString& shaderCode, backend::ShaderStage shaderType);
 
-    void buildShaders(const util::CString& shaderCode, backend::ShaderStage shaderType) { buildShader(shaderCode, shaderType); }
+    void buildShaders(const util::CString& shaderCode, backend::ShaderStage shaderType)
+    {
+        buildShader(shaderCode, shaderType);
+    }
 
     template <typename... ShaderArgs>
-    void buildShaders(const util::CString& shaderCode, backend::ShaderStage shaderType, const ShaderArgs&... shaderArgs);
+    void buildShaders(
+        const util::CString& shaderCode,
+        backend::ShaderStage shaderType,
+        const ShaderArgs&... shaderArgs);
 
     void clear() noexcept;
 
@@ -260,7 +266,10 @@ public:
 };
 
 template <typename... ShaderArgs>
-void ShaderProgramBundle::buildShaders(const util::CString& shaderCode, backend::ShaderStage shaderType, const ShaderArgs&... shaderArgs)
+void ShaderProgramBundle::buildShaders(
+    const util::CString& shaderCode,
+    backend::ShaderStage shaderType,
+    const ShaderArgs&... shaderArgs)
 {
     buildShader(shaderCode, shaderType);
     buildShaders(shaderArgs...);

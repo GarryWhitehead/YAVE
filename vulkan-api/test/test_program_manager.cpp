@@ -1,12 +1,11 @@
-#include <vulkan-api/program_manager.h>
-
 #include <gtest/gtest.h>
+#include <vulkan-api/program_manager.h>
 
 TEST(ProgramManagerTests, ShaderParseTest)
 {
     std::string shaderCode = {R"(
-        #include "/shader/path"
         #include "/shader/another/path"
+        #include "/shader/path"
 
         void randomFunc()
         {
@@ -33,9 +32,8 @@ TEST(ProgramManagerTests, ShaderParseTest)
 
     std::string expectedOutput = {R"(#version 460
 
-       #include "/shader/path"
-
        #include "/shader/another/path"
+       #include "/shader/path"
 
 
         layout (set = 0, binding = 0) uniform_buffer Ubo

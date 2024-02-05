@@ -21,8 +21,8 @@
  */
 
 #include "uniform_buffer.h"
-#include "engine.h"
 
+#include "engine.h"
 #include "utility/assertion.h"
 
 #include <spdlog/spdlog.h>
@@ -333,7 +333,10 @@ void UniformBuffer::mapGpuBuffer(vkapi::VkDriver& driver, void* data, size_t siz
     buffer->mapToGpuBuffer(data, size);
 }
 
-void UniformBuffer::mapGpuBuffer(vkapi::VkDriver& driver, void* data) noexcept { mapGpuBuffer(driver, data, accumSize_); }
+void UniformBuffer::mapGpuBuffer(vkapi::VkDriver& driver, void* data) noexcept
+{
+    mapGpuBuffer(driver, data, accumSize_);
+}
 
 void UniformBuffer::downloadToHost(IEngine& engine, void* hostBuffer, size_t dataSize)
 {
@@ -424,7 +427,7 @@ void StorageBuffer::mapGpuBuffer(vkapi::VkDriver& driver, void* data, size_t siz
     vkapi::Buffer* buffer = vkHandle_.getResource();
     ASSERT_FATAL(
         buffer, "Buffer is nullptr - have you created the buffer before trying to map data?");
-    //buffer->mapAndCopyToGpu(driver, size, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, data);
+    // buffer->mapAndCopyToGpu(driver, size, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, data);
     buffer->mapToGpuBuffer(data, size);
 }
 

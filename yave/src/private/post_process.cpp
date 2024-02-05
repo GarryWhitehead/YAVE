@@ -39,9 +39,7 @@
 namespace yave
 {
 
-PostProcess::PostProcess(IEngine& engine)
-    : engine_(engine),
-      averageLumLut_(nullptr)
+PostProcess::PostProcess(IEngine& engine) : engine_(engine), averageLumLut_(nullptr)
 {
     auto lumShaderCode = vkapi::ShaderProgramBundle::loadShader("luminance.comp");
     ASSERT_FATAL(!lumShaderCode.empty(), "Error loading luminance compute shader.");

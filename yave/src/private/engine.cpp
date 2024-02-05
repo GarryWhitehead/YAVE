@@ -143,7 +143,8 @@ void IEngine::setCurrentSwapchain(const SwapchainHandle& handle) noexcept
 
 vkapi::Swapchain* IEngine::getCurrentSwapchain() noexcept { return currentSwapchain_; }
 
-SwapchainHandle IEngine::createSwapchain(const vk::SurfaceKHR& surface, uint32_t width, uint32_t height)
+SwapchainHandle
+IEngine::createSwapchain(const vk::SurfaceKHR& surface, uint32_t width, uint32_t height)
 {
     // create a swapchain for surface rendering based on the platform-specific
     // window surface

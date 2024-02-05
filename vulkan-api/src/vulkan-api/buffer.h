@@ -95,11 +95,7 @@ public:
         StagingPool::StageInfo* stage,
         VkBufferUsageFlags usage);
 
-    void mapAndCopyToGpu(
-        VkDriver& driver,
-        VkDeviceSize size,
-        VkBufferUsageFlags usage,
-        void* data);
+    void mapAndCopyToGpu(VkDriver& driver, VkDeviceSize size, VkBufferUsageFlags usage, void* data);
 
     vk::Buffer get();
 

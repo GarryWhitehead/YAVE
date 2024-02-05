@@ -144,7 +144,6 @@ public:
     IMappedTexture* getDummyTexture() noexcept { return dummyTexture_; }
 
 private:
-
     std::unique_ptr<IRenderableManager> rendManager_;
     std::unique_ptr<ITransformManager> transformManager_;
     std::unique_ptr<ILightManager> lightManager_;

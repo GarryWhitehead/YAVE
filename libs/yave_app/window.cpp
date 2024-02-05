@@ -21,13 +21,13 @@
  */
 
 #include "window.h"
+
 #include "app.h"
 #include "camera_view.h"
 
+#include <imgui.h>
 #include <utility/assertion.h>
 #include <yave/engine.h>
-
-#include <imgui.h>
 
 namespace yave
 {

@@ -117,6 +117,9 @@ void SceneUbo::updateDirLight(IEngine& engine, LightInstance* instance)
     ubo_->updateElement("sun", &sun);
 }
 
-void SceneUbo::upload(IEngine& engine) { ubo_->mapGpuBuffer(engine.driver(), ubo_->getBlockData()); }
+void SceneUbo::upload(IEngine& engine)
+{
+    ubo_->mapGpuBuffer(engine.driver(), ubo_->getBlockData());
+}
 
 } // namespace yave

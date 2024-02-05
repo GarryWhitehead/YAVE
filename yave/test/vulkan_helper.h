@@ -1,15 +1,12 @@
 #pragma once
 
+#include <gtest/gtest.h>
 #include <vulkan-api/driver.h>
 #include <yave_app/window.h>
 
-#include <gtest/gtest.h>
-
 class VulkanHelper : public testing::Test
 {
-
 public:
-
     void initDriver() noexcept
     {
         driver_ = new vkapi::VkDriver;
@@ -22,7 +19,5 @@ public:
     vkapi::VkDriver* getDriver() noexcept { return driver_; }
 
 private:
-
     vkapi::VkDriver* driver_ = nullptr;
-
 };
