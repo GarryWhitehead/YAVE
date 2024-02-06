@@ -163,7 +163,7 @@ public:
     VkContext& context() { return *context_; }
     VmaAllocator& vmaAlloc() { return vmaAlloc_; }
     [[nodiscard]] const vk::Semaphore& imageSignal() const { return imageReadySignal_; }
-    [[nodiscard]] const StagingPool& stagingPool() const { return *stagingPool_; }
+    [[nodiscard]] StagingPool& stagingPool() { return *stagingPool_; }
     ProgramManager& progManager() { return *programManager_; }
     PipelineCache& pipelineCache() { return *pipelineCache_; }
     SamplerCache& getSamplerCache() { return *samplerCache_; }
@@ -173,16 +173,16 @@ public:
     using IndexBufferMap = std::vector<IndexBuffer*>;
 
 private:
-    /// the current device context
+    // current device context
     std::unique_ptr<VkContext> context_;
 
-    /// The current present KHR frame image index
+    // current present KHR frame image index
     uint32_t imageIndex_;
 
-    /// external mem allocator
+    // external mem allocator
     VmaAllocator vmaAlloc_;
 
-    /// staging pool used for managing CPU stages
+    // staging pool used for managing CPU stages
     std::unique_ptr<StagingPool> stagingPool_;
 
     std::unique_ptr<ProgramManager> programManager_;
@@ -203,11 +203,11 @@ private:
 
     GarbageCollector gc;
 
-    /// used for ensuring that the image has completed
+    // used for ensuring that the image has completed
     vk::Semaphore imageReadySignal_;
 
-    /// The frame number as designated by the number of times
-    /// a presentation queue flush has been carried out.
+    // frame number as designated by the number of times
+    // a presentation queue flush has been carried out.
     uint64_t currentFrame_;
 };
 

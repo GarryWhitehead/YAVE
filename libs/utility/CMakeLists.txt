@@ -7,27 +7,28 @@ add_library(YaveUtility STATIC)
 target_include_directories(
     YaveUtility
     PUBLIC
-    ${YAVE_UTILITY_ROOT_PATH}
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
 target_sources(
     YaveUtility
     PRIVATE
-    cstring.cpp
-    assertion.cpp
+    src/utility/cstring.cpp
+    src/utility/assertion.cpp
 
-    bitset_enum.h
-    compiler.h
-    cstring.h
-    logger.h
-    colour.h
-    murmurhash.h
-    enum_cast.h
-    maths.h
-    timer.h
-    handle.h
-    assertion.h
-    aligned_alloc.h
+    PUBLIC
+    src/utility/bitset_enum.h
+    src/utility/compiler.h
+    src/utility/cstring.h
+    src/utility/logger.h
+    src/utility/colour.h
+    src/utility/murmurhash.h
+    src/utility/enum_cast.h
+    src/utility/maths.h
+    src/utility/timer.h
+    src/utility/handle.h
+    src/utility/assertion.h
+    src/utility/aligned_alloc.h
 )
 
 # add common compiler flags
@@ -38,3 +39,22 @@ yave_source_group(
     TARGET YaveUtility
     ROOT_DIR ${YAVE_UTILITY_ROOT_PATH}
 )
+
+if (BUILD_TESTS)
+
+    set (test_srcs
+        test/main_test.cpp
+        test/cstring_test.cpp
+    )
+
+    add_executable(UtilityTest ${test_srcs})
+    target_link_libraries(UtilityTest PRIVATE GTest::GTest YaveUtility)
+    set_target_properties(UtilityTest PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${YAVE_TEST_DIRECTORY})
+
+    add_test(
+            NAME UtilityTest
+            COMMAND UtilityTest
+            WORKING_DIRECTORY ${YAVE_TEST_DIRECTORY}
+    )
+
+endif()

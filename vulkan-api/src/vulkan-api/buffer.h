@@ -35,7 +35,7 @@ class VkContext;
 class VkDriver;
 
 /**
- * @brief A simplistic staging pool for CPU-only stages. Used when copying to
+ * @brief A simplistic staging pool for CPU-only stages. Used when copying to and from
  * GPU only mem
  */
 class StagingPool
@@ -79,15 +79,15 @@ public:
     Buffer();
     virtual ~Buffer() = default;
 
-    void prepare(VmaAllocator& vmaAlloc, vk::DeviceSize size, VkBufferUsageFlags usage);
+    void alloc(VmaAllocator& vmaAlloc, vk::DeviceSize size, VkBufferUsageFlags usage) noexcept;
 
-    void destroy(VmaAllocator& vmaAlloc);
+    void destroy(VmaAllocator& vmaAlloc) noexcept;
 
-    static void mapToStage(void* data, size_t size, StagingPool::StageInfo* stage);
+    static void mapToStage(void* data, size_t size, StagingPool::StageInfo* stage) noexcept;
 
-    void mapToGpuBuffer(void* data, size_t dataSize) const;
+    void mapToGpuBuffer(void* data, size_t dataSize) const noexcept;
 
-    void createBuffer(VmaAllocator& vmaAlloc, VkBufferUsageFlags usage, VkDeviceSize size);
+    void downloadToHost(VkDriver& driver, void* hostBuffer, size_t dataSize) const noexcept;
 
     void copyStagedToGpu(
         VkDriver& driver,
@@ -95,12 +95,7 @@ public:
         StagingPool::StageInfo* stage,
         VkBufferUsageFlags usage);
 
-    void mapAndCopyToGpu(
-        VkDriver& driver,
-        StagingPool& pool,
-        VkDeviceSize size,
-        VkBufferUsageFlags usage,
-        void* data);
+    void mapAndCopyToGpu(VkDriver& driver, VkDeviceSize size, VkBufferUsageFlags usage, void* data);
 
     vk::Buffer get();
 

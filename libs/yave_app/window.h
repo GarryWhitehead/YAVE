@@ -54,7 +54,7 @@ public:
 
     void updateCameraForWindow();
 
-    std::pair<const char**, uint32_t> getInstanceExt() const noexcept;
+    static std::pair<const char**, uint32_t> getInstanceExt() noexcept;
 
     bool createSurfaceVk(const vk::Instance& instance);
 

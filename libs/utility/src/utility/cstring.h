@@ -50,6 +50,9 @@ public:
     bool operator==(const CString& rhs) const noexcept;
     bool operator!=(const CString& rhs) const noexcept;
 
+    char& operator[](size_t idx) noexcept;
+    char& operator[](size_t idx) const noexcept;
+
     ~CString();
 
     /**

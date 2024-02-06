@@ -154,7 +154,7 @@ void VkDriver::mapVertexBuffer(const VertexBufferHandle& handle, size_t count, v
         addVertexBuffer(count, data);
         return;
     }
-    buffer->mapAndCopyToGpu(*this, *stagingPool_, count, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, data);
+    buffer->mapAndCopyToGpu(*this, count, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, data);
 }
 
 IndexBufferHandle VkDriver::addIndexBuffer(size_t size, void* data)
@@ -180,7 +180,7 @@ void VkDriver::mapIndexBuffer(const IndexBufferHandle& handle, size_t count, voi
         addIndexBuffer(count, data);
         return;
     }
-    buffer->mapAndCopyToGpu(*this, *stagingPool_, count, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, data);
+    buffer->mapAndCopyToGpu(*this, count, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, data);
 }
 
 VertexBuffer* VkDriver::getVertexBuffer(const VertexBufferHandle& vbHandle) noexcept

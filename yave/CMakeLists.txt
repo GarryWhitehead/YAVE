@@ -152,7 +152,6 @@ target_link_libraries(
     PUBLIC
     YaveModelParser
     YaveVulkanApi
-    YaveModelParser
     YaveUtility
 
     vectorial::vectorial
@@ -160,7 +159,6 @@ target_link_libraries(
     TBB::tbb
     spdlog::spdlog
     ${glfw3_LIBRARIES}
-    YaveApp
 )
 
 target_compile_definitions(
@@ -179,3 +177,25 @@ yave_source_group(
     TARGET YAVE
     ROOT_DIR "${YAVE_ROOT_DIRECTORY}/yave"
 )
+
+if (BUILD_TESTS)
+
+    set (test_srcs
+        test/main_test.cpp
+        test/vulkan_helper.h
+        test/vulkan_helper.cpp
+        test/test_uniform_buffer.cpp
+        test/test_compute.cpp
+    )
+
+    add_executable(YaveTest ${test_srcs})
+    target_link_libraries(YaveTest PRIVATE GTest::GTest YAVE YaveVulkanApi YaveApp)
+    set_target_properties(YaveTest PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${YAVE_TEST_DIRECTORY})
+
+    add_test(
+            NAME YaveTest
+            COMMAND YaveTest
+            WORKING_DIRECTORY ${YAVE_TEST_DIRECTORY}
+    )
+
+endif()

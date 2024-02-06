@@ -121,7 +121,15 @@ void ILightManager::prepare(IScene* scene)
     if (!programBundle_)
     {
         programBundle_ = manager.createProgramBundle();
-        programBundle_->buildShaders("lighting.vert", "lighting.frag");
+        auto vertShaderCode = vkapi::ShaderProgramBundle::loadShader("lighting.vert");
+        auto fragShaderCode = vkapi::ShaderProgramBundle::loadShader("lighting.frag");
+        ASSERT_FATAL(
+            !vertShaderCode.empty() && !fragShaderCode.empty(), "Error loading lighting shaders.");
+        programBundle_->buildShaders(
+            vertShaderCode,
+            backend::ShaderStage::Vertex,
+            fragShaderCode,
+            backend::ShaderStage::Fragment);
 
         // The render primitive - simple version which only states the vertex
         // count for the full-screen quad. The vertex count is three as we
@@ -344,7 +352,7 @@ void ILightManager::updateSsbo(std::vector<LightInstance*>& lights)
     auto& driver = engine_.driver();
     uint32_t lightCount = lights.size() + 1;
     size_t mappedSize = lightCount * sizeof(ILightManager::LightSsbo);
-    ssbo_->mapGpuBuffer(ssboBuffer_, mappedSize);
+    ssbo_->mapGpuBuffer(engine_.driver(), ssboBuffer_, mappedSize);
 }
 
 void ILightManager::setVariant(Variants variant) { variants_.setBit(variant); }

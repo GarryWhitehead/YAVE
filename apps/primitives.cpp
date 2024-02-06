@@ -204,7 +204,8 @@ int main()
     scene->setSkybox(skybox);
 
     // create the renderer used to draw to the backbuffer
-    auto handle = engine->createSwapchain(app.getWindow());
+    auto* win = app.getWindow();
+    auto handle = engine->createSwapchain(win->getSurface(), win->width(), win->height());
     engine->setCurrentSwapchain(handle);
     auto renderer = engine->createRenderer();
 

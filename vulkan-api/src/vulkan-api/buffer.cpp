@@ -23,6 +23,7 @@
 #include "buffer.h"
 
 #include "commands.h"
+#include "common.h"
 #include "context.h"
 #include "driver.h"
 #include "utility/assertion.h"
@@ -44,7 +45,7 @@ StagingPool::StageInfo* StagingPool::create(const VkDeviceSize size)
 
     VkBufferCreateInfo bufferInfo = {};
     bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+    bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
     bufferInfo.size = size;
 
     // cpu staging pool
@@ -139,14 +140,15 @@ void StagingPool::clear()
 
 Buffer::Buffer() = default;
 
-void Buffer::prepare(VmaAllocator& vmaAlloc, vk::DeviceSize buffSize, VkBufferUsageFlags usage)
+void Buffer::alloc(
+    VmaAllocator& vmaAlloc, vk::DeviceSize buffSize, VkBufferUsageFlags usage) noexcept
 {
     size_ = buffSize;
 
     VkBufferCreateInfo bufferInfo = {};
     bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
     bufferInfo.size = buffSize;
-    bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT | usage;
+    bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | usage;
 
     VmaAllocationCreateInfo allocCreateInfo = {};
     allocCreateInfo.usage = VMA_MEMORY_USAGE_AUTO;
@@ -157,36 +159,22 @@ void Buffer::prepare(VmaAllocator& vmaAlloc, vk::DeviceSize buffSize, VkBufferUs
         vmaCreateBuffer(vmaAlloc, &bufferInfo, &allocCreateInfo, &buffer_, &mem_, &allocInfo_));
 }
 
-void Buffer::createBuffer(VmaAllocator& vmaAlloc, VkBufferUsageFlags usage, VkDeviceSize size)
-{
-    // create GPU memory
-    VkBufferCreateInfo bufferInfo = {};
-    bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | usage;
-    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    bufferInfo.size = size;
-
-    VmaAllocationCreateInfo createInfo = {};
-    createInfo.usage = VMA_MEMORY_USAGE_AUTO;
-    VMA_CHECK_RESULT(
-        vmaCreateBuffer(vmaAlloc, &bufferInfo, &createInfo, &buffer_, &mem_, &allocInfo_));
-}
-
-void Buffer::mapToStage(void* data, size_t dataSize, StagingPool::StageInfo* stage)
+void Buffer::mapToStage(void* data, size_t dataSize, StagingPool::StageInfo* stage) noexcept
 {
     ASSERT_FATAL(data, "Data pointer is nullptr for buffer mapping.");
     memcpy(stage->allocInfo.pMappedData, data, dataSize);
 }
 
-void Buffer::mapToGpuBuffer(void* data, size_t dataSize) const
+void Buffer::mapToGpuBuffer(void* data, size_t dataSize) const noexcept
 {
     ASSERT_FATAL(data, "Data pointer is nullptr for buffer mapping.");
     memcpy(allocInfo_.pMappedData, data, dataSize);
 }
 
 void Buffer::mapAndCopyToGpu(
-    VkDriver& driver, StagingPool& pool, VkDeviceSize size, VkBufferUsageFlags usage, void* data)
+    VkDriver& driver, VkDeviceSize size, VkBufferUsageFlags usage, void* data)
 {
-    StagingPool::StageInfo* stage = pool.getStage(size);
+    StagingPool::StageInfo* stage = driver.stagingPool().getStage(size);
     mapToStage(data, size, stage);
     copyStagedToGpu(driver, size, stage, usage);
 }
@@ -198,24 +186,20 @@ void Buffer::copyStagedToGpu(
     auto& cmds = driver.getCommands();
     auto& cmd = cmds.getCmdBuffer();
 
-    VkBufferCopy copyRegion = {};
-    copyRegion.srcOffset = 0;
-    copyRegion.dstOffset = 0;
-    copyRegion.size = size;
-    vkCmdCopyBuffer(cmd.cmdBuffer, stage->buffer, buffer_, 1, &copyRegion);
+    vk::BufferCopy copyRegion {0, 0, size};
+    cmd.cmdBuffer.copyBuffer(stage->buffer, buffer_, 1, &copyRegion);
+
+    vk::BufferMemoryBarrier memBarrier {};
+    memBarrier.buffer = buffer_;
+    memBarrier.size = VK_WHOLE_SIZE;
 
     // ensure that the copy finishes before the next frames draw call
     if (usage & VK_BUFFER_USAGE_VERTEX_BUFFER_BIT || usage & VK_BUFFER_USAGE_INDEX_BUFFER_BIT)
     {
-        vk::BufferMemoryBarrier memBarrier {
-            vk::AccessFlagBits::eTransferWrite,
-            vk::AccessFlagBits::eTransferWrite | vk::AccessFlagBits::eVertexAttributeRead |
-                vk::AccessFlagBits::eIndexRead,
-            VK_QUEUE_FAMILY_IGNORED,
-            VK_QUEUE_FAMILY_IGNORED,
-            buffer_,
-            0,
-            VK_WHOLE_SIZE};
+        memBarrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
+        memBarrier.dstAccessMask = vk::AccessFlagBits::eTransferWrite |
+            vk::AccessFlagBits::eVertexAttributeRead | vk::AccessFlagBits::eIndexRead;
+
         cmd.cmdBuffer.pipelineBarrier(
             vk::PipelineStageFlagBits::eTransfer,
             vk::PipelineStageFlagBits::eTransfer | vk::PipelineStageFlagBits::eVertexInput,
@@ -229,18 +213,34 @@ void Buffer::copyStagedToGpu(
     }
     else if (usage & VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT)
     {
-        vk::BufferMemoryBarrier memBarrier {
-            vk::AccessFlagBits::eTransferWrite,
-            vk::AccessFlagBits::eTransferWrite | vk::AccessFlagBits::eUniformRead,
-            VK_QUEUE_FAMILY_IGNORED,
-            VK_QUEUE_FAMILY_IGNORED,
-            buffer_,
-            0,
-            VK_WHOLE_SIZE};
+        memBarrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
+        memBarrier.dstAccessMask =
+            vk::AccessFlagBits::eTransferWrite | vk::AccessFlagBits::eUniformRead;
+
         cmd.cmdBuffer.pipelineBarrier(
             vk::PipelineStageFlagBits::eTransfer,
             vk::PipelineStageFlagBits::eTransfer | vk::PipelineStageFlagBits::eVertexShader |
-                vk::PipelineStageFlagBits::eFragmentShader,
+                vk::PipelineStageFlagBits::eFragmentShader |
+                vk::PipelineStageFlagBits::eComputeShader,
+            vk::DependencyFlags(0),
+            0,
+            nullptr,
+            1,
+            &memBarrier,
+            0,
+            nullptr);
+    }
+    else if (usage & VK_BUFFER_USAGE_STORAGE_BUFFER_BIT)
+    {
+        memBarrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
+        memBarrier.dstAccessMask =
+            vk::AccessFlagBits::eTransferWrite | vk::AccessFlagBits::eShaderWrite;
+
+        cmd.cmdBuffer.pipelineBarrier(
+            vk::PipelineStageFlagBits::eTransfer,
+            vk::PipelineStageFlagBits::eTransfer | vk::PipelineStageFlagBits::eVertexShader |
+                vk::PipelineStageFlagBits::eFragmentShader |
+                vk::PipelineStageFlagBits::eComputeShader,
             vk::DependencyFlags(0),
             0,
             nullptr,
@@ -251,7 +251,30 @@ void Buffer::copyStagedToGpu(
     }
 }
 
-void Buffer::destroy(VmaAllocator& vmaAlloc) { vmaDestroyBuffer(vmaAlloc, buffer_, mem_); }
+void Buffer::downloadToHost(VkDriver& driver, void* hostBuffer, size_t dataSize) const noexcept
+{
+    ASSERT_FATAL(hostBuffer, "Host buffer point is NULL");
+    ASSERT_FATAL(dataSize > 0, "Data size to download must be greater than zero");
+
+    auto& cmds = driver.getCommands();
+    auto& cmd = cmds.getCmdBuffer();
+
+    VkContext::GlobalBarrier(
+        cmd.cmdBuffer,
+        vk::PipelineStageFlagBits::eComputeShader,
+        vk::PipelineStageFlagBits::eHost,
+        vk::AccessFlagBits::eShaderWrite,
+        vk::AccessFlagBits::eHostRead);
+    cmds.flush();
+
+    // TODO: Make thread blocking by this function optional.
+    VK_CHECK_RESULT(
+        driver.context().device().waitForFences(1, &cmd.fence->fence, VK_TRUE, UINT64_MAX));
+
+    memcpy(hostBuffer, allocInfo_.pMappedData, dataSize);
+}
+
+void Buffer::destroy(VmaAllocator& vmaAlloc) noexcept { vmaDestroyBuffer(vmaAlloc, buffer_, mem_); }
 
 vk::Buffer Buffer::get() { return vk::Buffer {buffer_}; }
 
@@ -275,7 +298,7 @@ void VertexBuffer::create(
     StagingPool::StageInfo* stage = pool.getStage(dataSize);
 
     mapToStage(data, dataSize, stage);
-    createBuffer(vmaAlloc, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, dataSize);
+    alloc(vmaAlloc, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, dataSize);
     copyStagedToGpu(driver, dataSize, stage, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
 }
 
@@ -295,7 +318,7 @@ void IndexBuffer::create(
     ASSERT_LOG(stage);
 
     mapToStage(data, dataSize, stage);
-    createBuffer(vmaAlloc, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, dataSize);
+    alloc(vmaAlloc, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, dataSize);
     copyStagedToGpu(driver, dataSize, stage, VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
 }
 

@@ -68,7 +68,7 @@ public:
     bool createInstance(const char** glfwExtension, uint32_t extCount);
 
     /**
-     * @brief Sets up all the vulkan devices and queues.
+     * @brief Sets up all the vulkan devices and queues
      */
     bool prepareDevice(vk::SurfaceKHR windowSurface);
 
@@ -85,7 +85,6 @@ public:
 
     static void ExecutionBarrier(
         vk::CommandBuffer& cmds, vk::PipelineStageFlags srcStage, vk::PipelineStageFlags dstStage);
-
 
     // All the getters
     [[nodiscard]] const vk::Instance& instance() const { return instance_; }

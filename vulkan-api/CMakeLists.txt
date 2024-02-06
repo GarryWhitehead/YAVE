@@ -132,3 +132,23 @@ if (WIN32)
         VK_LAYER_PATH=${vulkan-validationlayers_INCLUDE_DIR}/../bin\nVK_LOADER_LAYERS_ENABLE=*api_dump,*validation
     )
 endif()
+
+if (BUILD_TESTS)
+
+    set (test_srcs
+        test/test_main.cpp
+        test/vulkan_helper.h
+        test/test_program_manager.cpp
+    )
+
+    add_executable(VulkanApiTest ${test_srcs})
+    target_link_libraries(VulkanApiTest PRIVATE GTest::GTest YaveVulkanApi)
+    set_target_properties(VulkanApiTest PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${YAVE_TEST_DIRECTORY})
+
+    add_test(
+            NAME VulkanApiTest
+            COMMAND VulkanApiTest
+            WORKING_DIRECTORY ${YAVE_TEST_DIRECTORY}
+    )
+
+endif()

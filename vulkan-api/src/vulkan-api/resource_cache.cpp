@@ -67,7 +67,7 @@ BufferHandle ResourceCache::createUbo(const size_t size, VkBufferUsageFlags usag
 {
     auto buffer = new Buffer;
     BufferHandle handle {buffer};
-    buffer->prepare(driver_.vmaAlloc(), static_cast<VkDeviceSize>(size), usage);
+    buffer->alloc(driver_.vmaAlloc(), static_cast<VkDeviceSize>(size), usage);
     buffers_.insert(buffer);
     return handle;
 }
