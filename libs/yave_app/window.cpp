@@ -84,8 +84,17 @@ Window::Window(Application& app, const char* title, uint32_t width, uint32_t hei
     glfwSetScrollCallback(window_, scrollCallback);
     glfwSetCursorEnterCallback(window_, cursorEnterCallback);
 
+    // Create a new vulkan driver instance along with the window surface.
+    auto* driver = new vkapi::VkDriver;
+    const auto& [ext, count] = getInstanceExt();
+    driver->createInstance(ext, count);
+    createSurfaceVk(driver->context().instance());
+
+    // Create the abstract physical device object
+    driver->init(surface_);
+
     // create the engine (dependent on the glfw window for creating the device)
-    app_.engine_ = Engine::create(this);
+    app_.engine_ = Engine::create(driver);
 
     // create the camera view and main camera - we only have one for now
     cameraView_ = std::make_unique<CameraView>();
@@ -178,7 +187,7 @@ CameraView::Movement convertKeyCode(int code)
 
 void Window::poll() noexcept { glfwPollEvents(); }
 
-std::pair<const char**, uint32_t> Window::getInstanceExt() const noexcept
+std::pair<const char**, uint32_t> Window::getInstanceExt() noexcept
 {
     uint32_t count = 0;
     const char** glfwExtensions;

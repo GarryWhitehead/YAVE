@@ -287,15 +287,35 @@ void IMaterial::build(
     {
         std::string vertPath = mainShaderPath + ".vert";
         std::string fragPath = mainShaderPath + ".frag";
+        auto vertShaderCode = vkapi::ShaderProgramBundle::loadShader(vertPath.c_str());
+        auto fragShaderCode = vkapi::ShaderProgramBundle::loadShader(fragPath.c_str());
+        ASSERT_FATAL(
+            !vertShaderCode.empty() && !fragShaderCode.empty(),
+            "Error whilst loading material vert/frag shaders.");
+
         // create the material shaders to start.
         programBundle_->parseMaterialShader(matShader);
-        programBundle_->buildShaders(vertPath, fragPath);
+        programBundle_->buildShaders(
+            vertShaderCode,
+            backend::ShaderStage::Vertex,
+            fragShaderCode,
+            backend::ShaderStage::Fragment);
 
         if (withTesselationStages)
         {
             std::string tessePath = mainShaderPath + ".tesse";
             std::string tesscPath = mainShaderPath + ".tessc";
-            programBundle_->buildShaders(tessePath, tesscPath);
+            auto tesseShaderCode = vkapi::ShaderProgramBundle::loadShader(tessePath.c_str());
+            auto tesscShaderCode = vkapi::ShaderProgramBundle::loadShader(tesscPath.c_str());
+            ASSERT_FATAL(
+                !tesseShaderCode.empty() && !tesscShaderCode.empty(),
+                "Error whilst loading material tesselation eval/control shaders.");
+
+            programBundle_->buildShaders(
+                tesseShaderCode,
+                backend::ShaderStage::TesselationEval,
+                tesscShaderCode,
+                backend::ShaderStage::TesselationCon);
         }
     }
     programBundle_->clear();
@@ -448,7 +468,7 @@ void IMaterial::update(IEngine& engine) noexcept
         if (!ubos_[i]->empty())
         {
             ubos_[i]->createGpuBuffer(engine.driver());
-            ubos_[i]->mapGpuBuffer(ubos_[i]->getBlockData());
+            ubos_[i]->mapGpuBuffer(engine.driver(), ubos_[i]->getBlockData());
         }
     }
 }

@@ -219,8 +219,6 @@ bool VkContext::createInstance(const char** glfwExtension, uint32_t extCount)
     {
         return false;
     }
-
-    // layer extensions, if any
     std::vector<vk::LayerProperties> layerExt = vk::enumerateInstanceLayerProperties();
 
     auto findLayerExtension = [&](const char* name) -> bool {
@@ -254,7 +252,7 @@ bool VkContext::createInstance(const char** glfwExtension, uint32_t extCount)
     VK_CHECK_RESULT(vk::createInstance(&createInfo, nullptr, &instance_));
 
 #ifdef VULKAN_VALIDATION_DEBUG
-    // For sone reason, on windows the instance needs to be NULL to successfully
+    // For some reason, on windows the instance needs to be NULL to successfully
     // get the proc address, only Mac and Linux the VkInstance needs to be
     // passed.
 #ifdef WIN32
@@ -341,11 +339,7 @@ bool VkContext::prepareDevice(vk::SurfaceKHR windowSurface)
     // graphics queue
     for (uint32_t c = 0; c < queues.size(); ++c)
     {
-        if (queues[c].queueCount == 0)
-        {
-            continue;
-        }
-        if (queues[c].queueFlags & vk::QueueFlagBits::eGraphics)
+        if (queues[c].queueCount && queues[c].queueFlags & vk::QueueFlagBits::eGraphics)
         {
             queueFamilyIndex_.graphics = c;
             break;
@@ -358,61 +352,54 @@ bool VkContext::prepareDevice(vk::SurfaceKHR windowSurface)
         return false;
     }
 
-    // the ideal situtaion is if the graphics and presentation queues are the
+    float queuePriority = 1.0f;
+    std::vector<vk::DeviceQueueCreateInfo> queueInfo = {
+        {{}, queueFamilyIndex_.graphics, 1, &queuePriority}};
+
+    // the ideal situation is if the graphics and presentation queues are the
     // same.
-    VkBool32 hasPresentionQueue = false;
-    VK_CHECK_RESULT(physical_.getSurfaceSupportKHR(
-        queueFamilyIndex_.graphics, windowSurface, &hasPresentionQueue));
-    if (hasPresentionQueue)
+    if (windowSurface)
     {
-        queueFamilyIndex_.present = queueFamilyIndex_.graphics;
-    }
-
-    // else use a seperate presentation queue
-    for (uint32_t c = 0; c < queues.size(); ++c)
-    {
-        VK_CHECK_RESULT(physical_.getSurfaceSupportKHR(c, windowSurface, &hasPresentionQueue));
-        if (queues[c].queueCount > 0 && hasPresentionQueue)
+        VkBool32 hasPresentionQueue = false;
+        VK_CHECK_RESULT(physical_.getSurfaceSupportKHR(
+            queueFamilyIndex_.graphics, windowSurface, &hasPresentionQueue));
+        if (hasPresentionQueue)
         {
-            queueFamilyIndex_.present = c;
-            break;
+            queueFamilyIndex_.present = queueFamilyIndex_.graphics;
         }
-    }
 
-    // presentation queue is compulsory
-    if (queueFamilyIndex_.present == VK_QUEUE_FAMILY_IGNORED)
-    {
-        SPDLOG_ERROR("Physical device does not support a presentation queue.");
-        return false;
+        // else use a seperate presentation queue
+        for (uint32_t c = 0; c < queues.size(); ++c)
+        {
+            VK_CHECK_RESULT(physical_.getSurfaceSupportKHR(c, windowSurface, &hasPresentionQueue));
+            if (queues[c].queueCount > 0 && hasPresentionQueue)
+            {
+                queueFamilyIndex_.present = c;
+                break;
+            }
+        }
+
+        // presentation queue is compulsory if a swapchain is specified
+        if (queueFamilyIndex_.present == VK_QUEUE_FAMILY_IGNORED)
+        {
+            SPDLOG_ERROR("Physical device does not support a presentation queue.");
+            return false;
+        }
+        queueInfo.emplace_back(
+            vk::DeviceQueueCreateInfo {{}, queueFamilyIndex_.present, 1, &queuePriority});
     }
 
     // compute queue
     for (uint32_t c = 0; c < queues.size(); ++c)
     {
         if (queues[c].queueCount > 0 && c != queueFamilyIndex_.present &&
-            queues[c].queueFlags & vk::QueueFlagBits::eCompute)
+            c != queueFamilyIndex_.graphics && queues[c].queueFlags & vk::QueueFlagBits::eCompute)
         {
             queueFamilyIndex_.compute = c;
+            queueInfo.emplace_back(
+                vk::DeviceQueueCreateInfo {{}, queueFamilyIndex_.compute, 1, &queuePriority});
             break;
         }
-    }
-
-    // The preference is a sepearte compute queue as this will be faster, though
-    // if not found, use the graphics queue for compute shaders
-    if (queueFamilyIndex_.compute == VK_QUEUE_FAMILY_IGNORED)
-    {
-        queueFamilyIndex_.compute = queueFamilyIndex_.graphics;
-    }
-
-    float queuePriority = 1.0f;
-    std::vector<vk::DeviceQueueCreateInfo> queueInfo = {};
-    std::set<uint32_t> uniqueQueues = {
-        queueFamilyIndex_.graphics, queueFamilyIndex_.present, queueFamilyIndex_.compute};
-
-    for (auto& queue : uniqueQueues)
-    {
-        vk::DeviceQueueCreateInfo createInfo({}, queue, 1, &queuePriority);
-        queueInfo.push_back(createInfo);
     }
 
     // enable required device features
@@ -451,20 +438,20 @@ bool VkContext::prepareDevice(vk::SurfaceKHR windowSurface)
         reqFeatures2.features.multiViewport = VK_TRUE;
     }
 
-    // a swapchain extension must be present
-    if (!findExtensionProperties(VK_KHR_SWAPCHAIN_EXTENSION_NAME, extensions))
+    std::vector<const char*> reqExtensions;
+    if (windowSurface)
     {
-        SPDLOG_ERROR("Swap chain extension not found.");
-        return false;
+        // a swapchain extension must be present
+        if (!findExtensionProperties(VK_KHR_SWAPCHAIN_EXTENSION_NAME, extensions))
+        {
+            SPDLOG_ERROR("Swap chain extension not found.");
+            return false;
+        }
+        reqExtensions.emplace_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
     }
-
-    const std::vector<const char*> reqExtensions = {
-        VK_KHR_SWAPCHAIN_EXTENSION_NAME
 #if __APPLE__
-        ,
-        "VK_KHR_portability_subset"
+    reqExtensions.emplace_back("VK_KHR_portability_subset");
 #endif
-    };
 
     vk::DeviceCreateInfo createInfo(
         {},
@@ -473,7 +460,7 @@ bool VkContext::prepareDevice(vk::SurfaceKHR windowSurface)
         static_cast<uint32_t>(requiredLayers_.size()),
         requiredLayers_.empty() ? nullptr : requiredLayers_.data(),
         static_cast<uint32_t>(reqExtensions.size()),
-        reqExtensions.data(),
+        reqExtensions.empty() ? nullptr : reqExtensions.data(),
         nullptr,
         &reqFeatures2);
 
@@ -492,9 +479,12 @@ bool VkContext::prepareDevice(vk::SurfaceKHR windowSurface)
         driverVersion,
         vendorID);
 
-    device_.getQueue(queueFamilyIndex_.compute, 0, &computeQueue_);
     device_.getQueue(queueFamilyIndex_.graphics, 0, &graphicsQueue_);
-    device_.getQueue(queueFamilyIndex_.present, 0, &presentQueue_);
+    device_.getQueue(queueFamilyIndex_.compute, 0, &computeQueue_);
+    if (queueFamilyIndex_.present != VK_QUEUE_FAMILY_IGNORED)
+    {
+        device_.getQueue(queueFamilyIndex_.present, 0, &presentQueue_);
+    }
 
     return true;
 }

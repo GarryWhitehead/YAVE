@@ -45,7 +45,12 @@ public:
     static constexpr int SsboBindPoint = 1;
     static constexpr int MaxSsboCount = 5;
 
-    explicit Compute(IEngine& engine);
+    /**
+     * Constructor
+     * @param engine An initialised Engine object.
+     * @param shaderCode A string containing the shader code to compile.
+     */
+    explicit Compute(IEngine& engine, const util::CString& shaderCode);
     ~Compute();
 
     void addStorageImage(
@@ -86,6 +91,8 @@ public:
 
     void updateGpuPush() noexcept;
 
+    void downloadSsboData(IEngine& engine, uint32_t binding, void* hostBuffer);
+
     // add a previously declared ssbo as a reader/writer to another compute shader - must have been
     // declared/written to in a separate dispatch call.
     void copySsbo(
@@ -97,7 +104,7 @@ public:
         const std::string& toAliasName,
         bool destroy = false);
 
-    vkapi::ShaderProgramBundle* build(IEngine& engine, const std::string& compShader);
+    vkapi::ShaderProgramBundle* build(IEngine& engine);
 
 private:
     std::unique_ptr<StorageBuffer> ssbos_[MaxSsboCount];

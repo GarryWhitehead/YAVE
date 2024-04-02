@@ -18,9 +18,17 @@ class VkSceneEditor3dPackage(ConanFile):
         "shared": [True, False],
         "fPIC": [True, False],
         "with_validation_layers": [True, False],
+        "build_tests" : [True, False],
         "verbose": [True, False]
     }
-    default_options = {"shared": False, "fPIC": True, "with_validation_layers": True, "verbose": False}
+    default_options = {
+        "shared": False, 
+        "fPIC": True, 
+        "with_validation_layers": True, 
+        "build_tests": True, 
+        "verbose": False
+        }
+
     generators = "CMakeDeps"
     _cmake = None
 
@@ -47,6 +55,9 @@ class VkSceneEditor3dPackage(ConanFile):
         self.requires("imgui/1.89.4")
         self.requires("ktx/4.0.0")
 
+        if self.options.build_tests:
+            self.requires("gtest/1.14.0")
+
         if self.settings.os == "Macos":
             self.requires("moltenvk/1.2.2")
 
@@ -60,6 +71,7 @@ class VkSceneEditor3dPackage(ConanFile):
         tc.variables["WITH_VALIDATION_LAYERS"] = self.options.with_validation_layers
         tc.variables["BUILD_SHARED"] = self.options.shared
         tc.variables["VERBOSE_OUTPUT"] = self.options.verbose
+        tc.variables["BUILD_TESTS"] = self.options.build_tests
         tc.generate()
 
     def build(self):

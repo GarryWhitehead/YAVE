@@ -31,7 +31,7 @@
 namespace yave
 {
 
-Compute::Compute(IEngine& engine)
+Compute::Compute(IEngine& engine, const util::CString& shaderStr)
 {
     ubo_ = std::make_unique<UniformBuffer>(
         vkapi::PipelineCache::UboSetValue, UboBindPoint, "ComputeUbo", "compute_ubo");
@@ -39,6 +39,7 @@ Compute::Compute(IEngine& engine)
     pushBlock_ = std::make_unique<PushBlock>("PushBlock", "push_params");
 
     bundle_ = engine.driver().progManager().createProgramBundle();
+    bundle_->buildShader(shaderStr, backend::ShaderStage::Compute);
 }
 Compute::~Compute() = default;
 
@@ -99,6 +100,9 @@ void Compute::addSsbo(
     bool destroy)
 {
     ASSERT_FATAL(binding < MaxSsboCount, "Binding out of range.");
+    // For now, you must specify an array size for ssbo's in compute shaders.
+    ASSERT_FATAL(outerArraySize, "The data array size must be specified.");
+
     std::string bufferName = "SsboBuffer" + std::to_string(binding);
     if (ssbos_[binding] && destroy)
     {
@@ -143,7 +147,7 @@ void Compute::copySsbo(
             SsboBindPoint + toId,
             toSsboName,
             toAliasName);
-        ssbos_[toId]->copyFrom(*fromCompute.ssbos_[fromId]);
+        *ssbos_[toId] = *fromCompute.ssbos_[fromId];
     }
 }
 
@@ -168,12 +172,17 @@ void Compute::updateGpuPush() noexcept
     }
 }
 
-vkapi::ShaderProgramBundle* Compute::build(IEngine& engine, const std::string& compShader)
+void Compute::downloadSsboData(IEngine& engine, uint32_t binding, void* hostBuffer)
+{
+    ASSERT_FATAL(binding < MaxSsboCount, "Binding of %i is out of range.", binding);
+    ASSERT_FATAL(ssbos_[binding], "Ssbo at binding %i is not initialised.", binding);
+    ssbos_[binding]->downloadToHost(engine, hostBuffer, ssbos_[binding]->size());
+}
+
+vkapi::ShaderProgramBundle* Compute::build(IEngine& engine)
 {
     auto& manager = engine.driver().progManager();
     auto& driver = engine.driver();
-
-    bundle_->buildShaders(compShader);
 
     auto* program = bundle_->getProgram(backend::ShaderStage::Compute);
 
@@ -182,7 +191,7 @@ vkapi::ShaderProgramBundle* Compute::build(IEngine& engine, const std::string& c
     {
         program->addAttributeBlock(ubo_->createShaderStr());
         ubo_->createGpuBuffer(driver);
-        ubo_->mapGpuBuffer(ubo_->getBlockData());
+        ubo_->mapGpuBuffer(driver, ubo_->getBlockData());
     }
     auto params = ubo_->getBufferParams(driver);
     bundle_->addDescriptorBinding(params.size, params.binding, params.buffer, params.type);
@@ -199,7 +208,7 @@ vkapi::ShaderProgramBundle* Compute::build(IEngine& engine, const std::string& c
             void* data = ssbo->getBlockData();
             if (data)
             {
-                ssbo->mapGpuBuffer(data);
+                ssbo->mapGpuBuffer(driver, data);
             }
 
             params = ssbo->getBufferParams(driver);

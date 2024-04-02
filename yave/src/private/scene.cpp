@@ -366,14 +366,14 @@ void IScene::updateTransformBuffer(
     if (staticCount > 0)
     {
         size_t staticDataSize = staticModelCount * staticDynAlign;
-        transUbo_->mapGpuBuffer(transPtr, staticDataSize);
+        transUbo_->mapGpuBuffer(driver, transPtr, staticDataSize);
         util::align_free(transPtr);
     }
 
     if (skinnedCount > 0)
     {
         size_t skinnedDataSize = skinnedModelCount * skinDynAlign;
-        skinUbo_->mapGpuBuffer(skinPtr, skinnedDataSize);
+        skinUbo_->mapGpuBuffer(driver, skinPtr, skinnedDataSize);
         util::align_free(skinPtr);
     }
 }
