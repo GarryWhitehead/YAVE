@@ -36,10 +36,10 @@ function(yave_add_compiler_flags)
         )
 
         # clang/gcc specific flags
-        if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+        if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
             list(APPEND compile_options -Wreturn-local-addr -Werror=return-local-addr)
-        elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-            list(APPEND compile_options -Wreturn-stack-address  -Werror=return-stack-address)
+        #elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+        #    list(APPEND compile_options -Wreturn-stack-address  -Werror=return-stack-address)
         endif()
 
     endif()
