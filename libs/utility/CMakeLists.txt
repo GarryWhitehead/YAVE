@@ -29,6 +29,7 @@ target_sources(
     src/utility/handle.h
     src/utility/assertion.h
     src/utility/aligned_alloc.h
+    src/utility/soa.h
 )
 
 # add common compiler flags
@@ -45,6 +46,7 @@ if (BUILD_TESTS)
     set (test_srcs
         test/main_test.cpp
         test/cstring_test.cpp
+        test/soa_test.cpp
     )
 
     add_executable(UtilityTest ${test_srcs})

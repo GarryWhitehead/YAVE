@@ -21,6 +21,8 @@
  */
 
 #pragma once
+#include "assertion.h"
+
 #include <cassert>
 #if defined(_MSC_VER) || defined(__MINGW32__)
 #include <stdlib.h>
